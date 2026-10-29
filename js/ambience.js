@@ -63,7 +63,7 @@ function updateAmbience(dt){if(!AC||!LV)return;initAmbience();if(!AMB)return;con
   S_(AMB.wf.g,.55*wv);S_(AMB.wf2.g,.09*wv);if(AMB.wpan&&wf)AMB.wpan.pan.setTargetAtTime(ambPan(wf.x,wf.z)*(1-wv*.7),t,.3);
   // volcano (only where the level has eruptions) or wind (def.wind): both grow with zone k
   const vol_=def.erupt?1:0;S_(AMB.rum.g,.16*k*vol_+(ERU.phase?.1:0));S_(AMB.hiss.g,.02*k*vol_);
-  S_(AMB.wind.g,def.wind?.09*snowW*(.65+.35*Math.sin(insT*.41)+.15*Math.sin(insT*1.7)):0);
+  S_(AMB.wind.g,def.wind?.09*Math.max(snowW,(B.desert||0)*.7)*(.65+.35*Math.sin(insT*.41)+.15*Math.sin(insT*1.7)):0);   // wind over the snow, and over the sand in a desert
   // beach: surf swelling and fading
   S_(AMB.waves.g,.16*beach*(.55+.45*Math.sin(insT*.62)));
   // swamp: frogs; the base: hammer blows from the workshop

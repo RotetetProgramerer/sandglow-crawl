@@ -304,3 +304,38 @@ body.is-touch #boatHud.two #bPauseB{bottom:auto;transform:none}
 /* a dialog taller than the screen (the boat menu on a phone held sideways) starts at the top, so nothing is cut off above */
 #boatMenu,#boatPause,#result{align-items:start}
 @supports (align-items:safe center){#boatMenu,#boatPause,#result{align-items:safe center}}
+
+/* ---------- Diamantgrotten (js/grotte.js): fuel and distance top left, the name of the place in the middle, diamonds top right, pedals in the corners ---------- */
+#caveHud{position:fixed;inset:0;z-index:10;pointer-events:none}
+.cv-top{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));display:flex;flex-direction:column;gap:6px}
+.cv-fuel{width:170px}
+.cv-bar{height:12px;background:var(--ink);border:1px solid rgba(242,232,208,.25);overflow:hidden}
+.cv-bar i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#d9432f,#e5a92b 35%,#8bbb4a);transition:width .15s}
+.cv-bar.low{animation:cvlow .7s infinite}@keyframes cvlow{50%{border-color:var(--signal);box-shadow:0 0 10px var(--signal)}}
+.cv-dist b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.5rem;line-height:1;color:var(--sand)}
+.cv-dist small:last-child{margin:4px 0 0}
+.cv-zone{position:absolute;left:50%;top:calc(12px + env(safe-area-inset-top,0px));transform:translateX(-50%);font-family:var(--f-display);font-size:clamp(1.1rem,3.2vw,1.7rem);color:var(--paper);
+  background:linear-gradient(180deg,#3a3f46,#22262b);border:2px solid #14120E;border-radius:6px;padding:4px 18px 3px;box-shadow:inset 0 2px 0 rgba(255,255,255,.12),0 3px 0 #14120E;white-space:nowrap;opacity:.92}
+.cv-zone.on{animation:cvzone 2.4s}@keyframes cvzone{0%{transform:translateX(-50%) scale(1.25);color:var(--sand)}25%{transform:translateX(-50%) scale(1)}70%{color:var(--sand)}100%{color:var(--paper)}}
+.cv-gems{position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:max(66px,calc(env(safe-area-inset-right,0px) + 66px));display:flex;align-items:center;gap:8px;border-left:4px solid #7fe8ff}
+.cv-gems svg{width:30px;height:30px}
+.cv-gems b{display:block;font-family:var(--f-display);font-weight:400;font-size:1.6rem;line-height:1;color:#bff4ff}
+.cv-gems small{margin:2px 0 0}
+.cv-gems.pulse svg{animation:cvpulse .35s}@keyframes cvpulse{40%{transform:scale(1.35) rotate(-8deg)}}
+#cvPause{position:absolute;pointer-events:auto;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+#cvDials{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(8px + env(safe-area-inset-bottom,0px));width:240px;height:90px}
+.cv-notice{position:absolute;top:30%;left:50%;transform:translateX(-50%);font-family:var(--f-display);font-size:clamp(1.5rem,4.4vw,2.5rem);color:var(--sand);text-shadow:0 2px 0 var(--ink),0 0 18px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;white-space:nowrap}
+.cv-notice.on{opacity:1}.cv-notice.bad{color:var(--signal)}
+#caveHud .toast{top:42%}
+/* the pedals: grey metal with ridges, like a car's. They work with the mouse too */
+.tb.pedal{position:absolute;pointer-events:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:86px;height:112px;border-radius:12px;border:3px solid #14120E;
+  background:linear-gradient(180deg,#8a8580,#5a5650 60%,#45413c);box-shadow:0 5px 0 #14120E,inset 0 2px 0 rgba(255,255,255,.25);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;padding:12px 0 10px;transition:transform .05s}
+.tb.pedal i{display:block;width:64%;height:7px;border-radius:4px;background:#2f2c28;box-shadow:inset 0 1px 0 rgba(0,0,0,.5),0 1px 0 rgba(255,255,255,.2)}
+.tb.pedal span{font-weight:700;letter-spacing:.12em;font-size:.82rem;color:#f2e8d0;text-shadow:0 1px 0 #14120E}
+.tb.pedal.brk{left:max(14px,env(safe-area-inset-left,0px));width:96px;height:88px}
+.tb.pedal.gas{right:max(14px,env(safe-area-inset-right,0px))}
+.tb.pedal.on{background:linear-gradient(180deg,#f2c230,#e5a92b 60%,#b8811a);transform:translateY(4px);box-shadow:0 1px 0 #14120E}
+.tb.pedal.on span{color:var(--ink);text-shadow:none}
+body:not(.is-touch) .tb.pedal{opacity:.8;transform:scale(.8);transform-origin:bottom}
+body:not(.is-touch) .tb.pedal.on{transform:scale(.8) translateY(4px)}
+@media (max-width:620px){.cv-fuel{width:120px}.cv-dist b{font-size:1.2rem}.cv-zone{top:calc(124px + env(safe-area-inset-top,0px))}#cvDials{width:180px;height:68px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}.cv-gems b{font-size:1.3rem}}

@@ -8,7 +8,7 @@ const load=f=>vm.runInThisContext(fs.readFileSync(path.join(root,f),'utf8'),{fil
 load('js/core.js');load('js/props.js');
 // elementene i js/props/, i samme rekkefølge som i index.html
 for(const m of fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="(js\/props\/[^"]+\.js)"/g))load(m[1]);
-load('js/skier.js');load('data/parts.js');load('data/cars.js');load('data/vegetasjon.js');load('data/dyr.js');load('data/savanne.js');
+load('js/skier.js');load('data/parts.js');load('data/cars.js');load('data/vegetasjon.js');load('data/dyr.js');load('data/savanne.js');load('data/orken.js');
 // same levels and order as the game: the <script> tags in index.html
 const levelFiles=[...fs.readFileSync(path.join(root,'index.html'),'utf8').matchAll(/<script src="(data\/levels\/[^"]+\.js)"/g)].map(m=>m[1]);
 for(const f of fs.readdirSync(path.join(root,'data/levels')).filter(f=>f.endsWith('.js')))if(!levelFiles.includes('data/levels/'+f))console.log('ADVARSEL: data/levels/'+f+' mangler i index.html og er ikke med i spillet');
@@ -41,6 +41,15 @@ function airportTest(def,lv){const A=lv.airportDef,car=makeCar(TCAR);car.assist=
     const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);
     if(car.depth>0)fell++;if(car.up.y<.2){console.log(def.id.padEnd(14),'FLYPLASS FEIL: velt ved',car.pos.x.toFixed(1),car.pos.z.toFixed(1));return}}
   const ok=wp>=pts.length;console.log(def.id.padEnd(14),'FLYPLASS',ok?'OK  ':'FEIL','veien og inn på den blå ruta'+(ok?' tid '+t.toFixed(0)+'s':' (stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+')'),'vann',fell)}
+// Kameløya: from outside the slot, along it and into the cave mouth (lv.caveDef), then back out again from where the cave puts you
+function caveTest(def,lv){const D=lv.caveDef,P=def.cavePath;if(!P)return;for(const back of[false,true]){const car=makeCar(TCAR);car.assist=false;car.low=true;
+  let io=0;P.forEach((p,i)=>{if(Math.hypot(p[0]-D.out.x,p[1]-D.out.z)<Math.hypot(P[io][0]-D.out.x,P[io][1]-D.out.z))io=i});   // back out: the slot from where the cave puts you
+  const pts=(back?P.slice(0,io).reverse():P.slice(1)).map(p=>({x:p[0],z:p[1]}));if(!back)pts.push(D.mouth);const from=back?D.out:{x:P[0][0],z:P[0][1]};
+  placeCar(car,from.x,from.z,back?D.out.h:Math.atan2(pts[0].x-from.x,pts[0].z-from.z));for(let i=0;i<480;i++)stepCar(car,dt);let wp=0,t=0;
+  for(let i=0;i<240*40;i++){const w=pts[wp],dx=w.x-car.pos.x,dz=w.z-car.pos.z,d=Math.hypot(dx,dz);if(d<(wp===pts.length-1?(back?1.2:D.r):1)){wp++;if(wp>=pts.length){t=i*dt;break}continue}
+    const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);
+    if(car.up.y<.2){console.log(def.id.padEnd(14),'GROTTE   FEIL: velt ved',car.pos.x.toFixed(1),car.pos.z.toFixed(1));break}}
+  const ok=wp>=pts.length;console.log(def.id.padEnd(14),'GROTTE  ',ok?'OK  ':'FEIL',back?'ut av kløfta':'gjennom kløfta og inn i grotteåpningen',ok?'tid '+t.toFixed(0)+'s':'(stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+')')}}
 // skis one piste with an autopilot: aims a little way down the line, brakes above a target speed, never spins in the air
 const SKI_TARGET={fri:4,slalom:4.2,utfor:8.5,hopp:7.5};
 function skiTest(def,lv,k){const s=makeSkier(),run=makeSkiRun(k),tgt=SKI_TARGET[k.kind]||5;placeSkier(s,k.start.p.x,k.start.p.z,Math.atan2(k.start.tan.x,k.start.tan.z));
@@ -91,6 +100,7 @@ for(const def of LEVELS){
   if(lv.ferry)villageTest(def,lv);
   if(lv.marinaDef)marinaTest(def,lv);
   if(lv.airportDef)airportTest(def,lv);
+  if(lv.caveDef)caveTest(def,lv);
   for(const k of(lv.pistes||[]))skiTest(def,lv,k);
   if(def.world){for(const k of lv.courses)drive(def,lv,k,def.id+'/'+k.id);continue}   // an open world: every course on its own
   drive(def,lv,lv,def.id);

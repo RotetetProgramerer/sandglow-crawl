@@ -301,17 +301,27 @@ function genLevel(def){
       paint(vx,vz,5.4,S.GRAVEL);
       const at=(f,s)=>[vx+dx*f+px*s,vz+dz*f+pz*s];
       // houses around the square, facing it
-      const cols=['#c8463a','#e5a92b','#4f7bb5','#e9dcb9','#5e8a4a','#b06a3a'],roofs=o.snow?['#eef2f6','#e4eaef','#f4f6f8']:['#4a3a32','#2f2a28','#5a3a2a'];   // o.snow: snow on the roofs
+      const cols=o.desert?['#efe6d2','#e2d2b0','#f4efe4','#d9c49a','#e8dcc4','#cdb48a']:['#c8463a','#e5a92b','#4f7bb5','#e9dcb9','#5e8a4a','#b06a3a'],roofs=o.snow?['#eef2f6','#e4eaef','#f4f6f8']:['#4a3a32','#2f2a28','#5a3a2a'];   // o.snow: snow on the roofs
       const house=(f,s,ry,i,big)=>{const [hx,hz]=at(f,s);house2(hx,hz,ry,i,big)};
       const yaw=Math.atan2(dx,dz);           // facing the sea
       // a house: walls, two roof slabs (ridge along the house), chimney, door, windows
       const house2=(hx,hz,ry,i,big)=>{const W=big?2.4:1.7,D=big?1.9:1.4,Hh=big?1.2:1.0,col=cols[i%cols.length],rc=roofs[i%roofs.length];
+        if(o.desert)return deserthouse(hx,hz,ry,i,big,W,D,Hh,col);
         c.box(hx,padH,hz,W,Hh,D,col,ry);c.box(hx,padH,hz,W+.1,.08,D+.1,'#3a3a3a',ry);
         // the roof slabs sit on the wall tops (before, the wall corners poked through), and the attic is a prism that closes the gables
         for(const sd of[-1,1]){const o2=sd*W*.25;c.box(hx+Math.cos(ry)*o2,padH+Hh+.05+W*.179-.035,hz-Math.sin(ry)*o2,W*.64,.07,D+.3,rc,ry,{rz:-sd*.62})}
         {const hr=W*.358;c.prisms.push({x:hx,y:padH+Hh+hr/3,z:hz,sx:W/1.732,sy:D,sz:hr/1.5,rx:-Math.PI/2,ry,ord:'YXZ',c:col})}
         c.box(hx+Math.cos(ry)*W*.3,padH+Hh+.2,hz-Math.sin(ry)*W*.3,.22,.55,.22,'#6b5a52',ry);c.box(hx+Math.sin(ry)*D/2,padH,hz+Math.cos(ry)*D/2,.42,.72,.04,'#3a2a22',ry);
         for(const sx2 of[-.45,.45])c.box(hx+Math.sin(ry)*D/2+Math.cos(ry)*sx2*W,padH+.45,hz+Math.cos(ry)*D/2-Math.sin(ry)*sx2*W,.32,.3,.03,'#1a262d',ry);c.colliders.push({x:hx,z:hz,r:Math.max(W,D)*.62,anchor:true,y:padH+.4})};
+      // o.desert: whitewashed houses with flat roofs and a low wall round the roof, blue doors and shutters; the big one has a dome
+      const deserthouse=(hx,hz,ry,i,big,W,D,Hh,col)=>{const cs=Math.cos(ry),sn=Math.sin(ry),at2=(lx,lz)=>[hx+lx*cs+lz*sn,hz-lx*sn+lz*cs],blue=['#2f6fb0','#3a8ac0','#2a5a8a'][i%3];
+        c.box(hx,padH,hz,W,Hh,D,col,ry);c.box(hx,padH,hz,W+.08,.1,D+.08,'#b8a07a',ry);c.box(hx,padH+Hh,hz,W+.06,.06,D+.06,col,ry);
+        for(const[lx,lz,w2,d2]of[[0,D/2,W+.06,.08],[0,-D/2,W+.06,.08],[W/2,0,.08,D],[-W/2,0,.08,D]]){const[qx2,qz2]=at2(lx,lz);c.box(qx2,padH+Hh+.06,qz2,w2,.14,d2,col,ry)}   // the low wall round the roof
+        {const[dx2,dz2]=at2(0,D/2+.01);c.box(dx2,padH,dz2,.42,.74,.04,blue,ry)}
+        for(const sx2 of[-.45,.45]){const[wx,wz]=at2(sx2*W,D/2+.01);c.box(wx,padH+.45,wz,.3,.3,.03,'#1a262d',ry);const[sx3,sz3]=at2(sx2*W-Math.sign(sx2)*.2,D/2+.006);c.box(sx3,padH+.43,sz3,.08,.34,.02,blue,ry)}
+        if(big){for(let k=0;k<4;k++)c.cyl(hx,padH+Hh+.1+k*.13,hz,.62-k*k*.045,.14,k<3?'#f4efe4':'#e5a92b');c.cyl(hx,padH+Hh+.62,hz,.04,.3,'#e5a92b')}   // the dome with a golden tip
+        else{const[px2,pz2]=at2(W*.28,-D*.2);c.box(px2,padH+Hh+.06,pz2,.36,.3,.36,col,ry)}   // a little room on the roof
+        c.colliders.push({x:hx,z:hz,r:Math.max(W,D)*.62,anchor:true,y:padH+.4})};
       // the four small houses flank the street out of the village (o.out), the big ferry office stands by the pier
       const oa=(o.out??(a/Math.PI*180+180))*Math.PI/180,ox=Math.cos(oa),oz=Math.sin(oa),qx=-oz,qz=ox,yawO=Math.atan2(-ox,-oz);
       const houseO=(f,s,ry,i)=>house2(vx+ox*f+qx*s,vz+oz*f+qz*s,ry,i);

@@ -10,7 +10,7 @@
 const SEA={span:3600,bound:2100,
   // øyene i skjærgården: radius (kollisjon) og utseende (se bIsland i js/boat.js)
   islands:{verden:{r:280,look:'tromoya'},vulkan:{r:170,look:'vulkan'},gautefall:{r:160,look:'vinter'},trinnvik:{r:140,look:'by'},
-    sand:{r:150,look:'sand'},savanne:{r:150,look:'savanne'},stein:{r:140,look:'stein'},skog:{r:160,look:'skog'},elv:{r:150,look:'elv'},kaiman:{r:110,look:'skog'}},
+    sand:{r:150,look:'sand'},savanne:{r:150,look:'savanne'},stein:{r:140,look:'stein'},skog:{r:160,look:'skog'},elv:{r:150,look:'elv'},kaiman:{r:110,look:'skog'},orken:{r:150,look:'orken'}},
   extra:[{id:'skilso',name:'Skilsø',at:[-660,-620],r:150,look:'skilso'}],
   // bryggene: hvilken øy, retningen ut fra øya i grader (0 = øst, 90 = sør, 180 = vest, 270 = nord), navnet og «Kurs mot …»
   docks:{marina:{island:'verden',dir:315,name:'Marinaen',to:'marinaen'},skilso:{island:'skilso',dir:270,name:'Brygga på Skilsø',to:'Skilsø'}},

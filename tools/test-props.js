@@ -9,7 +9,7 @@ const load=f=>vm.runInThisContext(fs.readFileSync(path.join(root,f),'utf8'),{fil
 load('js/core.js');load('js/props.js');
 const html=fs.readFileSync(path.join(root,'index.html'),'utf8');
 for(const m of html.matchAll(/<script src="(js\/props\/[^"]+)\.js"/g))load(m[1]+'.js');
-load('js/skier.js');load('data/vegetasjon.js');load('data/dyr.js');load('data/savanne.js');
+load('js/skier.js');load('data/vegetasjon.js');load('data/dyr.js');load('data/savanne.js');load('data/orken.js');
 for(const m of html.matchAll(/<script src="(data\/levels\/[^"]+)\.js"/g))load(m[1]+'.js');
 const only=process.argv[2],GAP=.04,MAXGAP=.6;
 

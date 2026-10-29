@@ -129,6 +129,22 @@
   <div class="toast" id="boatToast"></div>
 </div>
 
+<!-- DIAMANTGROTTEN (js/grotte.js): the secret cave on Kameløya, seen from the side -->
+<div id="caveHud" hidden>
+  <div class="cv-top">
+    <div class="bbox cv-fuel"><small>Bensin</small><div class="cv-bar"><i id="cvFuel"></i></div></div>
+    <div class="bbox cv-dist"><small>Avstand</small><b id="cvDist">0 m</b><small id="cvBest"></small></div>
+  </div>
+  <div class="cv-zone" id="cvZone">Diamantgrotten</div>
+  <div class="bbox cv-gems" id="cvGemBox"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12l4 6-10 12L2 9z" fill="#9fe8ff" stroke="#14120E" stroke-width="1.5" stroke-linejoin="round"/><path d="M2 9h20M8 3l4 18 4-18M6 3l2 6m10-6-2 6" fill="none" stroke="#14120E" stroke-width="1" stroke-linejoin="round" opacity=".55"/></svg><span><b id="cvGems">0</b><small id="cvNuts">= 0 ⚙</small></span></div>
+  <button class="ib" id="cvPause" aria-label="Pause (Esc)" title="Pause (Esc)"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+  <canvas id="cvDials" width="320" height="120" aria-hidden="true"></canvas>
+  <div class="cv-notice" id="cvNotice" aria-live="polite"></div>
+  <div class="toast" id="cvToast"></div>
+  <button class="tb pedal brk" data-t="rev" aria-label="Brems og revers (← eller S)"><i></i><i></i><i></i><span>BREMS</span></button>
+  <button class="tb pedal gas" data-t="gas" aria-label="Gass (→ eller W)"><i></i><i></i><i></i><span>GASS</span></button>
+</div>
+
 <!-- MENU -->
 <canvas id="spray" aria-hidden="true"></canvas>
 <section class="overlay menu" id="menu">
@@ -176,6 +192,7 @@
       <dt>På ski</dt><dd>Gautefall: ← → sving (jevnt for carving), ↓ plog, ↓ og sving hockeystopp, ↑ stavtak og hockestilling, mellomrom hopp, C kamera</dd>
       <dt>Med båt</dt><dd>Marinaen på Tromøya: WASD eller piltastene. To spillere deler tastaturet.</dd>
       <dt>Med fly</dt><dd>Flyplassen på Trinnvik: W/↑ gass og stig, S/↓ sink og brems, A/D eller ←/→ sving, mellomrom full fart.</dd>
+      <dt>I grotten</dt><dd>Kameløya: → eller W gass, ← eller S brems og revers. I lufta tipper gass nesa opp og brems nesa ned.</dd>
     </dl>
   </div>
 </section>
@@ -297,6 +314,7 @@
       <li><b>Kjør båtløp</b> fra Captain Theis' marina nordøst på øya: parker på den blå ruta.</li>
       <li><b>Fly</b> fra flyplassen øst på Trinnvik: parker på den blå ruta ved flyet.</li>
       <li><b>Pass deg for dyrene på Løveøya.</b> Løver, geparder og krokodiller angriper hvis du kommer for nær.</li>
+      <li><b>Hopp på sanddynene på Kameløya,</b> og let etter den hemmelige grotten. Der inne er hver diamant verdt 10 muttere.</li>
       <li><b>Sitter du fast?</b> Lavt gir (G), vinsj (R) eller «Hent bilen» i pausemenyen (Esc).</li>
     </ul>
     <button class="go" id="helpOk">Kjør!</button>
@@ -349,6 +367,24 @@
       <li><b>Ringene:</b> fly gjennom dem i rekkefølge. Kompasset og minikartet viser hvor neste er.</li>
       <li><b>Lande:</b> kom rolig ned med vingene vannrett, gjerne på rullebanen. Brems med S eller ↓.</li>
       <li><b>De andre:</b> i «Kjør sammen» ser du båtene og flyene til de andre i rommet.</li>
+    </ul>
+  </div>
+</section>
+
+<!-- THE PAUSE IN DIAMANTGROTTEN (js/grotte.js) -->
+<section class="overlay dialog" id="cvPauseMenu" hidden>
+  <div class="sheet">
+    <h2>Pause</h2>
+    <button class="go" id="cvpResume">Fortsett</button>
+    <div class="row"><button class="ghost" id="cvpFetch">Til sjekkpunktet</button><button class="ghost" id="cvpRestart">Fra inngangen</button></div>
+    <div class="row"><button class="ghost" id="cvpOut">Kjør ut av grotten</button><button class="ghost" id="cvpSound">Lyd: på</button></div>
+    <ul class="log">
+      <li><b>Gass:</b> → eller W, eller GASS-pedalen. I lufta tipper gassen nesa opp.</li>
+      <li><b>Brems og revers:</b> ← eller S, eller BREMS-pedalen. I lufta tipper bremsen nesa ned.</li>
+      <li><b>Diamanter:</b> 1 diamant er 10 muttere. Innerst i grotten ligger skattkammeret.</li>
+      <li><b>Bensin:</b> plukk opp de røde kannene. Er tanken tom, blir du tauet ut.</li>
+      <li><b>Velter du</b> eller faller ned i et juv, starter du ved siste lykt.</li>
+      <li><b>Lett modus:</b> bilen lander alltid på hjulene. <b>Ekte modus:</b> du styrer selv i lufta, og hver salto gir 5 muttere.</li>
     </ul>
   </div>
 </section>
@@ -407,8 +443,10 @@
 <script src="js/skier.js"></script>
 <script src="js/boatsim.js"></script>
 <script src="js/planesim.js"></script>
+<script src="js/grottesim.js"></script>
 <script src="js/animals.js"></script>
 <script src="js/savannedyr.js"></script>
+<script src="js/orkendyr.js"></script>
 <script src="js/ambience.js"></script>
 <script src="js/map.js"></script>
 
@@ -418,9 +456,11 @@
 <script src="data/archipelago.js"></script>
 <script src="data/boats.js"></script>
 <script src="data/flights.js"></script>
+<script src="data/grotte.js"></script>
 <script src="data/vegetasjon.js"></script>
 <script src="data/dyr.js"></script>
 <script src="data/savanne.js"></script>
+<script src="data/orken.js"></script>
 <script src="data/levels/01-sand.js"></script>
 <script src="data/levels/02-stein.js"></script>
 <script src="data/levels/03-skog.js"></script>
@@ -431,6 +471,7 @@
 <script src="data/levels/09-kaiman.js"></script>
 <script src="data/levels/10-verden.js"></script>
 <script src="data/levels/11-savanne.js"></script>
+<script src="data/levels/12-orken.js"></script>
 
 <!-- Spillet -->
 <script src="js/game.js"></script>
@@ -440,6 +481,7 @@
 <script src="js/skiresort.js"></script>
 <script src="js/boat.js"></script>
 <script src="js/plane.js"></script>
+<script src="js/grotte.js"></script>
 <script src="js/net.js"></script>
 <script>startGame()</script>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});</script>

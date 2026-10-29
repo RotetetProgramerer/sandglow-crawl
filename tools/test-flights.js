@@ -10,7 +10,7 @@ global.LEVELS=[];load('data/archipelago.js');load('data/boats.js');load('data/fl
 const only=process.argv[2],verbose=process.argv[3]==='v';
 const isl=seaIslands(),A=airSea();
 // how high the islands reach (roughly the tallest thing on each, as js/boat.js draws them) and how far out
-const TOP={tromoya:190,vulkan:190,vinter:165,by:125,sand:40,stein:90,skog:70,elv:40,skilso:100,savanne:60};
+const TOP={tromoya:190,vulkan:190,vinter:165,by:125,sand:40,stein:90,skog:70,elv:40,skilso:100,savanne:60,orken:70};
 function ground(x,z){let h=2,water=true;
   for(const I of isl){const d=Math.hypot(x-I.x,z-I.z);if(d<I.r){water=false;h=Math.max(h,8+(TOP[I.look]-8)*Math.max(0,1-d/I.r)*1.2)}}
   const L=A.land;if(x>=L.x0&&x<=L.x1&&z>=L.z0&&z<=L.z1){water=false;h=Math.max(h,A.top)}

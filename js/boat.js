@@ -109,6 +109,12 @@ function bIsland(I,R){const g=new THREE.Group(),r=I.r,look=I.look;g.position.set
     around(16,r*.15,r*.78,(x,z)=>{const s=.8+R()*.6;bAdd(g,new THREE.CylinderGeometry(.9*s,1.3*s,12*s,5),bStd(0x5a4636),x,8+6*s,z);bAdd(g,new THREE.CylinderGeometry(9*s,7*s,2.4*s,9),bStd(0x6f8a3a),x,8+12.5*s,z)});
     bAdd(g,new THREE.CylinderGeometry(6,8,18,8),bStd(0x9a8678),r*.15,17,-r*.45);bAdd(g,new THREE.IcosahedronGeometry(7,0),bStd(0x6a8a3a),r*.15,29,-r*.45);
     bAdd(g,new THREE.CylinderGeometry(r*.2,r*.2,.6,16),bStd(0x5a7a5c,{flatShading:false,roughness:.2}),r*.3,8.2,r*.05,false);top=60}
+  else if(look==='orken'){bAdd(g,new THREE.CylinderGeometry(r-16,r-4,8,13),bStd(0xe2bf82),0,4,0);   // Kameløya: the dunes, the oasis with palms, the red sandstone mountain and the little pyramid
+    around(14,r*.25,r*.8,(x,z,i)=>{const d=bAdd(g,new THREE.SphereGeometry(1,10,6,0,Math.PI*2,0,Math.PI/2),bStd([0xe8c48a,0xdcb478,0xf0d098][i%3]),x,8,z);d.scale.set(16+R()*14,6+R()*9,9+R()*6);d.rotation.y=R()*.6});
+    const mx=-r*.32,mz=r*.15;bAdd(g,new THREE.CylinderGeometry(r*.2,r*.25,26,9),bStd(0xb0704a),mx,20,mz);bAdd(g,new THREE.CylinderGeometry(r*.21,r*.21,2,9),bStd(0x9a5e3c),mx,33,mz,false);
+    bAdd(g,new THREE.CylinderGeometry(r*.11,r*.11,.6,14),bStd(0x3f9aa0,{flatShading:false,roughness:.2}),r*.05,8.3,-r*.06,false);
+    around(9,r*.12,r*.2,(x,z)=>{const p=bPalm(.9+R()*.4);p.position.set(x+r*.05,8,z-r*.06);p.rotation.y=R()*6;g.add(p)});
+    const py=bAdd(g,new THREE.ConeGeometry(22,24,4),bStd(0xd2b07a),-r*.12,20,r*.48);py.rotation.y=.4;top=70}
   else if(look==='skilso')top=bSkilso(g,I,R);
   // rocks along the shore
   if(look!=='by'){const n=4+Math.floor(R()*5);for(let i=0;i<n;i++){const a=R()*Math.PI*2,k=bRock(5+R()*10,R,look==='vulkan'?0x3e3a38:0x6f6a66);k.position.set(Math.cos(a)*r*(.92+R()*.1),0,Math.sin(a)*r*(.92+R()*.1));g.add(k)}}

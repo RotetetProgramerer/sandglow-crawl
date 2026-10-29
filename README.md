@@ -12,6 +12,7 @@ js/props.js           Planter, trær, lykter og dyr du setter ut ett og ett (c.p
 js/game.js            Spillet: grafikk, kamera, lyd, meny, garasje, poeng.
 js/animals.js         Dyr (papegøyer, apekatter, kaimaner, jaguar, frosker og flere) og den rullende steinen.
 js/savannedyr.js      Dyrene på Løveøya: løver, geparder og krokodiller som angriper, flokkene som flykter og gribbene.
+js/orkendyr.js        Kamelene på Kameløya: flokker som beiter og går unna bilen, og karavanen med beduinen som leder den.
 js/ambience.js        Jungellyd laget med WebAudio (ingen lydfiler).
 js/skier.js           Fysikken for skiløperen i Gautefall: carving, skrens, hockeystopp, hopp og landing (ingen DOM, testes uten nettleser).
 js/ski.js             Skianlegget i spillet: stolheisen, skiløperen (modell og stillinger), turen opp og ned, kamera, mellomtider, spøkelset og lyd.
@@ -20,7 +21,9 @@ js/skiresort.js       Livet i skianlegget: kordfløyel og is på løypene, gamle
 js/boatsim.js         Fysikken for motorbåtløpet: båtene, bøyene, piratene og vulkanen (ingen DOM, testes uten nettleser).
 js/boat.js            Motorbåtløpet fra marinaen på Tromøya: havet, øyene, båtene, delt skjerm, HUD, lyd og løp mot andre i rommet.
 js/planesim.js        Flyfysikken: avgang, flyging, landing, krasj og ringene (ingen DOM, testes uten nettleser).
+js/grottesim.js       Fysikken i Diamantgrotten: bilen sett fra siden, diamanter, bensin og sjekkpunkter (ingen DOM, testes uten nettleser).
 js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen ute på havet, HUD, lyd, og båtene og flyene til de andre i rommet.
+js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/props/             Enkeltelementer: trær, palmer, gran … én fil per element. ← finpuss elementer her
 props.html            Elementverkstedet: se og juster ett element alene (åpne i nettleseren).
@@ -30,12 +33,15 @@ data/parts.js         Garasjedeler og lakkfarger.
 data/vegetasjon.js    Trær og planter for jungel, subtropisk og arktisk.   ← legg til nye planter her
 data/dyr.js           Dyr for de samme tre miljøene (står i ro).          ← legg til nye dyr her
 data/savanne.js       Savannens trær, termittuer, gress, elefanter og flodhester (står i ro).
+data/orken.js         Ørkenens kameler, beduiner, telt, brønn og tornebusker (står i ro).
+data/grotte.js        Diamantgrotten: bakken, taket, juv, broer, diamanter, bensinkanner og sjekkpunkter.  ← endre grotten her
 data/boats.js         Havet og båtløpene fra marinaen.                    ← legg til nye båtløp her
 data/flights.js       Flyplassen på havet og flyturene med ringer.        ← legg til nye flyturer her
 tools/test-levels.js  Autopilot som tester alle baner uten nettleser.
 tools/test-boats.js   Autopilot som kjører alle båtløpene uten nettleser.
 tools/test-flights.js Autopilot som flyr alle flyturene og lander på rullebanen, uten nettleser.
 tools/test-props.js   Finner pynt som svever over bakken uten noe under seg (node tools/test-props.js [bane]).
+tools/test-grotte.js  Autopilot som kjører Diamantgrotten med alle bilene i Lett og Ekte modus, uten nettleser.
 manifest.json, sw.js  Gjør spillet til en PWA (installerbar, virker uten nett).
 icons/                Appikoner.
 ```
@@ -418,6 +424,8 @@ Hver plante og hvert dyr er en oppføring `PROPS.navn={navn,info,params,place,bu
 | `arktis_isbjorn`, `arktis_snougle`, `arktis_fjellrev` | Isbjørn med unge, snøugle på snøhaug, fjellrev |
 | `savanne_akasie`, `savanne_baobab`, `savanne_termitt`, `savanne_gress`, `savanne_knokler` | Akasie med veverreir, baobab, termittue, elefantgress (ingen kollider) og knokler (`data/savanne.js`) |
 | `savanne_elefant`, `savanne_flodhest` | Elefant (kan drikke og ha kalv) og flodhest i vannet (`y` er vannflaten) |
+| `orken_kamel`, `orken_beduin` | Kamel som står eller ligger (`ligger`), med teppe og sekker (`last`); beduin som står, sitter i kors (`sitter`) eller vinker (`vinker`) (`data/orken.js`) |
+| `orken_telt`, `orken_bronn`, `orken_tornebusk` | Beduintelt av svart geitehår (åpningen mot `retning`), brønn med vinsj og bøtte, og tørr tornebusk uten kollider |
 
 Verktøy i `build(c)`:
 
@@ -430,6 +438,61 @@ Verktøy i `build(c)`:
 Plantene og dyrene plasseres (kollidere) med en gang, men tegnes når terrenget er ferdig: av `c.plants()` etter `c.finish()`, ellers etter `build(c)`. De bruker sin egen tilfeldighetsgenerator, så resten av banen blir lik selv om du legger til flere. Alle kan ses alene i `props.html`. Bykkevika har de subtropiske, jungelen på Tromøya de tropiske, Gautefall de arktiske og Løveøya savannens.
 
 Ny plante eller nytt dyr: kopier en oppføring. `place(x,z,o,env)` leser parametrene med `propParams` og legger til kollidere i `env.colliders`; `build(t,env,out)` tegner med `out.add(geometri,materiale,{x,y,z,sx,sy,sz,c},skygge)` (`skygge` er `true` hvis du ikke gir den). En standardverdi `v:[a,b]` i `params` trekkes tilfeldig mellom a og b. Geometrier: `PG.blob` (kule, sx/sy/sz er halvakser), `PG.trunk` og `DG.branch`. Hjelpere: `stemBetween(a,b,r,{c})` (gren fra a til b; med `PG.blob` blir det en avlang kule mellom punktene), `footY`, `shade`, `dirVec`, og `DYR.*` i `data/dyr.js` for kropper, øyne og buer. Sitteplasser for fugler legges i `env.perches`.
+
+## Kameløya: ørkenøya og Diamantgrotten
+
+`data/levels/12-orken.js` er en ørkenøy sør i skjærgården. Fergen går dit fra Tromøya, Trinnvik og Bykkevika. Husk at på øyene er +x vest og +z nord.
+
+| Sted | Hva |
+|---|---|
+| Kaia | Landsbyen i nord, med hvitkalkede hus med flate tak og en kuppel (`village:{…,desert:true}`). |
+| Oasen | Midt på øya: en dam med palmer, siv, gress og en brønn. Kameler beiter rundt den. |
+| Beduinleiren | Nordøst for oasen: tre svarte telt, bål med kaffekanne, beduiner som sitter rundt bålet og kameler som ligger. |
+| Dynehavet | Vest og sør: store sanddyner. Vinden blåser fra nord, så dynene har en slak side mot nord og en bratt skredside mot sør. |
+| Kjempedynen | Den høyeste dynen, vest på øya. |
+| Sandsteinsfjellet | Øst: et platå av rød sandstein med bratte vegger, og veier opp fra nord og sør. |
+| Den smale kløfta | En trang kløft inn i fjellet fra vest, skjult bak steinblokker og busker. Innerst er grotteåpningen. |
+| Ruinbyen | Sørøst: søyler (noen knekt), en mur, falne søyletrommer og en liten trappepyramide. |
+
+| Løype | Vanskelighet | Hva |
+|---|---|---|
+| Karavanestien | Lett | Langs karavaneveien rundt oasen og forbi beduinleiren. |
+| Dynehoppet | Middels | Rett sørover over Dynehavet i høy gir, med fire–fem hopp over dynekammene. |
+| Fjellstien | Vanskelig | Opp på Sandsteinsfjellet fra nord, over platået og ned mot ruinbyen. |
+
+**Dynene** (`duneH` i banefilen): rygger på tvers av vinden, med en slak side opp til en skarp kam (der bilen letter) og en skredside som er brattest øverst og flater ut nederst, som unnarennet i en hoppbakke. Langs Dynehoppet er bakken jevnet ut på tvers (men ikke på langs), så bilen kjører rett over kammene i stedet for å krenge.
+
+**Kameler og karavanen** (`js/orkendyr.js`): `animals:{camels:[{at,r,n}], caravan:{path,n,speed}}`. Kamelene beiter og går rolig unna bilen. Karavanen er en beduin til fots som leder `n` kameler med last (én har en rytter) rundt `path`, som er en lukket runde. Står bilen i veien, venter de og kamelen brøler; dytter du borti dem, blir bilen skjøvet til side. Ingenting koster noe.
+
+### Diamantgrotten
+
+Kjør inn den smale kløfta og helt inn i den mørke åpningen (merket «FARE – gammel gruve»), så toner bildet ut og grotten vises fra siden, som i Hill Climb Racing. Bilen er den samme, i samme lakk, med delene fra garasjen.
+
+| Taster | Hva |
+|---|---|
+| → eller W (↑), eller GASS-pedalen | Gass. I lufta tipper gassen nesa opp (baklengs salto). |
+| ← eller S (↓), eller BREMS-pedalen | Brems og revers. I lufta tipper bremsen nesa ned. |
+| Esc eller P | Pause: tilbake til sjekkpunktet, start ved inngangen, kjør ut, lyd. |
+
+- **Diamanter:** 1 diamant er 10 muttere, og de legges til med en gang du tar dem. Diamantene er tilbake neste gang du kjører inn.
+- **Bensin:** tanken går mest etter hvor langt du kjører (litt også når du står stille). De røde kannene fyller tanken. Er tanken tom og bilen står, blir du tauet ut. I Lett modus rekker tanken en tredjedel lenger.
+- **Sjekkpunkter:** lyktene. Velter du (taket i bakken, eller bilen blir liggende på siden) eller faller ned i et juv, starter du ved siste lykt.
+- **Lett modus:** bilen lander alltid på hjulene, og motoren slipper litt når forhjulene letter i en bratt bakke. **Ekte modus:** du styrer selv i lufta, og hver hele salto gir 5 muttere.
+- **Skattkammeret** innerst: 50 muttere hver gang (+100 første gang), og du kommer ut gjennom «bakdøra» på østsiden av fjellet. Kjører du ut gjennom inngangen, kommer du ut i kløfta.
+- **Rekorden** (lengst inn, i meter) lagres i `best['orken/grotte']`. Grotten vises på øykartet først når du har funnet den (`prof.cave.found`).
+- Fartsgrensen fra menyen gjelder, men aldri under 80 % (ellers rekker ikke bilen over juvene).
+
+Grotten er delt i Inngangen, Den gamle gruva (bjelker, skinner, gruvevogn, et sjakt å hoppe over og en plankebro), Krystallsalen (lysende krystaller og store bakker), Den trange gangen (lavt tak og kanter), Kjempebakken (lang og bratt: slipp gassen før bilen velter bakover), Den underjordiske sjøen (grunt vann og en lang bro), Dypet (hopp over juv etter juv) og Skattkammeret.
+
+**Endre grotten:** `data/grotte.js`. En «penn» går innover og bygger bakken bit for bit, og diamanter, kanner, sjekkpunkter og pynt plasseres der pennen står. Verktøyene står øverst i filen (`c.flat`, `c.slope`, `c.hills`, `c.bumps`, `c.ramp`, `c.gap`, `c.step`, `c.bridge`, `c.pool`, `c.room`, `c.zone`, `c.row`, `c.arc`, `c.gem`, `c.can`, `c.cp`, `c.deco`, `c.end`). Taket legges automatisk over bakken, i høyden `c.room` sier. Kjør testen etterpå:
+
+```
+node tools/test-grotte.js
+```
+
+Hver bil skal vise `MÅL`, helst `velt 0` og `juv 0`, og `bensin` bør ikke gå helt ned til 0. Testen sjekker også at ingen diamanter ligger inne i steinen, og viser hvor lavt taket er på det trangeste.
+
+**Banefelt:** `c.caveDef={mouth:{x,z},r,open:{x,z},dir,out:{x,z,h},back:{x,z,h},door:{x,z}}` i `build(c)`: kjører bilen innenfor `r` av `mouth`, starter grotten. `open` er den mørke åpningen i fjellveggen og `dir` retningen inn i fjellet, `out` er der bilen står når du kjører ut igjen, `back` og `door` er bakdøra. `cavePath` på banen er bare for testen: `node tools/test-levels.js orken` kjører kløfta inn til åpningen (`GROTTE`) og ut igjen.
 
 ## Kaimanøya: jungeløya
 

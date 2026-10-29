@@ -307,7 +307,7 @@ function updateSnakes(dt,tm){for(const k of ANIMALS.snakes){k.s+=dt*k.sp;const s
     if(Math.random()<dt*3&&typeof spawnDust==='function'){_ap.set(k.head.position.x,k.head.position.y-.03,k.head.position.z);spawnDust(_ap,99,false)}}}
 
 /* ---------- build / update ---------- */
-function clearAnimals(){if(typeof SAV!=='undefined'){SAV.preds=[];SAV.vultures=[];SAV.all=[]}ANIMALS.parrots=[];ANIMALS.monkeys=[];ANIMALS.butterflies=null;ANIMALS.crabs=[];ANIMALS.eagle=null;ANIMALS.bear=null;ANIMALS.gulls=[];ANIMALS.deer=[];ANIMALS.rabbits=[];ANIMALS.fish=[];ANIMALS.lizards=[];
+function clearAnimals(){if(typeof SAV!=='undefined'){SAV.preds=[];SAV.vultures=[];SAV.all=[]}if(typeof ORK!=='undefined'){ORK.all=[];ORK.cv=null}ANIMALS.parrots=[];ANIMALS.monkeys=[];ANIMALS.butterflies=null;ANIMALS.crabs=[];ANIMALS.eagle=null;ANIMALS.bear=null;ANIMALS.gulls=[];ANIMALS.deer=[];ANIMALS.rabbits=[];ANIMALS.fish=[];ANIMALS.lizards=[];
   ANIMALS.caimans=[];ANIMALS.jaguar=null;ANIMALS.frogs=[];ANIMALS.egrets=[];ANIMALS.snakes=[]}
 function buildAnimals(lv,def){clearAnimals();const A=def.animals;if(!A)return;const R=mulberry32(def.seed+77);if(!lv.perches)lv.perches=[];const hasP=lv.perches.length>0;   // only the birds and monkeys need somewhere to sit
   const pick=L=>L[Math.floor(R()*L.length)];
@@ -352,9 +352,10 @@ function buildAnimals(lv,def){clearAnimals();const A=def.animals;if(!A)return;co
   for(let i=0;i<(A.toucans||0)&&hasP;i++){const p=pick(lv.perches),g=makeToucan();g.position.set(p.x,p.y+.08,p.z);g.rotation.y=R()*6.28;levelGroup.add(g);ANIMALS.parrots.push({g,st:'perch',perch:p,cool:R()*3,ph:R()*6.28})}
   for(const o of(A.caimans||[]))buildCaimans(o,R);for(const o of(A.capybaras||[]))buildCapybaras(o,R);if(A.jaguar)buildJaguar(A.jaguar,R);
   for(const o of(A.frogs||[]))buildFrogs(o,R);for(const o of(A.egrets||[]))buildEgrets(o,R);for(const o of(A.snakes||[]))buildSnakes(o,R);
-  if(typeof buildSavanna==='function')buildSavanna(lv,def,R)}   // lions, cheetahs, crocodiles, the herds and vultures (js/savannedyr.js)
+  if(typeof buildSavanna==='function')buildSavanna(lv,def,R);   // lions, cheetahs, crocodiles, the herds and vultures (js/savannedyr.js)
+  if(typeof buildDesert==='function')buildDesert(lv,def,R)}     // camels and the caravan (js/orkendyr.js)
 function updateAnimals(dt){if(!car)return;const tm=performance.now()*.001;updateParrots(dt,tm);updateMonkeys(dt,tm);updateButterflies(dt,tm);updateCrabs(dt,tm);updateEagle(dt,tm);updateBear(dt,tm);updateGulls(dt,tm);updateGrazers(dt,tm);updateFish(dt,tm);updateLizards(dt,tm);
-  updateCaimans(dt,tm);updateJaguar(dt,tm);updateFrogs(dt,tm);updateEgrets(dt,tm);updateSnakes(dt,tm);if(typeof updateSavanna==='function')updateSavanna(dt,tm)}
+  updateCaimans(dt,tm);updateJaguar(dt,tm);updateFrogs(dt,tm);updateEgrets(dt,tm);updateSnakes(dt,tm);if(typeof updateSavanna==='function')updateSavanna(dt,tm);if(typeof updateDesert==='function')updateDesert(dt,tm)}
 
 /* ---------- the rolling boulder ---------- */
 const BLD={m:null,def:null,active:false,done:false,t:0,len:1,ax:new V3()};
