@@ -22,9 +22,11 @@ js/boatsim.js         Fysikken for motorbåtløpet: båtene, bøyene, piratene o
 js/boat.js            Motorbåtløpet fra marinaen på Tromøya: havet, øyene, båtene, delt skjerm, HUD, lyd og løp mot andre i rommet.
 js/planesim.js        Flyfysikken: avgang, flyging, landing, krasj og ringene (ingen DOM, testes uten nettleser).
 js/grottesim.js       Fysikken i Diamantgrotten: bilen sett fra siden, diamanter, bensin og sjekkpunkter (ingen DOM, testes uten nettleser).
+js/gpsroute.js        GPS-en: finner en vei bilen kan kjøre mellom to steder på øya (ingen DOM, testes uten nettleser).
 js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen ute på havet, HUD, lyd, og båtene og flyene til de andre i rommet.
 js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
+js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
 js/props/             Enkeltelementer: trær, palmer, gran … én fil per element. ← finpuss elementer her
 props.html            Elementverkstedet: se og juster ett element alene (åpne i nettleseren).
 data/cars.js          Bilene.                 ← legg til nye biler her
@@ -42,6 +44,7 @@ tools/test-boats.js   Autopilot som kjører alle båtløpene uten nettleser.
 tools/test-flights.js Autopilot som flyr alle flyturene og lander på rullebanen, uten nettleser.
 tools/test-props.js   Finner pynt som svever over bakken uten noe under seg (node tools/test-props.js [bane]).
 tools/test-grotte.js  Autopilot som kjører Diamantgrotten med alle bilene i Lett og Ekte modus, uten nettleser.
+tools/test-gps.js     Lager GPS-ruter til alle stedene på hver øy og lar en autopilot kjøre dem, uten nettleser.
 manifest.json, sw.js  Gjør spillet til en PWA (installerbar, virker uten nett).
 icons/                Appikoner.
 ```
@@ -106,12 +109,17 @@ Nytt element: kopier en fil i `js/props/`, gi den et nytt navn i `PROPS.navn`, o
 | `ride` | Valgfritt. Hjulene sitter så mye høyere under karosseriet, så bilen blir lavere og får mindre bakkeklaring. |
 | `susp` | Valgfritt. Fjæringsvei, 1 er som de andre. Mindre gir kortere og stivere fjæring (sportsbil). |
 | `pow` | Valgfritt. Motorkraft, 1 er som de andre. Mer kraft gir raskere akselerasjon, helt til dekkene spinner. |
+| `damp` | Valgfritt. Støtdempere, 1 er som de andre. Mer demper humper og landinger, så bilen ikke spretter. |
+| `stab` | Valgfritt. Hvor hardt bilen retter seg opp når den krenger, lagt til vekt-delen fra verkstedet. Gjør bilen vanskeligere å velte. |
+| `air` | Valgfritt. Bilen flyr rett i lufta: krengning og stamping dør ut, og gass løfter nesen, brems senker den. 1 er trophy truckens. |
 
 `style:'monster'` tegner en monstertruck i stedet for en vanlig crawler (`buildMonster` i `js/carmodel.js`), se Knøtt.
 
 `style:'sport'` tegner en sportsbil med glatt karosseri (`buildSport` i `js/carmodel.js`), se Porsche 911 Turbo. Formen kommer fra tabellen `SP911`: ekte mål i millimeter, én rad per tverrsnitt fra nesen og bakover (bunn, bredde, skjermer, vinduslinje, tak). Bilen skaleres så akselavstanden blir `wb`. `gh` bestemmer hvor taket er når bilen ligger opp ned, og kan være negativt for en lav bil.
 
-Test en bil på alle banene: `CAR=knott node tools/test-levels.js` (eller `CAR=turbo`).
+`style:'trophy'` tegner en trophy truck (`buildTrophy` i `js/carmodel.js`), se Trophy Truck: et smalt karosseri lavt mellom brede skjermer, store terrengdekk på svarte beadlock-felger, takluke, lysrampe, to reservehjul og tank på planet under et rørbur, og startnummer på dørene. Fjæringen tegnes mellom karosseriet og hjulene hver gang bilen flytter seg (`trophyLinks`), så du ser A-armene og støtdemperne foran og den stive akselen bak jobbe. Bilen er gratis.
+
+Test en bil på alle banene: `CAR=knott node tools/test-levels.js` (eller `CAR=turbo`, `CAR=trophy`).
 
 Bilen dukker opp i menyen med en gang.
 
@@ -228,6 +236,10 @@ I fri kjøring blir banens egen løype en startstrek (`c.course` lages automatis
 **Vinsj:** bilen Vinsjen, og alle biler med Utstyr nivå 3, har ekte vinsj. Hold **R** for å sikte (en linje vises til nærmeste festepunkt innen 7 enheter og ca. 70° foran bilen), slipp for å dra; R igjen løsner. Festepunkter er trær, hus, lykter, bropilarer og store steiner (`c.anchor(x,z)` i banefilen, eller `anchor:true` på en kollider). «Hent bilen» i pausemenyen er den gamle vinsjen med straff.
 
 **Gullmuttere:** `c.secret(x,z,'Bak fossen')` gjemmer en gullmutter (25 ⚙, én gang). Fem per øy; finner du alle, får du 100 ⚙ og gull-lakken. Kartet viser bare de du har funnet.
+
+**GPS:** Åpne kartet (K) og trykk der du vil kjøre: fergekaia, basen, marinaen, flyplassen, skiheisen, grotten (når du har funnet den), en løype, et navn på kartet eller et hvilket som helst sted på land. Knappene under kartet («Vis vei til») gjør det samme for de viktigste stedene. En blå pil over bilen og blå piler på bakken viser veien, ruten tegnes på kartet og minikartet, og raden for basen/kaia i hjørnet viser hvor langt det er igjen. Kjører du fra ruten, finner GPS-en en ny vei. Trykker du på en annen øy på skjærgårdskartet, viser GPS-en veien til fergen (og hvilken øy du må via hvis det ikke går ferge rett dit). Framme slår GPS-en seg av; «Stopp GPS» slår den av før.
+
+Ruten finnes i `js/gpsroute.js`: øya deles i ruter (to terrengruter brede), og hver rute får en pris per enhet. Veier er billige, bratt, ulendt, sand, gjørme, snø og grunt vann koster mer, og det koster mye mer å kjøre på skrå i en bratt bakke enn rett opp (der velter biler). Dypt vann, lava, hus, trær, gjerder og høye kanter kan ikke kjøres gjennom. A* finner den billigste veien, og hjørnene kuttes der den rette linjen ikke koster mer. Stedene og hvor nær du må være, står i `gpsPlaces`. Kjør `node tools/test-gps.js` etter endringer på en øy: alle rader skal vise FRAMME.
 
 Fergerutene og plasseringen på skjærgårdskartet ligger i `data/archipelago.js` (`ISLANDS`, `ROUTES`). Kartet (K) har to faner: øya du er på, og skjærgården. Hver øy er fortsatt sin egen fil og kan endres og testes for seg: `node tools/test-levels.js sand`.
 

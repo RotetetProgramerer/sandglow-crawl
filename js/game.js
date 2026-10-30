@@ -230,14 +230,16 @@ function cyl(r,h,mat,x,y,z,p,axis,seg=14){const m=new THREE.Mesh(new THREE.Cylin
 
 let carVis=null;
 function buildCarVis(cfg){
-  if(carVis){scene.remove(carVis.body);carVis.wheels.forEach(w=>scene.remove(w.root));carVis.axles.forEach(a=>scene.remove(a));
+  if(carVis){scene.remove(carVis.body);carVis.wheels.forEach(w=>scene.remove(w.root));carVis.axles.forEach(a=>scene.remove(a));carVis.links.forEach(l=>{scene.remove(l.m);l.m.geometry.dispose()});
     carVis.body.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
   const body=buildBody(cfg);scene.add(body);
   const wheels=[];for(let i=0;i<4;i++){const w=carWheel(cfg,i%2===0?1:-1,i>1);scene.add(w.root);wheels.push(w)}
   const axles=[];for(let i=0;i<2;i++){const a=new THREE.Group();const tube=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,8),M.blk);tube.castShadow=true;a.add(tube);
     const diff=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),M.blk);diff.castShadow=true;a.add(diff);a.userData.tube=tube;scene.add(a);axles.push(a)}
+  // the trophy truck: the front wheels hang on their own arms (no axle between them), and the arms and shocks follow the wheels (js/carmodel.js)
+  const links=cfg.style==='trophy'?trophyLinks(cfg):[];links.forEach(l=>scene.add(l.m));if(cfg.style==='trophy')axles[0].visible=false;
   const spots=[];for(const sx of[1,-1]){const s=new THREE.SpotLight(0xfff1cc,0,16,.55,.6,1.2);s.position.set(sx*.3,.3,cfg.L/2);const t=new THREE.Object3D();t.position.set(sx*.3,-.4,cfg.L/2+4);body.add(s,t);s.target=t;spots.push(s)}
-  carVis={body,wheels,axles,spots};setLights(state.lights);
+  carVis={body,wheels,axles,spots,links};setLights(state.lights);
 }
 
 /* ---------- gate visuals ---------- */
@@ -730,7 +732,7 @@ function updateCamera(dt){
 }
 
 /* ---------- visuals sync ---------- */
-const _q2=new Q4(),_q3=new Q4(),_e=new THREE.Euler();
+const _q2=new Q4(),_q3=new Q4(),_e=new THREE.Euler(),_lA=new V3(),_lB=new V3();
 function syncVisuals(dt){
   carVis.body.position.copy(car.pos);carVis.body.quaternion.copy(car.q);
   car.wheels.forEach((w,i)=>{const v=carVis.wheels[i];v.root.position.copy(w.center);_q2.setFromAxisAngle(YAX,w.front?car.steer:0);v.root.quaternion.copy(car.q).multiply(_q2);v.spin.rotation.x=w.spin;
@@ -740,6 +742,8 @@ function syncVisuals(dt){
     if(w.contact&&state.mode!=='menu'){const st=w.front?car.steer:0,cs=Math.cos(st),sn=Math.sin(st);layTrack(w,car.fw.x*cs+car.lf.x*sn,car.fw.z*cs+car.lf.z*sn)}});
   for(let a=0;a<2;a++){const L=car.wheels[a*2].center,R=car.wheels[a*2+1].center,ax=carVis.axles[a];ax.position.copy(L).add(R).multiplyScalar(.5);_c2.copy(L).sub(R);const len=_c2.length();
     ax.quaternion.setFromUnitVectors(YAX,_c2.normalize());ax.userData.tube.scale.y=len}
+  for(const l of carVis.links){_lA.copy(l.a).applyQuaternion(car.q).add(car.pos);_lB.copy(l.o).applyQuaternion(car.q).add(car.wheels[l.w].center);l.m.position.copy(_lA).add(_lB).multiplyScalar(.5);
+    _lB.sub(_lA);const len=_lB.length()||1;l.m.quaternion.setFromUnitVectors(YAX,_lB.multiplyScalar(1/len));l.m.scale.set(1,len,1)}
   // shadow follows car
   const d=LEVELS[state.levelIdx].sunDir,fp=focusPos();sun.position.set(fp.x+d[0],fp.y+d[1],fp.z+d[2]);sun.target.position.copy(fp);
   skyDome.position.copy(camera.position);const dl=Math.hypot(d[0],d[1],d[2]);sunGlow.position.set(camera.position.x+d[0]/dl*170,camera.position.y+d[1]/dl*170,camera.position.z+d[2]/dl*170);
@@ -747,9 +751,11 @@ function syncVisuals(dt){
   const ng=LV.gates[state.next];
   if(ng&&state.mode==='play'){beacon.visible=true;beacon.position.set(ng.c.x,H(ng.c.x,ng.c.z),ng.c.z);beacon.userData.ring.scale.setScalar(1+.08*Math.sin(performance.now()*.005));
     arrow.visible=car.assist;if(arrow.visible){arrow.position.copy(car.pos).add(_c2.set(0,1.25,0));_c1.set(ng.c.x-car.pos.x,0,ng.c.z-car.pos.z).normalize();arrow.quaternion.setFromUnitVectors(YAX,_c1)}}
+  else if(gpsLive()&&state.world){beacon.visible=false;arrow.visible=false}   // the GPS has its own arrow (js/gps.js)
   else if(state.free&&car.assist&&state.world){const n=nearestPortal();let tx=null,tz=null;if(n&&n.d>6){tx=n.k.start.p.x;tz=n.k.start.p.z}
     if(tx!==null){arrow.visible=true;arrow.position.copy(car.pos).add(_c2.set(0,1.25,0));_c1.set(tx-car.pos.x,0,tz-car.pos.z).normalize();arrow.quaternion.setFromUnitVectors(YAX,_c1)}else arrow.visible=false;beacon.visible=false}
   else{beacon.visible=false;arrow.visible=false}
+  gpsSync(dt);
   updateDust(dt);updateRain(dt);updateFx(dt);applyZone(fp.x,fp.z);nightTint();updateCoat(dt);updateWinch(dt);updateAnimals(dt);updateBoulder(dt);
   waterMat.normalMap.offset.x+=dt*.025;waterMat.normalMap.offset.y+=dt*.018;WIND.uTime.value+=dt;
   const tm=performance.now()*.001;for(const c of crateVis){if(c.taken)continue;c.g.rotation.y=tm*1.2;c.g.position.y=c.cr.y+Math.sin(tm*2.2+c.cr.x)*.03}
@@ -759,10 +765,12 @@ function syncVisuals(dt){
 let hudT=0;
 function updateHUD(dt){
   hudT-=dt;if(hudT>0)return;hudT=.1;
-  if(state.free){$('hNuts').textContent=fmtN(prof.nuts);const lvl=LEVELS[state.levelIdx],b=lvl.basePos||(LV.ferry?[LV.ferry.quay.x,LV.ferry.quay.z]:[0,0]);const dm=Math.hypot(b[0]-car.pos.x,b[1]-car.pos.z)*UNIT_CM/100;$('hBase').textContent=dm.toFixed(1).replace('.',',')+' m';$('hBaseL').textContent=lvl.basePos?'Basen':'Kaia';$('hDone').textContent=coursesDone()+'/'+LV.courses.length}
+  let gps=false;   // the GPS (js/gps.js) has the base row and the gauge at the bottom while it shows the way
+  if(state.free){$('hNuts').textContent=fmtN(prof.nuts);$('hDone').textContent=coursesDone()+'/'+LV.courses.length;gps=gpsHud();
+    if(!gps){const lvl=LEVELS[state.levelIdx],b=lvl.basePos||(LV.ferry?[LV.ferry.quay.x,LV.ferry.quay.z]:[0,0]);const dm=Math.hypot(b[0]-car.pos.x,b[1]-car.pos.z)*UNIT_CM/100;$('hBase').textContent=dm.toFixed(1).replace('.',',')+' m';$('hBaseL').textContent=lvl.basePos?'Basen':'Kaia'}}
   else{$('hGate').textContent=(Math.min(state.next,LV.gates.length)-state.missed)+'/'+LV.gates.length;$('hTime').textContent=fmtTime(state.time);$('hPen').textContent=state.penalty;$('hCrate').textContent=state.crates+'/'+LV.crates.length}
   const sp=car.vel.dot(car.fw)*UNIT_CM;$('hSpeed').textContent=Math.round(Math.abs(sp));
-  const ng=LV.gates[state.next];if(ng){const dcm=Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)*UNIT_CM;if(dcm>=100){$('hNext').textContent=(dcm/100).toFixed(1).replace('.',',');$('hNextU').textContent='m'}else{$('hNext').textContent=Math.round(dcm);$('hNextU').textContent='cm'}}else if(state.free){const n=nearestPortal();if(n){$('hNext').textContent=(n.d*UNIT_CM/100).toFixed(1).replace('.',',');$('hNextU').textContent='m til '+n.k.name}else{$('hNext').textContent='–';$('hNextU').textContent=''}}
+  const ng=LV.gates[state.next];if(!gps){if(ng){const dcm=Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)*UNIT_CM;if(dcm>=100){$('hNext').textContent=(dcm/100).toFixed(1).replace('.',',');$('hNextU').textContent='m'}else{$('hNext').textContent=Math.round(dcm);$('hNextU').textContent='cm'}}else if(state.free){const n=nearestPortal();if(n){$('hNext').textContent=(n.d*UNIT_CM/100).toFixed(1).replace('.',',');$('hNextU').textContent='m til '+n.k.name}else{$('hNext').textContent='–';$('hNextU').textContent=''}}}
   const roll=Math.asin(Math.max(-1,Math.min(1,car.lf.y)))*57.3,pitch=Math.asin(Math.max(-1,Math.min(1,car.fw.y)))*57.3;
   $('hRoll').textContent=Math.round(Math.abs(roll))+'°';$('hPitch').textContent=Math.round(pitch)+'°';
   $('inclRoll').setAttribute('transform','rotate('+(-roll).toFixed(1)+')');$('gIncl').classList.toggle('warn',Math.abs(roll)>35||Math.abs(pitch)>40);
@@ -799,7 +807,7 @@ function frame(now){
     // crates
     for(const c of crateVis){if(c.taken)continue;const dx=c.cr.x-car.pos.x,dz=c.cr.z-car.pos.z;if(dx*dx+dz*dz<.42&&Math.abs(c.cr.y-car.pos.y)<.9){c.taken=true;c.g.visible=false;state.crates++;toast('Kasse '+state.crates+'/'+LV.crates.length+' · +15 ⚙');for(let i=0;i<6;i++)spawnDust(c.g.position,0,true)}}
     if(car.pos.y<-3||Math.abs(car.pos.x)>HALF-.5||Math.abs(car.pos.z)>HALF-.5){winch();toast('Utenfor banen: vinsj',true)}
-    if(state.world){updateWorld(dt);updateFog(dt);saveRoam(dt)}
+    if(state.world){updateWorld(dt);gpsUpdate(dt);updateFog(dt);saveRoam(dt)}
     updateSecrets(dt);
     updateHUD(dt);
   }

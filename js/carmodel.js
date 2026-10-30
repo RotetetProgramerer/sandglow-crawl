@@ -1,6 +1,6 @@
 'use strict';
 /* =================================================================
-   CAR MODEL: wheels and the body with all its details (racks, cans, hoop lights, ladder, pickup bed …)
+   CAR MODEL: wheels and the body with all its details (racks, cans, hoop lights, ladder, pickup bed …), the monster truck, the sports car and the trophy truck
    Everything is boxes and cylinders from game.js's bx()/cyl() and the shared materials M. extras in data/cars.js choose the load.
    Loaded after game.js; only functions, called at run time.
    ================================================================= */
@@ -17,8 +17,8 @@ function buildWheel(r,side){
   return{root,spin};
 }
 // the wheel for a car: the standard wheel, scaled up for a car with its own wheel size (cfg.wr radius, cfg.tireW tire width)
-function carWheel(cfg,side,rear){if(cfg.style==='sport')return buildSportWheel(cfg,side,rear);const w=buildWheel(WR,side),k=(cfg.wr||WR)/WR;if(cfg.wr||cfg.tireW)w.spin.scale.set((cfg.tireW||.19)/.19,k,k);return w}
-function buildBody(cfg){if(cfg.style==='monster')return buildMonster(cfg);if(cfg.style==='sport')return buildSport(cfg);
+function carWheel(cfg,side,rear){if(cfg.style==='sport')return buildSportWheel(cfg,side,rear);if(cfg.style==='trophy')return buildTrophyWheel(cfg,side);const w=buildWheel(WR,side),k=(cfg.wr||WR)/WR;if(cfg.wr||cfg.tireW)w.spin.scale.set((cfg.tireW||.19)/.19,k,k);return w}
+function buildBody(cfg){if(cfg.style==='monster')return buildMonster(cfg);if(cfg.style==='sport')return buildSport(cfg);if(cfg.style==='trophy')return buildTrophy(cfg);
   const g=new THREE.Group(),L=cfg.L,W=.92,y0=.08,lh=.34,gh=cfg.gh,hood=cfg.hood,yT=y0+lh,fz=L/2,rz=-L/2;
   bx(.5,.06,L*.86,M.blkC,0,-.02,0,g);
   bx(W,lh,L,M.yel,0,y0+lh/2,0,g);
@@ -253,3 +253,92 @@ function buildSportWheel(cfg,side,rear){
   const cal=bx(.02,rr*.42,rr*.24,M.cal,side*(w/2-.03),0,0,root);cal.position.set(side*(w/2-.03),Math.cos(.6)*rr*.62,-Math.sin(.6)*rr*.62);cal.rotation.x=.6;
   return{root,spin};
 }
+/* ---------- the trophy truck: a narrow desert-racer body low between wide fenders, the tall tyres outside it, a roof scoop, a light bar,
+   spare tyres and a fuel cell in the bed under a tube cage with chase lights, and long-travel suspension that moves (trophyLinks) ---------- */
+let tbMats=null;
+function trophyMats(){if(tbMats)return tbMats;
+  // the race number on the doors, and the window nets
+  const c=document.createElement('canvas');c.width=256;c.height=160;const x=c.getContext('2d');x.fillStyle='#f4f1ea';x.beginPath();x.moveTo(20,6);x.arcTo(250,6,250,154,18);x.arcTo(250,154,6,154,18);x.arcTo(6,154,6,6,18);x.arcTo(6,6,250,6,18);x.fill();
+  x.strokeStyle='#14120E';x.lineWidth=7;x.stroke();x.fillStyle='#14120E';x.textAlign='center';x.textBaseline='middle';x.font='112px "Saira Stencil One", Impact, sans-serif';x.fillText('24',128,84);
+  const num=new THREE.CanvasTexture(c);num.encoding=THREE.sRGBEncoding;num.anisotropy=4;
+  const n=document.createElement('canvas');n.width=n.height=32;const y=n.getContext('2d');y.strokeStyle='#0d0c0a';y.lineWidth=5;y.strokeRect(0,0,32,32);
+  const net=new THREE.CanvasTexture(n);net.wrapS=net.wrapT=THREE.RepeatWrapping;net.repeat.set(16,16);
+  tbMats={num:new THREE.MeshStandardMaterial({map:num,roughness:.5}),net:new THREE.MeshBasicMaterial({map:net,transparent:true,alphaTest:.4,side:THREE.DoubleSide}),
+    dark:new THREE.MeshStandardMaterial({color:0x0b0b0c,roughness:.9,side:THREE.DoubleSide}),flag:new THREE.MeshStandardMaterial({color:LIN('#ff7a1a'),roughness:.7,side:THREE.DoubleSide})};
+  return tbMats}
+// a straight tube from a to b ([x,y,z] in the body)
+function tbTube(a,b,r,mat,g){const A=new THREE.Vector3(...a),B=new THREE.Vector3(...b),d=B.clone().sub(A),m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,d.length(),8),mat);
+  m.position.copy(A).add(B).multiplyScalar(.5);m.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),d.normalize());m.castShadow=true;g.add(m);return m}
+// a side profile [[z,y],…] made solid across the car, w wide
+function tbProfile(pts,w,mat,g){const s=new THREE.Shape();pts.forEach((p,i)=>i?s.lineTo(p[0],p[1]):s.moveTo(p[0],p[1]));s.closePath();
+  const geo=new THREE.ExtrudeGeometry(s,{depth:w,bevelEnabled:false});geo.rotateY(-Math.PI/2);geo.translate(w/2,0,0);const m=new THREE.Mesh(geo,mat);m.castShadow=true;m.receiveShadow=true;g.add(m);return m}
+function buildTrophy(cfg){
+  const g=new THREE.Group(),TM=trophyMats(),zf=cfg.wb/2,W=.98,hw=W/2,fx=(cfg.track||TRACK)/2+(cfg.tireW||.19)/2-.06,nose=cfg.L/2-.02,tail=-cfg.L/2+.02;   // fx: how far the fender flares reach out
+  // chassis, skid plates and the front differential (the front wheels hang on A-arms, the rear on a solid axle: see trophyLinks)
+  bx(.6,.07,2.1,M.blkC,0,-.15,0,g);{const sk=bx(.66,.02,.5,M.steel,0,-.12,nose-.18,g);sk.rotation.x=-.35}bx(.5,.02,.6,M.steel,0,-.19,-.2,g);
+  const df=new THREE.Mesh(new THREE.SphereGeometry(.07,12,10),M.blk);df.position.set(0,-.13,zf);g.add(df);bx(.16,.12,.24,M.blk,0,-.1,zf,g);
+  // the body from the nose to the back of the cab: low nose, long hood, then the cab with a raked windshield
+  tbProfile([[-.46,-.12],[nose-.1,-.12],[nose,-.02],[nose,.11],[nose-.12,.165],[.24,.225],[-.46,.22]],W,M.yel,g);
+  tbProfile([[.23,.225],[-.46,.22],[-.46,.56],[-.04,.575]],W-.08,M.yel,g);
+  // glass: the windshield along the rake, the back window; nets in the side windows, dark behind them
+  {const a=new THREE.Vector3(0,.235,.215),b=new THREE.Vector3(0,.565,-.03),d=b.clone().sub(a),ws=bx(W-.2,d.length()-.04,.012,M.glass,0,0,0,g);ws.position.copy(a).add(b).multiplyScalar(.5);ws.position.z+=.008;ws.rotation.x=-Math.atan2(-d.z,d.y)}
+  bx(W-.26,.22,.012,M.glass,0,.42,-.466,g);
+  {const s=new THREE.Shape();s.moveTo(.15,.27);s.lineTo(-.39,.27);s.lineTo(-.39,.52);s.lineTo(-.05,.535);s.closePath();const geo=new THREE.ShapeGeometry(s);geo.rotateY(-Math.PI/2);
+    for(const sx of[1,-1]){const dk=new THREE.Mesh(geo,TM.dark);dk.position.x=sx*((W-.08)/2+.003);g.add(dk);const nt=new THREE.Mesh(geo,TM.net);nt.position.x=sx*((W-.08)/2+.008);g.add(nt)}}
+  // the bed: floor, sides, tailgate; in it two spare tyres lying flat and the fuel cell
+  bx(W-.06,.03,.86,M.blkC,0,-.03,-.9,g);for(const sx of[1,-1])bx(.04,.33,.88,M.yel,sx*(hw-.02),.045,-.9,g);bx(W,.33,.04,M.yel,0,.045,tail+.01,g);
+  bx(.5,.15,.2,M.blkC,0,.07,-.56,g);cyl(.03,.03,M.steel,.16,.16,-.56,g);
+  for(let k=0;k<2;k++){const sp=new THREE.Mesh(new THREE.CylinderGeometry(.21,.21,.11,20),M.tire);sp.position.set(0,.04+k*.115,-.98);sp.castShadow=true;g.add(sp);cyl(.12,.115,M.blk,0,.04+k*.115,-.98,g,null,14);cyl(.125,.01,M.steel,0,.1+k*.115,-.98,g,null,14)}
+  // the fenders: wide flares over the tyres, a black lip on the edge, and the ends sloping down to the body
+  for(const sx of[1,-1])for(const wz of[zf,-zf]){const w2=fx-hw,cx=sx*(hw+w2/2);
+    bx(w2,.035,.7,M.yel,cx,.3,wz,g);bx(.03,.06,.72,M.blkC,sx*fx,.28,wz,g);
+    for(const e of[-1,1]){const p=bx(w2,.035,.34,M.yel,cx,.2,wz+e*.485,g);p.rotation.x=e*.64;const q=bx(.03,.05,.34,M.blkC,sx*fx,.185,wz+e*.48,g);q.rotation.x=e*.64}}
+  // a white band and a red stripe along the flanks, the race number on the doors, the hood decal
+  for(const sx of[1,-1]){bx(.006,.06,2.4,M.trim,sx*(hw+.003),-.07,-.05,g);bx(.006,.02,2.4,M.red,sx*(hw+.003),-.025,-.05,g);
+    const p=new THREE.Mesh(new THREE.PlaneGeometry(.25,.156),TM.num);p.position.set(sx*(hw+.006),.06,0);p.rotation.y=sx>0?Math.PI/2:-Math.PI/2;g.add(p)}
+  {const hd=new THREE.Mesh(new THREE.PlaneGeometry(.34,.17),decalMat);hd.rotation.x=-Math.PI/2+.06;hd.position.set(0,.205,.72);g.add(hd)}
+  for(const sx of[1,-1]){const v=bx(.16,.012,.12,M.blkC,sx*.2,.187,.95,g);v.rotation.x=.062}   // vents in the hood
+  // the nose: grille, headlights, a bumper of tube with four round lamps on it, tow hooks
+  bx(.6,.15,.02,M.blkC,0,.06,nose+.005,g);for(let i=0;i<3;i++)bx(.56,.012,.024,M.steel,0,.02+i*.04,nose+.01,g);
+  for(const sx of[1,-1]){bx(.16,.06,.02,M.lamp,sx*.37,.09,nose+.006,g);bx(.05,.03,.015,M.amber,sx*.37,.03,nose+.006,g);
+    const beam=new THREE.Mesh(new THREE.ConeGeometry(.55,4,14,1,true),M.beam);beam.rotation.x=-Math.PI/2+.13;beam.position.set(sx*.33,.09-.26,nose+2);beam.castShadow=false;g.add(beam)}
+  bx(1.02,.045,.045,M.blkC,0,-.08,nose+.08,g);for(const sx of[1,-1]){bx(.04,.12,.1,M.blkC,sx*.3,-.05,nose+.03,g);bx(.05,.05,.07,M.red,sx*.42,-.14,nose+.04,g)}
+  for(let i=0;i<4;i++){const lx=-.3+i*.2;cyl(.045,.04,M.blkC,lx,-.01,nose+.1,g,'z',12);cyl(.036,.012,M.lamp,lx,-.01,nose+.124,g,'z',12)}
+  // the roof: the scoop that feeds the engine air, and a light bar on the front edge
+  bx(.24,.07,.28,M.yel,0,.61,-.2,g);bx(.2,.05,.012,M.blk,0,.615,-.055,g);
+  bx(.72,.045,.05,M.blkC,0,.6,.01,g);for(let i=0;i<5;i++){cyl(.03,.01,M.lamp,-.28+i*.14,.6,.04,g,'z',10)}
+  // mirrors, the tube cage from the roof back over the bed with the chase lights, the rear bumper, tail lights, exhausts and the whip antenna with its flag
+  for(const sx of[1,-1]){bx(.03,.02,.06,M.blkC,sx*(hw+.02),.3,.16,g);bx(.07,.045,.05,M.yel,sx*(hw+.07),.3,.16,g)}
+  for(const sx of[1,-1]){tbTube([sx*.4,.55,-.45],[sx*.42,.42,-1.2],.018,M.blkC,g);tbTube([sx*.42,.42,-1.2],[sx*.44,.2,tail+.04],.018,M.blkC,g);tbTube([sx*.4,.55,-.45],[sx*.44,.2,-.75],.016,M.blkC,g)}
+  tbTube([-.42,.42,-1.2],[.42,.42,-1.2],.018,M.blkC,g);tbTube([-.4,.55,-.45],[.4,.55,-.45],.016,M.blkC,g);
+  bx(.3,.06,.04,M.blkC,0,.42,-1.225,g);bx(.08,.045,.012,M.amber,0,.42,-1.248,g);for(const sx of[1,-1])bx(.07,.045,.012,M.tail,sx*.1,.42,-1.248,g);
+  bx(W+.04,.045,.045,M.blkC,0,-.09,tail-.04,g);for(const sx of[1,-1]){bx(.08,.12,.012,M.tail,sx*.38,.1,tail-.012,g);cyl(.025,.12,M.steel,sx*.3,-.11,tail-.06,g,'z',10);bx(.05,.05,.07,M.red,sx*.42,-.14,tail-.03,g)}
+  bx(.2,.1,.008,M.plate,0,.08,tail-.012,g);
+  cyl(.006,.9,M.blkC,-.44,.62,tail+.06,g,null,5);{const fl=new THREE.Mesh(new THREE.PlaneGeometry(.12,.08),TM.flag);fl.position.set(-.44+.06,1.03,tail+.06);fl.rotation.y=Math.PI/2;g.add(fl)}
+  return g;
+}
+// the trophy truck's wheels: a tall off-road tyre with rounded shoulders and big staggered blocks on a black beadlock wheel
+function buildTrophyWheel(cfg,side){
+  const r=cfg.wr||WR,w=cfg.tireW||.19,root=new THREE.Group(),spin=new THREE.Group();root.add(spin);
+  const prof=[[r*.6,w/2-.01],[r*.82,w/2+.004],[r*.95,w/2-.01],[r*.975,w/2-.04],[r*.975,-w/2+.04],[r*.95,-w/2+.01],[r*.82,-w/2-.004],[r*.6,-w/2+.01]].map(p=>new THREE.Vector2(p[0],p[1]));
+  const tire=new THREE.Mesh(new THREE.LatheGeometry(prof,28),M.tire);tire.rotation.z=Math.PI/2;tire.castShadow=true;spin.add(tire);
+  const lugG=new THREE.BoxGeometry(w*.42,.03,.075);
+  for(let i=0;i<22;i++){const a=i/22*Math.PI*2;for(const sx of[-1,1]){const m=new THREE.Mesh(lugG,M.tire);m.position.set(sx*w*.24+(i%2?.012:-.012)*sx,Math.cos(a)*(r-.022),Math.sin(a)*(r-.022));m.rotation.x=a;m.castShadow=true;spin.add(m)}}
+  cyl(r*.6,w-.02,M.blk,0,0,0,spin,'x',20);
+  const fx=side*(w/2-.004);cyl(r*.62,.016,M.steel,fx-side*.006,0,0,spin,'x',22);cyl(r*.5,.016,M.blk,fx,0,0,spin,'x',18);   // the beadlock ring, and the black wheel face inside it
+  for(let i=0;i<12;i++){const a=i/12*Math.PI*2;cyl(.008,.02,M.blk,fx+side*.006,Math.cos(a)*r*.56,Math.sin(a)*r*.56,spin,'x',5)}
+  for(let i=0;i<6;i++){const a=i/6*Math.PI*2+.3,s=bx(.016,r*.42,.03,M.steel,fx,Math.cos(a)*r*.27,Math.sin(a)*r*.27,spin);s.rotation.x=a}   // spokes
+  cyl(.055,.03,M.red,fx+side*.008,0,0,spin,'x',12);cyl(.025,.04,M.steel,fx+side*.012,0,0,spin,'x',6);
+  return{root,spin};
+}
+// the trophy truck's suspension, drawn between the body and the wheels every frame (syncVisuals in js/game.js), so you see it work:
+// A-arms, a coilover and a bypass shock and the drive shaft at each front wheel; a trailing arm, a link and two shocks at each end of the rear axle.
+// {m: the mesh, a: the point on the body, w: the wheel, o: the point by the wheel, both in the body's frame}
+function trophyLinks(cfg){const L=[],zf=cfg.wb/2,V=(x,y,z)=>new THREE.Vector3(x,y,z);
+  const add=(w,a,o,r,mat)=>{const m=new THREE.Mesh(new THREE.CylinderGeometry(r,r,1,8),mat);m.castShadow=true;L.push({m,a,w,o})};
+  for(let i=0;i<4;i++){const sx=i%2===0?1:-1,front=i<2,z=front?zf:-zf;
+    if(front){for(const dz of[-.15,.15]){add(i,V(sx*.2,-.15,z+dz),V(-sx*.09,-.07,dz*.15),.016,M.steel);add(i,V(sx*.27,.06,z+dz*.85),V(-sx*.09,.08,dz*.12),.014,M.steel)}
+      add(i,V(sx*.32,.15,z-.05),V(-sx*.17,-.05,-.05),.032,M.red);add(i,V(sx*.34,.14,z+.08),V(-sx*.2,-.04,.08),.022,M.steel);add(i,V(sx*.08,-.1,z),V(-sx*.04,0,0),.018,M.blk)}
+    else{add(i,V(sx*.36,-.13,z+.78),V(-sx*.14,-.03,0),.022,M.steel);add(i,V(sx*.16,.0,z+.55),V(-sx*.42,.06,0),.016,M.steel);
+      add(i,V(sx*.4,.27,z+.12),V(-sx*.13,.03,.1),.032,M.red);add(i,V(sx*.43,.26,z-.12),V(-sx*.15,.03,-.1),.022,M.steel)}}
+  return L}

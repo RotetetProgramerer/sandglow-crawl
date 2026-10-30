@@ -1,6 +1,6 @@
 'use strict';
 /* =================================================================
-   MAP: the round minimap in the HUD and the hand-drawn island map (open worlds only)
+   MAP: the round minimap in the HUD and the hand-drawn island map (open worlds only). A tap on the map sets the GPS (js/gps.js).
    The base layer is painted once per level from the terrain colours (TC) and heights (TH); roads, courses, icons,
    the car and the fog of war are drawn on top every time. Fog is a coarse grid of visited cells, saved per world.
    Loaded before game.js; uses its globals (LV, car, state, best …) only inside functions, at run time.
@@ -77,7 +77,7 @@ function drawCourseIcon(x,u,v,k,done,s,hot){x.save();x.translate(u,v);x.fillStyl
 
 /* ---------- minimap ---------- */
 function initMaps(){MAP.mini=$('minimap');MAP.miniCtx=MAP.mini.getContext('2d');MAP.mini.addEventListener('pointerdown',e=>{e.stopPropagation();if(state.mode==='play')openMap(true)});MAP.big=$('mapCv');MAP.bigCtx=MAP.big.getContext('2d');
-  MAP.big.addEventListener('pointermove',e=>mapHover(e));MAP.big.addEventListener('pointerdown',e=>{mapHover(e);if(MAP.hover)$('mapInfo').textContent=mapInfoText(MAP.hover)})}
+  MAP.big.addEventListener('pointermove',e=>mapHover(e));MAP.big.addEventListener('pointerdown',e=>{mapHover(e);if(MAP.tab==='arch')gpsArchTap(e);else gpsMapTap(e)})}   // a tap sets the GPS (js/gps.js)
 function updateMinimap(){const cv=MAP.mini;if(!MAP.base||!car||$('hud').hidden||!state.world||SKI.on){cv.hidden=true;return}cv.hidden=false;
   const S=cv.width,x=MAP.miniCtx,R=S/2,range=15,px=S/(range*2)/(MAP.W/WORLD);   // px: base-pixels → minimap pixels so that `range` world units fit in the radius
   x.clearRect(0,0,S,S);x.save();x.beginPath();x.arc(R,R,R-2,0,6.283);x.clip();x.fillStyle=MAPCOL.fog;x.fillRect(0,0,S,S);
@@ -94,6 +94,7 @@ function updateMinimap(){const cv=MAP.mini;if(!MAP.base||!car||$('hud').hidden||
   if(LV.airportDef){const[u,v]=toMini(LV.airportDef.x,LV.airportDef.z);if(Math.hypot(u-R,v-R)<R-9)drawPlaneIcon(x,u,v,7)}
   if(lvl.basePos){const[u,v]=toMini(lvl.basePos[0],lvl.basePos[1]);const d=Math.hypot(u-R,v-R);if(d<R-9)drawBase(x,u,v,7);else{const a=Math.atan2(v-R,u-R);x.save();x.translate(R+Math.cos(a)*(R-8),R+Math.sin(a)*(R-8));x.rotate(a);x.fillStyle='#e5a92b';x.beginPath();x.moveTo(5,0);x.lineTo(-4,-4);x.lineTo(-4,4);x.closePath();x.fill();x.restore()}}
   if(typeof netDots==='function')for(const d of netDots()){const[u,v]=toMini(d.x,d.z),dd=Math.hypot(u-R,v-R);if(dd<R-8)drawFriend(x,u,v,d.col,5);else{const a=Math.atan2(v-R,u-R);drawFriend(x,R+Math.cos(a)*(R-8),R+Math.sin(a)*(R-8),d.col,4)}}
+  gpsDrawMini(x,toMini,R);
   drawCar(x,R,R,0,7);
   // north
   {const a=-ang;const nu=R+Math.sin(a)*(R-12),nv=R-Math.cos(a)*(R-12);x.fillStyle='#f2e8d0';x.font='700 11px "Barlow Condensed",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('N',nu,nv)}
@@ -105,17 +106,18 @@ function openMap(on){if(!state.world||!MAP.base)return;if(on===undefined)on=!MAP
   else if(state.mode==='pause'&&$('pause').hidden)state.mode='play'}
 function bigLayout(){const cv=MAP.big,fr=cv.parentElement.parentElement,sz=Math.max(200,Math.min(fr.clientWidth-32,innerHeight*.58));cv.parentElement.style.width=cv.parentElement.style.height=sz+'px';if(cv.width!==sz){cv.width=cv.height=sz}MAP.scale=sz/MAP.W;return sz}
 function setMapTab(t){MAP.tab=t;$('mTabIsland').setAttribute('aria-pressed',t==='island');$('mTabArch').setAttribute('aria-pressed',t==='arch');
-  if(t==='island')$('mapInfo').textContent='Trykk på en løype for å se beste tid. '+(coursesDone()+' av '+LV.courses.length+' løyper fullført. Gullmuttere: '+foundOn(LEVELS[state.levelIdx])+' av '+SECRET_PER+' funnet.');else $('mapInfo').textContent='Skjærgården: fergen går mellom kaiene langs de stiplede rutene. Du er på '+LEVELS[state.levelIdx].name+'. Gullmuttere: '+foundSecrets()+' av '+totalSecrets()+'.';drawBigMap()}
+  if(t==='island')$('mapInfo').textContent=(gpsLive()?'GPS: '+GPS.dest.name+' · '+gpsM(gpsLeft())+' igjen. ':'Trykk der du vil kjøre, så viser GPS-en veien. ')+(coursesDone()+' av '+LV.courses.length+' løyper fullført. Gullmuttere: '+foundOn(LEVELS[state.levelIdx])+' av '+SECRET_PER+' funnet.');else $('mapInfo').textContent='Skjærgården: fergen går mellom kaiene langs de stiplede rutene. Trykk på en øy, så viser GPS-en vei til fergen. Du er på '+LEVELS[state.levelIdx].name+'. Gullmuttere: '+foundSecrets()+' av '+totalSecrets()+'.';gpsChips();drawBigMap()}
 function drawBigMap(){if(!MAP.open)return;if(MAP.tab==='arch')return drawArchipelago();const sz=bigLayout(),x=MAP.bigCtx,sc=MAP.scale,lvl=LEVELS[state.levelIdx];
   x.clearRect(0,0,sz,sz);x.save();x.scale(sc,sc);x.drawImage(MAP.base,0,0);drawFog(x,MAP.W,.74);x.restore();
   // dashed line home
-  if(lvl.basePos){x.save();x.setLineDash([6,6]);x.strokeStyle='rgba(229,169,43,.9)';x.lineWidth=2;x.beginPath();x.moveTo(mapX(car.pos.x)*sc,mapY(car.pos.z)*sc);x.lineTo(mapX(lvl.basePos[0])*sc,mapY(lvl.basePos[1])*sc);x.stroke();x.restore();drawBase(x,mapX(lvl.basePos[0])*sc,mapY(lvl.basePos[1])*sc,10)}
+  if(lvl.basePos){if(!gpsLive()){x.save();x.setLineDash([6,6]);x.strokeStyle='rgba(229,169,43,.9)';x.lineWidth=2;x.beginPath();x.moveTo(mapX(car.pos.x)*sc,mapY(car.pos.z)*sc);x.lineTo(mapX(lvl.basePos[0])*sc,mapY(lvl.basePos[1])*sc);x.stroke();x.restore()}drawBase(x,mapX(lvl.basePos[0])*sc,mapY(lvl.basePos[1])*sc,10)}
   for(const k of LV.courses)drawCourseIcon(x,mapX(k.start.p.x)*sc,mapY(k.start.p.z)*sc,k,!!best[courseKey(lvl,k)],9,MAP.hover===k);
   if(LV.ferry)drawFerryIcon(x,mapX(LV.ferry.quay.x)*sc,mapY(LV.ferry.quay.z)*sc,10);
   if(LV.marinaDef)drawBoatIcon(x,mapX(LV.marinaDef.x)*sc,mapY(LV.marinaDef.z)*sc,10);
   if(LV.airportDef)drawPlaneIcon(x,mapX(LV.airportDef.x)*sc,mapY(LV.airportDef.z)*sc,10);
   (LV.secrets||[]).forEach((sc2,i)=>{if(!prof.secrets[secretKey(lvl,i)])return;x.save();x.translate(mapX(sc2.x)*sc,mapY(sc2.z)*sc);x.fillStyle='#e6b43a';x.strokeStyle='#5a3a1a';x.lineWidth=1.2;x.beginPath();x.arc(0,0,5,0,6.283);x.fill();x.stroke();x.fillStyle='#5a3a1a';x.beginPath();x.arc(0,0,1.8,0,6.283);x.fill();x.restore()});
   if(typeof netDots==='function')for(const d of netDots())drawFriend(x,mapX(d.x)*sc,mapY(d.z)*sc,d.col,7,d.name);
+  gpsDrawBig(x,sc);
   drawCar(x,mapX(car.pos.x)*sc,mapY(car.pos.z)*sc,mapAng(car.fw),9);
   // compass
   x.save();x.translate(sz-36,sz-36);x.fillStyle='rgba(233,220,185,.85)';x.beginPath();x.arc(0,0,24,0,6.283);x.fill();x.strokeStyle=MAPCOL.ink;x.lineWidth=1.5;x.stroke();x.fillStyle='#d9432f';x.beginPath();x.moveTo(0,-20);x.lineTo(5,0);x.lineTo(-5,0);x.closePath();x.fill();x.fillStyle=MAPCOL.ink;x.beginPath();x.moveTo(0,20);x.lineTo(5,0);x.lineTo(-5,0);x.closePath();x.fill();x.font='700 11px "Barlow Condensed",sans-serif';x.textAlign='center';x.fillText('N',0,-26);x.restore()}
@@ -140,6 +142,6 @@ function drawArchipelago(){const sz=bigLayout(),x=MAP.bigCtx,here=LEVELS[state.l
     drawFerryIcon(x,r*.75,-r*.75,sz*.014);if(isl.id===here)drawCar(x,0,0,0,sz*.016);
     if(typeof netWhere==='function'){const fr=netWhere().filter(w=>w.lv===isl.id);fr.forEach((w,i)=>{const a=-2.4+i*.75;drawFriend(x,Math.cos(a)*r*.62,Math.sin(a)*r*.62,w.col,sz*.012,w.name)})}
     x.restore()}}
-function mapHover(e){if(MAP.tab==='arch')return;const r=MAP.big.getBoundingClientRect(),u=(e.clientX-r.left)/MAP.scale,v=(e.clientY-r.top)/MAP.scale;let h=null;for(const k of LV.courses){if(Math.hypot(mapX(k.start.p.x)-u,mapY(k.start.p.z)-v)<14/MAP.scale)h=k}if(h!==MAP.hover){MAP.hover=h;drawBigMap();MAP.big.style.cursor=h?'pointer':'default'}}
+function mapHover(e){if(MAP.tab==='arch'){MAP.big.style.cursor='pointer';return}const r=MAP.big.getBoundingClientRect(),u=(e.clientX-r.left)/MAP.scale,v=(e.clientY-r.top)/MAP.scale;let h=null;for(const k of LV.courses){if(Math.hypot(mapX(k.start.p.x)-u,mapY(k.start.p.z)-v)<14/MAP.scale)h=k}if(h!==MAP.hover){MAP.hover=h;drawBigMap()}MAP.big.style.cursor=h?'pointer':'crosshair'}
 function mapInfoText(k){const b=best[LEVELS[state.levelIdx].id+'/'+k.id];const d=Math.hypot(k.start.p.x-car.pos.x,k.start.p.z-car.pos.z)*UNIT_CM/100;
   return k.name+' · '+['','lett','middels','vanskelig'][k.diff]+' · '+k.gates.length+' porter · '+d.toFixed(1).replace('.',',')+' m unna. '+(b?'Beste: '+fmtTime(b.t)+', '+b.p+' straff, '+b.s+' stjerner.':'Ikke kjørt ennå.')}

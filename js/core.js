@@ -556,7 +556,7 @@ function makeCar(cfg,tune){
   tune=tune||TUNE0;const k=cfg.susp||1;if(k!==1)tune=Object.assign({},tune,{travel:tune.travel*k});   // susp: shorter and stiffer springs (a sports car)
   const m=cfg.mass,L=cfg.L,tr=cfg.track||TRACK,W=Math.max(.92,tr),car={cfg,m,tune,wr:cfg.wr||WR,pos:new V3(),vel:new V3(),q:new Q4(),w:new V3(),steer:0,throttle:0,low:true,assist:true,speedScale:1,
     depth:-1,I:new V3(m/12*(.55*.55+L*L)*1.1,m/12*(W*W+L*L)*1.1,m/12*(W*W+.55*.55)*1.6),wheels:[],pts:[],up:new V3(0,1,0),fw:new V3(0,0,1),lf:new V3(1,0,0)};
-  car.K=m*9.8/4/(.4*TRAVEL*k);car.C=2*Math.sqrt(car.K*m/4)*[.5,.65,.8,.9][tune.lv?tune.lv.susp:0];
+  car.K=m*9.8/4/(.4*TRAVEL*k);car.C=2*Math.sqrt(car.K*m/4)*[.5,.65,.8,.9][tune.lv?tune.lv.susp:0]*(cfg.damp||1);   // damp: stronger shocks (the trophy truck's bypass shocks)
   for(const fz of[1,-1])for(const sx of[1,-1])car.wheels.push({mount:new V3(sx*tr/2,MOUNT_Y+(cfg.ride||0)+(tune.travel-TRAVEL*k)-tune.lift,fz*cfg.wb/2),front:fz>0,left:sx>0,comp:0,prev:0,had:false,contact:false,center:new V3(),spin:0,vl:0,slip:0,surf:0,P:new V3()});
   const roof=.08+.34+cfg.gh+.12;
   for(const sx of[1,-1]){for(const sz of[1,-1]){car.pts.push(new V3(sx*.44,-.06,sz*L*.47),new V3(sx*.42,roof,sz*L*.42),new V3(sx*.42,.03,sz*(L/2+.09)),new V3(sx*.47,.3,sz*L*.3))}}
@@ -576,7 +576,7 @@ function stepCar(car,dt){
   const m=car.m,g=9.8,q=car.q,inv=1/dt,meff=m*.125;
   const up=car.up.set(0,1,0).applyQuaternion(q),fw=car.fw.set(0,0,1).applyQuaternion(q),lf=car.lf.set(1,0,0).applyQuaternion(q);
   _f.set(0,-g*m,0);_tq.set(0,0,0);
-  const TU=car.tune||TUNE0,TRV=TU.travel;
+  const TU=car.tune||TUNE0,TRV=TU.travel,RT=TU.right+(car.cfg.stab||0);   // RT: how hard the car rights itself (the weight part in the garage, and stab on a car built wide and low)
   const low=car.low,vmax=(low?1.7*TU.vlow:5.6*TU.vhigh*(car.cfg.top||1))*(car.speedScale||1),WRc=car.wr,fmot=(low?.62:.15)*TU.fmot*(car.cfg.pow||1)*m*g,vt=car.throttle*vmax,gripMul=(car.assist?1.12:1)*TU.grip;
   const dy=Math.max(.35,up.y);
   for(const wh of car.wheels){
@@ -633,8 +633,13 @@ function stepCar(car,dt){
   car.w.addScaledVector(_t,dt);
   if(car.assist&&up.y<.8&&up.y>-.2){_t.crossVectors(up,YAX);car.w.addScaledVector(_t,dt*7*(.8-up.y))}
   if(car.rope&&up.y<.9){_t.crossVectors(up,YAX);if(_t.lengthSq()<1e-4)_t.set(1,0,0);car.w.addScaledVector(_t,dt*12*(1-up.y));car.vel.y+=dt*11*(1-up.y)}   // the winch rolls a tipped car back onto its wheels: a lift and a roll until it is upright
-  if(TU.right>0&&up.y<.985&&up.y>-.2){_t.crossVectors(up,YAX);car.w.addScaledVector(_t,dt*9*TU.right*(.985-up.y))}
-  car.w.multiplyScalar(1-(.6+.5*TU.right+(car.rope?2.5:0))*dt);car.vel.multiplyScalar(1-(.04+(car.rope?1.5:0))*dt);
+  if(RT>0&&up.y<.985&&up.y>-.2){_t.crossVectors(up,YAX);car.w.addScaledVector(_t,dt*9*RT*(.985-up.y))}
+  // air: a car built for jumping (the trophy truck) flies level. Pitch and roll die out, it levels itself, and the driver holds the nose
+  // with the pedals like in a real truck: gas spins the wheels up and lifts the nose, brake stops them and drops it
+  if(car.cfg.air&&!car.wheels.some(w=>w.contact)&&up.y>0){const A=car.cfg.air,wp=car.w.dot(lf),wr=car.w.dot(fw);
+    car.w.addScaledVector(lf,-wp*Math.min(1,2.2*A*dt)).addScaledVector(fw,-wr*Math.min(1,2.2*A*dt));
+    _t.crossVectors(up,YAX);car.w.addScaledVector(_t,dt*5*A);car.w.addScaledVector(lf,-car.throttle*1.6*A*dt)}
+  car.w.multiplyScalar(1-(.6+.5*RT+(car.rope?2.5:0))*dt);car.vel.multiplyScalar(1-(.04+(car.rope?1.5:0))*dt);
   car.pos.addScaledVector(car.vel,dt);
   _wq.set(car.w.x,car.w.y,car.w.z,0).multiply(q);q.x+=.5*dt*_wq.x;q.y+=.5*dt*_wq.y;q.z+=.5*dt*_wq.z;q.w+=.5*dt*_wq.w;q.normalize();
   for(const c of G.colliders){const dx=car.pos.x-c.x,dz=car.pos.z-c.z;
