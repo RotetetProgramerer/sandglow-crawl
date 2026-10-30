@@ -441,7 +441,7 @@ Ny plante eller nytt dyr: kopier en oppføring. `place(x,z,o,env)` leser paramet
 
 ## Kameløya: ørkenøya og Diamantgrotten
 
-`data/levels/12-orken.js` er en ørkenøy sør i skjærgården. Fergen går dit fra Tromøya, Trinnvik og Bykkevika. Husk at på øyene er +x vest og +z nord.
+`data/levels/12-orken.js` er en ørkenøy nordøst for Tromøya i skjærgården. Fergen går dit fra Tromøya, Nidelva og Hisøya. Husk at på øyene er +x vest og +z nord.
 
 | Sted | Hva |
 |---|---|
@@ -554,7 +554,7 @@ Strenge nettverk, som enkelte skole- og jobbnett, kan blokkere direkte kobling m
 2. Settings → Pages → Build and deployment → Source: «GitHub Actions». Oppskriften `.github/workflows/pages.yml` publiserer spillet hver gang `main` oppdateres. (Alternativt «Deploy from a branch», branch `main`, mappe `/ (root)`.)
 3. Etter et par minutter ligger spillet på `https://<brukernavn>.github.io/<repo>/`. Fanen Actions viser om publiseringen gikk bra.
 
-Hver gang du laster opp en oppdatering: **øk `VERSION` i `sw.js`** (for eksempel `v1` → `v2`). Ellers kan spillere som har besøkt siden før få den gamle versjonen fra hurtiglageret.
+Hver gang du laster opp en oppdatering: **øk `VERSION` i `sw.js`** (for eksempel `v1` → `v2`). Service workeren henter filene fra nettet først og bruker den lagrede kopien bare uten nett, så en endret fil kommer fram med en gang. Ny `VERSION` laster i tillegg alle filene inn på nytt i lageret for spill uten nett, og laster åpne faner inn på nytt når den nye versjonen er klar (et par sekunder etter at siden åpnes).
 
 ## Publisere på Google Play
 
