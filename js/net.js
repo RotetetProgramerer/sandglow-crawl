@@ -198,6 +198,7 @@ function netBuildVis(p){netDropVis(p);if(typeof buildBody!=='function')return;
   const raw=buildBody(cfg);netSwap(raw,mats);const body=netMerge(raw);root.add(body);
   const wheels=[];for(let i=0;i<4;i++){const w=carWheel(cfg,i%2===0?1:-1,i>1);netSwap(w.root,mats);const spin=netMerge(w.spin);w.root.remove(w.spin);w.root.add(spin);root.add(w.root);wheels.push({root:w.root,spin})}
   const axles=[];for(let i=0;i<2;i++){const a=new THREE.Group(),tube=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,8),M.blk);tube.castShadow=true;a.add(tube);const diff=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),M.blk);diff.castShadow=true;a.add(diff);a.userData.tube=tube;root.add(a);axles.push(a)}
+  if(cfg.style==='trophy')axles[0].visible=false;   // the trophy truck's front wheels hang on their own arms
   const tag=netTag(p.name,netCol(p.slot));root.add(tag);
   const mounts=makeCar(CARS[ci],tune).wheels.map(w=>w.mount.clone());
   scene.add(root);p.vis={root,body,wheels,axles,tag,mats,mounts,lit:false}}

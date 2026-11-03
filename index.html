@@ -28,7 +28,7 @@
     <div class="r rc"><span>Kasser</span><b id="hCrate">0/6</b></div>
     <div class="r fr"><span>Muttere</span><b id="hNuts">0</b></div>
     <div class="r fr"><span>Løyper</span><b id="hDone">0/7</b></div>
-    <div class="r fr"><span id="hBaseL">Basen</span><b id="hBase">0 m</b></div>
+    <div class="r fr" id="hBaseR"><span><svg class="gpsar" viewBox="-10 -10 20 20" aria-hidden="true"><path id="hGpsAr" d="M0-8L6.5 6L0 2.5L-6.5 6Z"/></svg><span id="hBaseL">Basen</span></span><b id="hBase">0 m</b></div>
   </div>
   <div class="ski-run" aria-live="polite">
     <div class="ln" id="sName">Gautefall</div>
@@ -296,7 +296,8 @@
     <header><p class="eyebrow" id="mIsland">Tromøya</p><h2>Kartet</h2><div class="seg maptabs" role="group"><button id="mTabIsland" aria-pressed="true">Øya</button><button id="mTabArch" aria-pressed="false">Skjærgården</button></div><button class="ghost" id="mClose">Lukk (K)</button></header>
     <div class="mapbox"><canvas id="mapCv" width="512" height="512"></canvas></div>
     <p class="note" id="mapInfo"></p>
-    <div class="legend"><span><i style="background:#8bbb4a"></i>Lett</span><span><i style="background:#e5a92b"></i>Middels</span><span><i style="background:#d9432f"></i>Vanskelig</span><span><i class="ck"></i>Fullført</span><span><i style="background:#cdbf9c"></i>Uutforsket</span></div>
+    <div class="gpsbar" id="mGps"></div>
+    <div class="legend"><span><i style="background:#8bbb4a"></i>Lett</span><span><i style="background:#e5a92b"></i>Middels</span><span><i style="background:#d9432f"></i>Vanskelig</span><span><i class="ck"></i>Fullført</span><span><i style="background:#cdbf9c"></i>Uutforsket</span><span><i style="background:#2f86ff"></i>GPS-rute</span></div>
     <div class="row"><button class="ghost" id="mTow">Tau hjem til basen (20 ⚙)</button></div>
   </div>
 </section>
@@ -308,6 +309,7 @@
     <h2>Slik spiller du</h2>
     <ul class="log">
       <li><b>Kjør fritt.</b> Hele øya er din. Pilen og minikartet viser nærmeste startstrek.</li>
+      <li><b>GPS:</b> åpne kartet (K) og trykk på et sted, for eksempel fergekaia. En blå pil viser veien dit.</li>
       <li><b>Start en løype</b> ved å kjøre inn mellom flaggene og svare JA. Du tjener muttere på porter, kasser og hopp.</li>
       <li><b>Bruk mutterne</b> i verkstedet på basen: dekk, fjæring, motor, lakk og en ny bil.</li>
       <li><b>Finn gullmutterne</b> (fem per øy) og ta fergen fra landsbyen til de andre øyene.</li>
@@ -444,6 +446,7 @@
 <script src="js/boatsim.js"></script>
 <script src="js/planesim.js"></script>
 <script src="js/grottesim.js"></script>
+<script src="js/gpsroute.js"></script>
 <script src="js/animals.js"></script>
 <script src="js/savannedyr.js"></script>
 <script src="js/orkendyr.js"></script>
@@ -483,6 +486,7 @@
 <script src="js/plane.js"></script>
 <script src="js/grotte.js"></script>
 <script src="js/net.js"></script>
+<script src="js/gps.js"></script>
 <script>startGame()</script>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>

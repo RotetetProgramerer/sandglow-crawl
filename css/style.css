@@ -211,6 +211,17 @@ html{box-sizing:border-box}*,*::before,*::after{box-sizing:inherit}body{margin:0
 .alist .sub{display:block;font-size:.85rem;color:var(--muted)}
 .alist .pr{font-family:var(--f-display);color:var(--sand);align-self:center}
 
+/* the GPS (js/gps.js): the row in the corner turns blue with an arrow, and quick buttons under the map */
+.gpsar{display:none;width:14px;height:14px;vertical-align:-2px;margin-right:5px;fill:#5aa6ff;stroke:var(--ink);stroke-width:1.2}
+#hBaseR.gps>span{color:#8cc0ff;display:inline-flex;align-items:center;max-width:9.5em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#hBaseR.gps .gpsar{display:inline-block;flex:none}
+#hBaseR.gps b{color:#bcd9ff}
+.gpsbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:.9rem;color:#4a3a28}
+.gpsbar:empty{display:none}
+.gpsbar>span{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.78rem}
+.gpsbar button{border:1px solid #2f86ff;color:#1d4f9a;background:rgba(255,255,255,.35);padding:5px 10px;font-weight:700;min-height:34px}
+.gpsbar button[aria-pressed="true"]{background:#2f86ff;color:#fff}
+.gpsbar button.stop{border-color:#8a6a3a;color:#5a3a1a}
 .maptabs{border-color:#8a6a3a}.maptabs button{color:#4a3a28;padding:6px 10px;font-size:.85rem}.maptabs button[aria-pressed="true"]{background:#5a3a1a;color:#e9dcb9}
 .sw.lk{opacity:.55;cursor:default;font-size:1.1rem}
 .card.locked{opacity:.6}
