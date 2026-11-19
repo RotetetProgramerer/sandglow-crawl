@@ -34,6 +34,6 @@ function run(cfg,assist,speed=1){const car=makeCaveCar(cfg,tuneFrom({}));car.ass
     if(t-lastT>4){if(car.x-lastX<.5&&car.crashT===0){stuck++;ev.push('fast@'+car.x.toFixed(1));rev=.8}lastX=car.x;lastT=t}}
   console.log((cfg.id+(assist?' lett':' ekte')+(speed!==1?' '+Math.round(speed*100)+'%':'')).padEnd(16),ok?'MÅL ':stranded?'TOM ':'FEIL','tid',t.toFixed(0).padStart(3)+'s','x',R.far.toFixed(0).padStart(3),'diamanter',(R.got+'/'+cv.gems.length).padEnd(6),'velt',crashes,'juv',pits,'fast',stuck,'salto',flips,'bensin',minFuel.toFixed(2),'kanner',cans,'maksfart',maxV.toFixed(1),'lengste hopp',air.toFixed(2)+'s');
   if(verbose&&ev.length)console.log('   ',ev.join(' '))}
-for(const cfg of CARS){if(only&&only!=='v'&&cfg.id!==only)continue;run(cfg,true);run(cfg,false)}
+for(const cfg of CARS){if(cfg.hire||only&&only!=='v'&&cfg.id!==only)continue;run(cfg,true);run(cfg,false)}
 // the slowest speed limit in the menu (the cave never goes below 80 %) and the fastest
 if(!only||only==='v'){run(CARS[0],true,.3);run(CARS[1],false,1.5)}

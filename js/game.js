@@ -237,7 +237,7 @@ function buildCarVis(cfg){
   const axles=[];for(let i=0;i<2;i++){const a=new THREE.Group();const tube=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,8),M.blk);tube.castShadow=true;a.add(tube);
     const diff=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),M.blk);diff.castShadow=true;a.add(diff);a.userData.tube=tube;scene.add(a);axles.push(a)}
   // the trophy truck: the front wheels hang on their own arms (no axle between them), and the arms and shocks follow the wheels (js/carmodel.js)
-  const links=cfg.style==='trophy'?trophyLinks(cfg):[];links.forEach(l=>scene.add(l.m));if(cfg.style==='trophy')axles[0].visible=false;
+  const links=cfg.style==='trophy'?trophyLinks(cfg):[];links.forEach(l=>scene.add(l.m));if(cfg.style==='trophy')axles[0].visible=false;if(cfg.style==='skuter')axles.forEach(a=>a.visible=false);   // the snowmobile has skis and a belt, no axles
   const spots=[];for(const sx of[1,-1]){const s=new THREE.SpotLight(0xfff1cc,0,16,.55,.6,1.2);s.position.set(sx*.3,.3,cfg.L/2);const t=new THREE.Object3D();t.position.set(sx*.3,-.4,cfg.L/2+4);body.add(s,t);s.target=t;spots.push(s)}
   carVis={body,wheels,axles,spots,links};setLights(state.lights);
 }
@@ -488,6 +488,7 @@ function applyZone(x,z){if(!ZL.on)return;let k=ZL.d.zone(x,z);if(ZL.k<0)ZL.k=k;e
   hemi.color.copy(ZL.hA[0]).lerp(ZL.hB[0],k);hemi.groundColor.copy(ZL.hA[1]).lerp(ZL.hB[1],k);const dk=d.dark?d.dark(x,z):0;hemi.intensity=(a.hemi[2]+(d.hemi[2]-a.hemi[2])*k)*1.15*(1-.7*dk);sun.intensity*=(1-.5*dk);if(dk>0){scene.fog.color.multiplyScalar(1-.55*dk)}
   mistMat.color.copy(scene.fog.color);mistMat.color.r=Math.min(1,mistMat.color.r*1.25);mistMat.color.g=Math.min(1,mistMat.color.g*1.25);mistMat.color.b=Math.min(1,mistMat.color.b*1.25);for(const m of fxAnim.mist)m.s.material.color.copy(mistMat.color)}
 function loadLevel(i){
+  if(typeof skuterOff==='function')skuterOff();   // a hired snowmobile stays on its island
   state.levelIdx=i;const def=LEVELS[i];store.set('level',def.id);
   // free what the old level created; shared geometry and materials stay
   const keepGeo=new Set([...Object.values(DG),...SHARED_GEO,flagGeo,crateGeo,crateBand,leafGeo]),keepMat=new Set([...Object.values(M),...Object.values(DM),gateMat.pole,gateMat.cap,waterMat,riverMat,riverMat2,leafMat]);
@@ -529,8 +530,8 @@ function startRun(){
   resetCrates();resetToStart();car.low=true;clearTracks();resetBoulder();
   showHud();updateGearUI();toast('Kjør til port 1');
 }
-function toMenu(){if(state.course)endCourse();state.free=false;state.mode='menu';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('garage').hidden=true;$('menu').hidden=false;renderMenu();resetToStart()}
-function toGarage(){if(state.course)endCourse();clearCoat();state.mode='garage';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('menu').hidden=true;$('garage').hidden=false;resetToStart();renderGarage();$('gDrive').focus()}
+function toMenu(){if(state.course)endCourse();skuterOff();state.free=false;state.mode='menu';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('garage').hidden=true;$('menu').hidden=false;renderMenu();resetToStart()}
+function toGarage(){if(state.course)endCourse();skuterOff();clearCoat();state.mode='garage';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('menu').hidden=true;$('garage').hidden=false;resetToStart();renderGarage();$('gDrive').focus()}
 function renderGarage(){
   $('gCar').textContent=CARS[state.carIdx].name;$('gNuts').textContent=fmtN(prof.nuts);
   const forSale=CARS.filter(c=>c.price&&!ownsCar(c));$('carSale').innerHTML=forSale.length?'<h2>Biler til salgs</h2>'+forSale.map(c=>{const can=prof.nuts>=c.price;return`<div class="part"><span class="nm">${c.name}</span><span class="lvn">${c.kind}</span><p class="ds">${c.desc}</p><button class="buy ${can?'can':''}" data-buycar="${c.id}" ${can?'':'disabled'}>Kjøp<b>⚙ ${c.price}</b>${can?'':'<span>mangler '+(c.price-prof.nuts)+'</span>'}</button></div>`}).join(''):'';
@@ -828,7 +829,7 @@ document.addEventListener('visibilitychange',()=>{if(document.hidden&&(state.mod
 /* ---------- menu ---------- */
 function pips(n,max=5){return'<span class="pips">'+Array.from({length:max},(_,i)=>`<i class="${i<n?'on':''}"></i>`).join('')+'</span>'}
 function renderMenu(){
-  $('carList').innerHTML=CARS.map((c,i)=>`<button class="card ${ownsCar(c)?'':'locked'}" data-car="${i}" aria-pressed="${i===state.carIdx}"><span class="nm">${c.name}${ownsCar(c)?'':' 🔒'}</span><span class="kd">${ownsCar(c)?c.kind:'Kjøpes i verkstedet · '+c.price+' ⚙'}</span>
+  $('carList').innerHTML=CARS.map((c,i)=>c.hire?'':`<button class="card ${ownsCar(c)?'':'locked'}" data-car="${i}" aria-pressed="${i===state.carIdx}"><span class="nm">${c.name}${ownsCar(c)?'':' 🔒'}</span><span class="kd">${ownsCar(c)?c.kind:'Kjøpes i verkstedet · '+c.price+' ⚙'}</span>
     <span class="stat">Klatring ${pips(c.stats[0])}</span><span class="stat">Sving ${pips(c.stats[1])}</span><span class="stat">Stabilitet ${pips(c.stats[2])}</span></button>`).join('');
   $('carDesc').textContent=CARS[state.carIdx].desc;
   const lvlBtn=(l,i,no)=>{if(l.world){const done=l.challenges.filter(c=>best[l.id+'/'+c.id]).length;return`<button class="lvl world" data-lvl="${i}" aria-pressed="${i===state.levelIdx}"><span class="no">★</span>
@@ -848,7 +849,7 @@ $('modeReal').onclick=()=>{state.assist=false;store.set('assist',false);if(car)c
 
 function boot(){
   state.roam=false;initMaps();decalMat=new THREE.MeshStandardMaterial({map:decalTexture(),transparent:true,roughness:.5});
-  if(state.carIdx>=CARS.length||!ownsCar(CARS[state.carIdx]))state.carIdx=0;if(state.levelIdx>=LEVELS.length)state.levelIdx=0;
+  if(state.carIdx>=CARS.length||!ownsCar(CARS[state.carIdx])||CARS[state.carIdx].hire)state.carIdx=0;if(state.levelIdx>=LEVELS.length)state.levelIdx=0;
   loadLevel(state.levelIdx);setCar(state.carIdx);setSound(state.sound);setVol('volCar',state.volCar);setVol('volAmb',state.volAmb);setSpeed(state.speed,true);setGfx(state.gfx);renderMenu();
   for(let i=0;i<240;i++)stepCar(car,FIXED);
   requestAnimationFrame(frame);

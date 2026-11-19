@@ -78,7 +78,7 @@ function bFoam(x,z,r){const ring=new THREE.Mesh(new THREE.RingGeometry(r+2,r+14,
 function bLabel(text){const t=bTex(512,128,x=>{x.font='64px "Saira Stencil One", Impact, sans-serif';const w=Math.min(500,x.measureText(text).width+60);x.fillStyle='rgba(20,18,14,.72)';x.fillRect((512-w)/2,20,w,88);x.fillStyle='#E5A92B';x.fillRect((512-w)/2,20,8,88);
     x.fillStyle='#F2E8D0';x.textAlign='center';x.textBaseline='middle';x.fillText(text,256+4,66)});const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthWrite:false}));s.scale.set(200,50,1);return s}
 function bIsland(I,R){const g=new THREE.Group(),r=I.r,look=I.look;g.position.set(I.x,0,I.z);let top=30;
-  bAdd(g,new THREE.CylinderGeometry(r-10,r+2,4,13),bStd({vinter:0xdfe4e8,stein:0xb9b2a6,by:0xc9c2b2,vulkan:0x5a5450}[look]||0xe8d9ae),0,0,0,false);
+  bAdd(g,new THREE.CylinderGeometry(r-10,r+2,4,13),bStd({vinter:0xdfe4e8,svalbard:0xdfe4e8,stein:0xb9b2a6,by:0xc9c2b2,vulkan:0x5a5450}[look]||0xe8d9ae),0,0,0,false);
   const around=(n,d0,d1,fn)=>{for(let i=0;i<n;i++){const a=R()*Math.PI*2,d=d0+R()*(d1-d0);fn(Math.cos(a)*d,Math.sin(a)*d,i)}};
   if(look==='tromoya')top=bTromoya(g,I,R);
   else if(look==='vulkan'){bAdd(g,new THREE.CylinderGeometry(r*.85,r-8,6,11),bStd(0x3e3a38),0,3,0);const h=r*1.1;bAdd(g,new THREE.ConeGeometry(r*.75,h,9),bStd(0x221e1c),0,h/2,0);
@@ -115,6 +115,13 @@ function bIsland(I,R){const g=new THREE.Group(),r=I.r,look=I.look;g.position.set
     bAdd(g,new THREE.CylinderGeometry(r*.11,r*.11,.6,14),bStd(0x3f9aa0,{flatShading:false,roughness:.2}),r*.05,8.3,-r*.06,false);
     around(9,r*.12,r*.2,(x,z)=>{const p=bPalm(.9+R()*.4);p.position.set(x+r*.05,8,z-r*.06);p.rotation.y=R()*6;g.add(p)});
     const py=bAdd(g,new THREE.ConeGeometry(22,24,4),bStd(0xd2b07a),-r*.12,20,r*.48);py.rotation.y=.4;top=70}
+  else if(look==='svalbard'){bAdd(g,new THREE.CylinderGeometry(r-26,r-10,8,13),bStd(0xeef2f5),0,4,0);   // Svalbard: the ice cap with its blue front to the north, the mine mountain with the radomes, coloured houses by the quay, and icebergs
+    const gl=bAdd(g,new THREE.SphereGeometry(1,12,6,0,Math.PI*2,0,Math.PI/2),bStd(0xf6f9fc),-r*.08,8,-r*.4);gl.scale.set(r*.56,36,r*.46);
+    bAdd(g,new THREE.BoxGeometry(r*.78,15,7),bStd(0x8fc4e0),-r*.08,7.5,-r*.84);
+    const mx=r*.46,mz=-r*.04;bAdd(g,new THREE.CylinderGeometry(r*.22,r*.29,40,8),bStd(0x5f6268),mx,28,mz);bAdd(g,new THREE.CylinderGeometry(r*.225,r*.225,3,8),bStd(0xf1f5f8),mx,49,mz,false);
+    for(const[dx,s]of[[-10,7],[6,5]])bAdd(g,new THREE.IcosahedronGeometry(s,1),bStd(0xffffff,{flatShading:false}),mx+dx,52+s*.6,mz);
+    [0xc8463a,0xe5a92b,0x4f7bb5,0x5e8a4a,0xb06a3a].forEach((c,i)=>{bAdd(g,new THREE.BoxGeometry(9,8,8),bStd(c),-22+i*12,12,r*.74+(i%2)*6);bAdd(g,new THREE.BoxGeometry(10,2,9),bStd(0xf1f5f8),-22+i*12,17,r*.74+(i%2)*6,false)});
+    around(6,r*.9,r*.99,(x,z)=>{const b=bAdd(g,new THREE.ConeGeometry(7+R()*8,14+R()*14,5),bStd(0xd6ecf8),x,5,z);b.rotation.y=R()*6});top=56}
   else if(look==='skilso')top=bSkilso(g,I,R);
   // rocks along the shore
   if(look!=='by'){const n=4+Math.floor(R()*5);for(let i=0;i<n;i++){const a=R()*Math.PI*2,k=bRock(5+R()*10,R,look==='vulkan'?0x3e3a38:0x6f6a66);k.position.set(Math.cos(a)*r*(.92+R()*.1),0,Math.sin(a)*r*(.92+R()*.1));g.add(k)}}

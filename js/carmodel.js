@@ -1,6 +1,6 @@
 'use strict';
 /* =================================================================
-   CAR MODEL: wheels and the body with all its details (racks, cans, hoop lights, ladder, pickup bed …), the monster truck, the sports car and the trophy truck
+   CAR MODEL: wheels and the body with all its details (racks, cans, hoop lights, ladder, pickup bed …), the monster truck, the sports car, the trophy truck and the snowmobile
    Everything is boxes and cylinders from game.js's bx()/cyl() and the shared materials M. extras in data/cars.js choose the load.
    Loaded after game.js; only functions, called at run time.
    ================================================================= */
@@ -17,8 +17,8 @@ function buildWheel(r,side){
   return{root,spin};
 }
 // the wheel for a car: the standard wheel, scaled up for a car with its own wheel size (cfg.wr radius, cfg.tireW tire width)
-function carWheel(cfg,side,rear){if(cfg.style==='sport')return buildSportWheel(cfg,side,rear);if(cfg.style==='trophy')return buildTrophyWheel(cfg,side);const w=buildWheel(WR,side),k=(cfg.wr||WR)/WR;if(cfg.wr||cfg.tireW)w.spin.scale.set((cfg.tireW||.19)/.19,k,k);return w}
-function buildBody(cfg){if(cfg.style==='monster')return buildMonster(cfg);if(cfg.style==='sport')return buildSport(cfg);if(cfg.style==='trophy')return buildTrophy(cfg);
+function carWheel(cfg,side,rear){if(cfg.style==='skuter')return buildSkuterSki(cfg,side,rear);if(cfg.style==='sport')return buildSportWheel(cfg,side,rear);if(cfg.style==='trophy')return buildTrophyWheel(cfg,side);const w=buildWheel(WR,side),k=(cfg.wr||WR)/WR;if(cfg.wr||cfg.tireW)w.spin.scale.set((cfg.tireW||.19)/.19,k,k);return w}
+function buildBody(cfg){if(cfg.style==='skuter')return buildSkuter(cfg);if(cfg.style==='monster')return buildMonster(cfg);if(cfg.style==='sport')return buildSport(cfg);if(cfg.style==='trophy')return buildTrophy(cfg);
   const g=new THREE.Group(),L=cfg.L,W=.92,y0=.08,lh=.34,gh=cfg.gh,hood=cfg.hood,yT=y0+lh,fz=L/2,rz=-L/2;
   bx(.5,.06,L*.86,M.blkC,0,-.02,0,g);
   bx(W,lh,L,M.yel,0,y0+lh/2,0,g);
@@ -342,3 +342,40 @@ function trophyLinks(cfg){const L=[],zf=cfg.wb/2,V=(x,y,z)=>new THREE.Vector3(x,
     else{add(i,V(sx*.36,-.13,z+.78),V(-sx*.14,-.03,0),.022,M.steel);add(i,V(sx*.16,.0,z+.55),V(-sx*.42,.06,0),.016,M.steel);
       add(i,V(sx*.4,.27,z+.12),V(-sx*.13,.03,.1),.032,M.red);add(i,V(sx*.43,.26,z-.12),V(-sx*.15,.03,-.1),.022,M.steel)}}
   return L}
+
+/* ---------- the snowmobile (Svalbard): cowl in the paint, belt under the tunnel, and a rider in a scooter suit and helmet ---------- */
+// The physics has four wheels: the two in front are the skis (buildSkuterSki draws them, and they steer), the two at the back sit close
+// together under the belt and are not drawn. The ground is about .33 under the origin when the scooter stands still.
+let SKM=null;
+function skuterMats(){if(SKM)return SKM;const m=(c,r=.7)=>new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),roughness:r});
+  return SKM={suit:m('#24456e'),trim:m('#f2c230'),helm:m('#f4f2ec',.35),visor:m('#14181c',.15),mitt:m('#c8463a'),boot:m('#1c1a18'),flag:m('#ff6a2a')}}
+function buildSkuter(cfg){const g=new THREE.Group(),K=skuterMats(),wb=cfg.wb,tr=cfg.track||TRACK,T=(a,b,r,mat)=>tbTube(a,b,r,mat,g);
+  // the belt with its lugs, the tunnel over it, running boards and the snow flap
+  bx(.3,.15,1.0,M.tire,0,-.245,-.42,g);for(const z of[.08,-.92])cyl(.075,.3,M.tire,0,-.245,z,g,'x',10);for(let i=0;i<11;i++)bx(.31,.02,.03,M.blk,0,-.322,-.9+i*.098,g);
+  for(const z of[-.1,-.42,-.74])for(const sx of[1,-1])cyl(.05,.02,M.steel,sx*.16,-.25,z,g,'x',8);
+  bx(.36,.1,1.02,M.blkC,0,-.12,-.42,g);bx(.64,.025,.62,M.blkC,0,-.155,-.14,g);{const f=bx(.3,.17,.015,M.blk,0,-.2,-.98,g);f.rotation.x=.35}
+  // the seat, the rack with a fuel can, the bumper, the tail light and the pennant
+  bx(.26,.12,.6,M.blk,0,-.01,-.44,g);bx(.26,.1,.1,M.blk,0,.09,-.72,g);bx(.3,.02,.2,M.steel,0,-.03,-.85,g);bx(.14,.17,.1,M.red,0,.065,-.86,g);cyl(.02,.03,M.blk,.03,.165,-.86,g,null,6);
+  bx(.42,.03,.03,M.steel,0,-.06,-.97,g);bx(.14,.05,.02,M.tail,0,.02,-.96,g);
+  cyl(.007,.62,M.steel,.15,.28,-.93,g,null,5);{const f=bx(.012,.08,.15,K.flag,.15,.55,-1.01,g);f.castShadow=false}
+  // the cowl: belly pan, the body and the sloping hood in the paint, a black stripe on each flank, the headlight with its beams
+  bx(.6,.05,.78,M.blkC,0,-.145,.4,g);bx(.58,.2,.6,M.yel,0,-.02,.36,g);bx(.48,.13,.2,M.yel,0,-.055,.73,g);{const h=bx(.46,.12,.52,M.yel,0,.12,.31,g);h.rotation.x=.3}
+  for(const sx of[1,-1]){bx(.012,.045,.5,M.blkC,sx*.292,.03,.36,g);bx(.012,.03,.3,K.trim,sx*.292,-.03,.42,g)}
+  bx(.3,.07,.02,M.lamp,0,.045,.665,g);bx(.34,.1,.012,M.blkC,0,.045,.655,g);bx(.3,.03,.04,M.blkC,0,-.1,.84,g);
+  for(const sx of[1,-1]){const beam=new THREE.Mesh(new THREE.ConeGeometry(.5,4,14,1,true),M.beam);beam.rotation.x=-Math.PI/2+.1;beam.position.set(sx*.09,-.15,.665+1.98);beam.castShadow=false;g.add(beam)}
+  // windscreen, steering post, handlebar and grips
+  {const w=bx(.4,.2,.012,M.glass,0,.29,.3,g);w.rotation.x=-.55;w.castShadow=false}
+  T([0,.12,.14],[0,.33,.05],.02,M.blk);cyl(.017,.52,M.blk,0,.33,.05,g,'x',6);for(const sx of[1,-1])cyl(.026,.09,M.blkC,sx*.235,.33,.05,g,'x',8);
+  // the arms out to the skis
+  for(const sx of[1,-1]){T([sx*.26,-.08,wb/2-.08],[sx*tr/2,-.17,wb/2],.022,M.steel);T([sx*.26,-.08,wb/2+.1],[sx*tr/2,-.17,wb/2],.022,M.steel);T([sx*.24,.06,wb/2],[sx*(tr/2-.03),-.13,wb/2],.03,M.red)}
+  // the rider: boots on the running boards, knees forward, leaning over the handlebar; a white helmet with a dark visor and a yellow stripe
+  for(const sx of[1,-1]){T([sx*.09,.09,-.32],[sx*.17,.11,-.04],.055,K.suit);T([sx*.17,.11,-.04],[sx*.24,-.1,.02],.048,K.suit);bx(.09,.07,.17,K.boot,sx*.24,-.108,.05,g);
+    T([sx*.13,.41,-.13],[sx*.2,.3,-.03],.042,K.suit);T([sx*.2,.3,-.03],[sx*.235,.34,.04],.038,K.suit);const mt=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),K.mitt);mt.position.set(sx*.235,.34,.05);mt.castShadow=true;g.add(mt)}
+  T([0,.06,-.33],[0,.42,-.14],.105,K.suit);bx(.24,.03,.17,K.trim,0,.3,-.2,g).rotation.x=.45;
+  {const h=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),K.helm);h.position.set(0,.56,-.07);h.scale.set(1,1,1.1);h.castShadow=true;g.add(h);
+    const v=bx(.15,.065,.03,K.visor,0,.565,.02,g);v.rotation.x=.12;bx(.03,.012,.2,K.trim,0,.662,-.07,g);bx(.12,.06,.1,K.helm,0,.5,-.01,g)}
+  return g}
+// a ski at each front wheel: the runner with its upturned tip, the loop on the tip and the spindle up to the arms. The rear wheels are under the belt
+function buildSkuterSki(cfg,side,rear){const root=new THREE.Group(),spin=new THREE.Group();root.add(spin);if(rear)return{root,spin};const y=-(cfg.wr||WR);
+  bx(.1,.022,.78,M.blkC,0,y+.011,.02,root);{const t=bx(.1,.022,.2,M.blkC,0,y+.055,.49,root);t.rotation.x=-.5}bx(.02,.03,.6,M.steel,0,y-.004,0,root);
+  tbTube([0,y+.1,.56],[0,y+.07,.26],.012,M.yel,root);bx(.07,.06,.18,M.yel,0,y+.05,0,root);bx(.04,-y-.02,.05,M.steel,0,y/2+.03,0,root);return{root,spin}}

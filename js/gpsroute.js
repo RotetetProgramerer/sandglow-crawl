@@ -23,6 +23,7 @@ function gpsPlaces(def,lv,o={}){const P=[],has=new Set();
   if(lv.marinaDef)add('marina','Marinaen',lv.marinaDef.ask.x,lv.marinaDef.ask.z,2,'marina');
   if(lv.airportDef)add('air','Flyplassen',lv.airportDef.ask.x,lv.airportDef.ask.z,2,'air');
   if(def.skiAt&&lv.liftDef)add('ski','Skiheisen',def.skiAt[0],def.skiAt[1],2,'ski');
+  if(lv.skuterDef)add('skuter','Skuterutleia',lv.skuterDef.ask.x,lv.skuterDef.ask.z,2,'skuter');
   if(lv.caveDef&&o.cave)add('cave','Diamantgrotten',lv.caveDef.mouth.x,lv.caveDef.mouth.z,lv.caveDef.r+1,'cave');
   for(const k of lv.courses||[])add('k:'+k.id,k.name,k.start.p.x,k.start.p.z,3.6,'course',{k});
   const alias={Kaia:'ferry',Basen:'base',Marinaen:'marina',Flyplassen:'air'};   // names on the map that are places already

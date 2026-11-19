@@ -12,7 +12,7 @@
    ================================================================= */
 const SAV={preds:[],vultures:[],all:[],warnT:0};
 const SAV_KIND={
-  lion:{name:'Løven',emoji:'🦁',alert:9,charge:6.5,speed:4.6,turn:3.2,maxT:5,leash:17,hit:.6,push:1,rest:12,warn:'⚠ Løvene har sett deg!'},
+  lion:{name:'Løven',emoji:'🦁',big:true,alert:9,charge:6.5,speed:4.6,turn:3.2,maxT:5,leash:17,hit:.6,push:1,rest:12,warn:'⚠ Løvene har sett deg!'},
   cheetah:{name:'Geparden',emoji:'🐆',alert:13,charge:10.5,speed:6.6,turn:2.2,maxT:3.2,leash:26,hit:.55,push:.75,rest:9,warn:'⚠ Gepard! Sving unna!'},
   croc:{name:'Krokodillen',emoji:'🐊',alert:5,charge:3.6,speed:6,turn:5,maxT:1,leash:4.5,hit:.7,push:1.2,rest:7,warn:'⚠ Krokodille i vannet!'}
 };
@@ -113,7 +113,7 @@ function savCarDist(x,z){const L=car.cfg.L/2,fx=car.fw.x,fz=car.fw.z,fl=Math.hyp
 function savAttack(p){const K=p.K,g=p.g;let nx=car.pos.x-g.position.x,nz=car.pos.z-g.position.z;const l=Math.hypot(nx,nz)||1;nx/=l;nz/=l;const k=K.push;
   car.vel.x+=nx*3*k;car.vel.z+=nz*3*k;car.vel.y+=.8*k;state.thrown=performance.now();   // state.thrown: no jump bonus for the flight (js/game.js)
   car.w.y+=(Math.random()<.5?-1:1)*2.6*k;car.w.x+=(Math.random()-.5)*1.6*k;car.w.z+=(Math.random()-.5)*1.6*k;
-  if(typeof ambThump==='function')ambThump(1);if(p.kind==='croc')savSnap(g.position.x,g.position.z);else savRoar(g.position.x,g.position.z,p.kind==='lion');
+  if(typeof ambThump==='function')ambThump(1);if(p.kind==='croc')savSnap(g.position.x,g.position.z);else savRoar(g.position.x,g.position.z,p.K.big);
   if(!state.free&&typeof addPenalty==='function')addPenalty(5,K.name+' angrep');
   else{const n=Math.min(prof.nuts,3);prof.nuts-=n;saveProf();toast(K.emoji+' '+K.name+' angrep!'+(n?' −'+n+' ⚙':''),true)}}
 function savTurn(g,want,rate,dt){let dy=want-g.rotation.y;dy=Math.atan2(Math.sin(dy),Math.cos(dy));g.rotation.y+=Math.max(-rate*dt,Math.min(rate*dt,dy))}
@@ -123,7 +123,7 @@ function updateSavanna(dt,tm){if(!SAV.all.length)return;
   for(const p of SAV.preds){const g=p.g,K=p.K,U=g.userData,x=g.position.x,z=g.position.z,d=savCarDist(x,z),home=Math.hypot(x-p.hx,z-p.hz),croc=p.kind==='croc';p.t-=dt;p.cool-=dt;
     const carWet=WL(car.pos.x,car.pos.z)>H(car.pos.x,car.pos.z)-.25,canSee=play&&p.cool<=0&&(!croc||carWet||d<2.2);
     if(p.st==='rest'||p.st==='alert'){p.sp=0;
-      if(canSee&&d<K.charge){p.st='charge';p.t=K.maxT;if(!croc)savRoar(x,z,p.kind==='lion');if(SAV.warnT<=0){toast(K.warn,true);SAV.warnT=6}}
+      if(canSee&&d<K.charge){p.st='charge';p.t=K.maxT;if(!croc)savRoar(x,z,K.big);if(SAV.warnT<=0){toast(K.warn,true);SAV.warnT=6}}
       else if(canSee&&d<K.alert){if(p.st!=='alert'&&SAV.warnT<=0&&!croc){toast(K.warn,true);SAV.warnT=6}p.st='alert';savTurn(g,Math.atan2(car.pos.x-x,car.pos.z-z),2,dt)}
       else p.st='rest'}
     else if(p.st==='charge'){p.sp=K.speed;const tx=car.pos.x+car.vel.x*.35,tz=car.pos.z+car.vel.z*.35;savTurn(g,Math.atan2(tx-x,tz-z),K.turn,dt);
