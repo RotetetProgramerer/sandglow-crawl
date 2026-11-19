@@ -32,6 +32,7 @@ function buildBody(cfg){if(cfg.style==='skuter')return buildSkuter(cfg);if(cfg.s
   bx(ghW-.12,gh-.08,.012,M.glass,0,gy+.005,gz1+.006,g);
   bx(ghW-.2,gh-.1,.012,M.glass,0,gy+.01,gz0-.006,g);
   const nw=cfg.win,seg=gl/nw;
+  g.userData.door={x:W/2,xg:ghW/2,ya:y0+.06,yb:yT,yc:yT+gh-.02,z:gz1-.085,len:Math.min(.5,seg-.11)};   // where the front doors are: js/walker.js swings one open when the driver gets out
   for(let i=0;i<nw;i++){const zc=gz1-seg*(i+.5),ww=cfg.style==='glass'?seg-.035:seg-.07;for(const sx of[1,-1])bx(.012,gh-(cfg.style==='glass'?.06:.09),ww,M.glass,sx*(ghW/2+.006),gy+.01,zc,g)}
   let roofY=yT+gh;if(cfg.style==='pickup'){roofY+=.0}else{bx(ghW+.02,.03,gl+.02,M.yel,0,roofY+.015,gc,g);roofY+=.03}
   let rackZ0=gz0+.02,rackZ1=gz1+.06;
@@ -92,10 +93,10 @@ function buildBody(cfg){if(cfg.style==='skuter')return buildSkuter(cfg);if(cfg.s
   g.add(sp.root);
   for(const sx of[1,-1]){const p=new THREE.Mesh(new THREE.PlaneGeometry(.32,.16),decalMat);p.position.set(sx*(W/2+.004),y0+.2,gz1-.28);p.rotation.y=sx>0?Math.PI/2:-Math.PI/2;g.add(p)}
   const hd=new THREE.Mesh(new THREE.PlaneGeometry(.3,.15),decalMat);hd.rotation.x=-Math.PI/2;hd.position.set(0,yT+.024,fz-hood/2);if(cfg.spare!=='hood')g.add(hd);
-  // driver + navigator
+  // driver + navigator. The driver (on the left) is marked, so he can be hidden while he is out of the car (js/walker.js)
   for(const sx of cfg.win>1?[1,-1]:[1]){const h=new THREE.Mesh(new THREE.SphereGeometry(.06,12,10),M.skin);h.position.set(sx*.2,yT+.13,gz1-.3);g.add(h);
     const cap=new THREE.Mesh(new THREE.SphereGeometry(.062,12,8,0,Math.PI*2,0,Math.PI/2),M.blkC);cap.position.copy(h.position);cap.position.y+=.01;g.add(cap);
-    bx(.17,.14,.12,M.shirt,sx*.2,yT+.02,gz1-.32,g)}
+    const sh=bx(.17,.14,.12,M.shirt,sx*.2,yT+.02,gz1-.32,g);if(sx>0)h.userData.driver=cap.userData.driver=sh.userData.driver=true}
   return g;
 }
 /* ---------- the monster truck: a wide shell high over big wheels, fenders over the tyres, a short cab and bed, and the black chassis with shocks and bumpers underneath ---------- */
@@ -368,12 +369,15 @@ function buildSkuter(cfg){const g=new THREE.Group(),K=skuterMats(),wb=cfg.wb,tr=
   T([0,.12,.14],[0,.33,.05],.02,M.blk);cyl(.017,.52,M.blk,0,.33,.05,g,'x',6);for(const sx of[1,-1])cyl(.026,.09,M.blkC,sx*.235,.33,.05,g,'x',8);
   // the arms out to the skis
   for(const sx of[1,-1]){T([sx*.26,-.08,wb/2-.08],[sx*tr/2,-.17,wb/2],.022,M.steel);T([sx*.26,-.08,wb/2+.1],[sx*tr/2,-.17,wb/2],.022,M.steel);T([sx*.24,.06,wb/2],[sx*(tr/2-.03),-.13,wb/2],.03,M.red)}
-  // the rider: boots on the running boards, knees forward, leaning over the handlebar; a white helmet with a dark visor and a yellow stripe
+  // the rider: boots on the running boards, knees forward, leaning over the handlebar; a white helmet with a dark visor and a yellow stripe.
+  // Every part of him is marked, so he can be hidden while he is off the scooter (js/walker.js)
+  const rider0=g.children.length;
   for(const sx of[1,-1]){T([sx*.09,.09,-.32],[sx*.17,.11,-.04],.055,K.suit);T([sx*.17,.11,-.04],[sx*.24,-.1,.02],.048,K.suit);bx(.09,.07,.17,K.boot,sx*.24,-.108,.05,g);
     T([sx*.13,.41,-.13],[sx*.2,.3,-.03],.042,K.suit);T([sx*.2,.3,-.03],[sx*.235,.34,.04],.038,K.suit);const mt=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),K.mitt);mt.position.set(sx*.235,.34,.05);mt.castShadow=true;g.add(mt)}
   T([0,.06,-.33],[0,.42,-.14],.105,K.suit);bx(.24,.03,.17,K.trim,0,.3,-.2,g).rotation.x=.45;
   {const h=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),K.helm);h.position.set(0,.56,-.07);h.scale.set(1,1,1.1);h.castShadow=true;g.add(h);
     const v=bx(.15,.065,.03,K.visor,0,.565,.02,g);v.rotation.x=.12;bx(.03,.012,.2,K.trim,0,.662,-.07,g);bx(.12,.06,.1,K.helm,0,.5,-.01,g)}
+  for(let i=rider0;i<g.children.length;i++)g.children[i].userData.driver=true;
   return g}
 // a ski at each front wheel: the runner with its upturned tip, the loop on the tip and the spindle up to the arms. The rear wheels are under the belt
 function buildSkuterSki(cfg,side,rear){const root=new THREE.Group(),spin=new THREE.Group();root.add(spin);if(rear)return{root,spin};const y=-(cfg.wr||WR);

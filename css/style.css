@@ -237,7 +237,7 @@ html{box-sizing:border-box}*,*::before,*::after{box-sizing:inherit}body{margin:0
 .ski-run .r b{color:var(--paper);font-size:1.12rem;letter-spacing:0;font-variant-numeric:tabular-nums}
 .ski-run .r b.pen{color:var(--signal)}
 #hud.ski .ski-run{display:block}
-#hud.ski .hud-run,#hud.ski .gauges,#hud.ski #bWinch,#hud.ski #bLights,#hud.ski #bMap,#hud.ski #bZoomIn,#hud.ski #bZoomOut{display:none}
+#hud.ski .hud-run,#hud.ski .gauges,#hud.ski #bWinch,#hud.ski #bLights,#hud.ski #bMap,#hud.ski #bZoomIn,#hud.ski #bZoomOut,#hud.ski #bWalk{display:none}
 .ski-help{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom,0px));background:var(--panel);color:var(--paper);padding:7px 14px;font-size:.98rem;text-align:center;max-width:calc(100% - 32px);pointer-events:none}
 .ski-help kbd{font-family:inherit;font-weight:700;color:#9fd2ff}
 body.is-touch .ski-help{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
@@ -246,6 +246,9 @@ body.is-touch .ski-help{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
 .ski-split.ahead{color:#8bbb4a}.ski-split.behind{color:var(--signal)}
 .tb.sk{display:none}
 #hud.ski .tb.sk{display:grid}
+/* on foot (js/walker.js): the jump button, and no winch or gear */
+#hud.walk .tb.sk{display:grid}
+#hud.walk #bWinch,#hud.walk #bGear,#hud.walk .gauges .spd{display:none}
 .alist .pdot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;border:1px solid var(--paper);vertical-align:1px}
 .alist .nm small{font-family:var(--f-body,inherit);font-size:.78rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-left:4px}
 /* drive together */

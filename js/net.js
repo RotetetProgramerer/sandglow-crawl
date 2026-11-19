@@ -136,7 +136,7 @@ function netHandle(p,m){p.seen=performance.now();
     const o=performance.now()-m.tm;p.off=p.off==null||o<p.off?o:p.off+(o-p.off)*.02;   // clock offset: the smallest delay seen, drifting slowly
     if(p.lv!==m.lv)p.buf.length=0;p.lv=m.lv;
     const ql=Math.hypot(m.q[0],m.q[1],m.q[2],m.q[3])||1;
-    p.buf.push({tm:m.tm,p:new V3(m.p[0],m.p[1],m.p[2]),q:new Q4(m.q[0]/ql,m.q[1]/ql,m.q[2]/ql,m.q[3]/ql),w:m.w,sp:m.sp,st:+m.st||0,l:!!m.l,v:!!m.v});if(p.buf.length>40)p.buf.shift();return}
+    p.buf.push({tm:m.tm,p:new V3(m.p[0],m.p[1],m.p[2]),q:new Q4(m.q[0]/ql,m.q[1]/ql,m.q[2]/ql,m.q[3]/ql),w:m.w,sp:m.sp,st:+m.st||0,l:!!m.l,v:!!m.v,mn:netFin(m.m,7)?m.m:null});if(p.buf.length>40)p.buf.shift();return}   // mn: their driver on foot (js/walker.js)
   if(m.t==='info'){p.info=cleanInfo(m.info);netBuildVis(p);netUI();return}
   if(m.t==='fy'){if(m.lv===LEVELS[state.levelIdx].id&&(m.ph==='out'||m.ph==='in'))netRemoteFerry(m.ph);return}}
 
@@ -154,11 +154,12 @@ const _nUp=new V3(),_nMt=new V3();
 function netPose(){const up=_nUp.set(0,1,0).applyQuaternion(car.q),w=[],sp=[];
   for(const wh of car.wheels){_nMt.copy(wh.mount).applyQuaternion(car.q).add(car.pos);w.push(+_nMt.sub(wh.center).dot(up).toFixed(3));sp.push(+(wh.spin%6.2832).toFixed(2))}
   const out=state.mode!=='menu'&&state.mode!=='garage';
-  return{t:'s',tm:netNow(),lv:LEVELS[state.levelIdx].id,v:out?1:0,p:[+car.pos.x.toFixed(3),+car.pos.y.toFixed(3),+car.pos.z.toFixed(3)],q:[+car.q.x.toFixed(4),+car.q.y.toFixed(4),+car.q.z.toFixed(4),+car.q.w.toFixed(4)],w,sp,st:+car.steer.toFixed(3),l:state.lights?1:0}}
+  const o={t:'s',tm:netNow(),lv:LEVELS[state.levelIdx].id,v:out?1:0,p:[+car.pos.x.toFixed(3),+car.pos.y.toFixed(3),+car.pos.z.toFixed(3)],q:[+car.q.x.toFixed(4),+car.q.y.toFixed(4),+car.q.z.toFixed(4),+car.q.w.toFixed(4)],w,sp,st:+car.steer.toFixed(3),l:state.lights?1:0};
+  if(WALK.on)o.m=walkNetPose();return o}   // m: the driver is out of the car and on foot (js/walker.js)
 // a remote car is drawn NET_DELAY ms behind its newest pose, between the two poses around that moment
 const _nP=new V3(),_nQ=new Q4(),_nS=new Q4(),_nU=new V3(),_nC=new V3(),_nL=new V3(),_nR=new V3();
 function netDrawRemote(p,now){const V=p.vis;if(!V)return;const b=p.buf,here=LEVELS[state.levelIdx].id;
-  const show=b.length&&p.lv===here&&b[b.length-1].v&&state.mode!=='garage'&&now-p.seen<8000;p.hidden=!show;V.root.visible=!!show;if(!show)return;
+  const show=b.length&&p.lv===here&&b[b.length-1].v&&state.mode!=='garage'&&now-p.seen<8000;p.hidden=!show;V.root.visible=!!show;if(!show){walkRemote(p,null,null,0);return}
   const rt=now-p.off-NET_DELAY;let a=b[0],c=b[0],k=0;
   if(rt>=b[b.length-1].tm){a=c=b[b.length-1]}else if(rt>b[0].tm){for(let i=1;i<b.length;i++)if(b[i].tm>=rt){a=b[i-1];c=b[i];k=(rt-a.tm)/Math.max(1,c.tm-a.tm);break}}
   while(b.length>2&&b[1].tm<rt-500)b.shift();
@@ -171,6 +172,7 @@ function netDrawRemote(p,now){const V=p.vis;if(!V)return;const b=p.buf,here=LEVE
     _nS.setFromAxisAngle(YAX,V.mounts[i].z>0?st:0);wv.root.quaternion.copy(_nQ).multiply(_nS);
     let ds=c.sp[i]-a.sp[i];if(ds>3.1416)ds-=6.2832;else if(ds<-3.1416)ds+=6.2832;wv.spin.rotation.x=a.sp[i]+ds*k});
   for(let ax=0;ax<2;ax++){const L=V.wheels[ax*2].root.position,R=V.wheels[ax*2+1].root.position,o=V.axles[ax];o.position.copy(L).add(R).multiplyScalar(.5);_nR.copy(L).sub(R);const len=_nR.length();o.quaternion.setFromUnitVectors(YAX,_nR.normalize());o.userData.tube.scale.y=len}
+  walkRemote(p,a.mn,c.mn,k);   // their driver, if he is out of the car
   const lit=c.l;if(lit!==V.lit){V.lit=lit;V.mats.lamp.emissive.set(lit?0xfff1c0:0x000000);V.mats.tail.emissive.set(lit?0x8a1010:0x000000);V.mats.beam.opacity=lit?.085:0}
   // the name stays readable at a distance, and shows through hills so you can find each other
   const d=camera.position.distanceTo(_nP),s=Math.max(1,Math.min(3,d/10));V.tag.position.copy(_nP).add(_nL.set(0,1.0+.12*s,0));V.tag.scale.set(1.5*s,.375*s,1)}
@@ -195,15 +197,16 @@ function netTag(name,col){const c=document.createElement('canvas');c.width=256;c
 function netBuildVis(p){netDropVis(p);if(typeof buildBody!=='function')return;
   const ci=Math.max(0,CARS.findIndex(c=>c.id===p.info.car)),tune=tuneFrom(p.info.parts),cfg=Object.assign({},CARS[ci],{tune}),mats=netMats(p.info);
   const root=new THREE.Group();root.visible=false;
-  const raw=buildBody(cfg);netSwap(raw,mats);const body=netMerge(raw);root.add(body);
+  const raw=buildBody(cfg);netSwap(raw,mats);const drv=new THREE.Group();for(const o of[...raw.children])if(o.userData.driver)drv.add(o);   // the driver on his own, so he can be hidden while he is out of the car (js/walker.js)
+  const body=netMerge(raw),driver=netMerge(drv);body.add(driver);root.add(body);
   const wheels=[];for(let i=0;i<4;i++){const w=carWheel(cfg,i%2===0?1:-1,i>1);netSwap(w.root,mats);const spin=netMerge(w.spin);w.root.remove(w.spin);w.root.add(spin);root.add(w.root);wheels.push({root:w.root,spin})}
   const axles=[];for(let i=0;i<2;i++){const a=new THREE.Group(),tube=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,8),M.blk);tube.castShadow=true;a.add(tube);const diff=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),M.blk);diff.castShadow=true;a.add(diff);a.userData.tube=tube;root.add(a);axles.push(a)}
   if(cfg.style==='trophy')axles[0].visible=false;   // the trophy truck's front wheels hang on their own arms
   if(cfg.style==='skuter')axles.forEach(a=>a.visible=false);
   const tag=netTag(p.name,netCol(p.slot));root.add(tag);
   const mounts=makeCar(CARS[ci],tune).wheels.map(w=>w.mount.clone());
-  scene.add(root);p.vis={root,body,wheels,axles,tag,mats,mounts,lit:false}}
-function netDropVis(p){const V=p.vis;if(!V)return;p.vis=null;scene.remove(V.root);
+  scene.add(root);p.vis={root,body,driver,wheels,axles,tag,mats,mounts,lit:false}}
+function netDropVis(p){walkRemoteDrop(p);const V=p.vis;if(!V)return;p.vis=null;scene.remove(V.root);
   V.root.traverse(o=>{if(o.isMesh&&o.geometry)o.geometry.dispose()});for(const k in V.mats)V.mats[k].dispose();V.tag.material.map.dispose();V.tag.material.dispose()}
 
 /* ---------- the ferry: a friend leaving or arriving on your island takes your island's ferry along ---------- */
