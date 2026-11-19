@@ -633,6 +633,7 @@ addEventListener('keydown',e=>{
   if(state.mode!=='play')return;
   if(k==='enter'&&state.offerK){acceptOffer();return}
   if(k==='e'){walkToggle();return}   // out of the car and in again (js/walker.js)
+  if(k==='t'&&WALK.on){walkBack();return}   // «Tilbake til bil»: back to the car from anywhere
   if(WALK.on&&walkKeyDown(k))return;
   if(k==='k')openMap();
   if(k==='g'||k===' ')toggleGear();if(k==='l')setLights(!state.lights);if(k==='c')cycleCam();if(k==='r'){if(hasWinch())winchKey(true);else winch()}if(k==='m')setSound(!state.sound);
@@ -662,7 +663,7 @@ function setSound(on){state.sound=on;store.set('sound',on);$('pSound').textConte
 function setVol(which,v){v=Math.max(0,Math.min(100,Math.round(v)));state[which]=v;store.set(which,v);const ids=which==='volCar'?['volCar','pVolCar']:['volAmb','pVolAmb'];
   for(const id of ids){const el=$(id);if(el&&el.value!==undefined)el.value=v;const o=$(id+'Out');if(o)o.textContent=v+' %'}}
 for(const[id,w]of[['volCar','volCar'],['pVolCar','volCar'],['volAmb','volAmb'],['pVolAmb','volAmb']]){const el=$(id);if(el)el.addEventListener('input',e=>setVol(w,+e.target.value))}
-$('bGear').onclick=()=>{if(state.mode==='play'&&!WALK.on)toggleGear()};$('bWalk').onclick=()=>walkToggle();$('bLights').onclick=()=>setLights(!state.lights);
+$('bGear').onclick=()=>{if(state.mode==='play'&&!WALK.on)toggleGear()};$('bWalk').onclick=()=>walkToggle();$('bBack').onclick=()=>walkBack();$('bLights').onclick=()=>setLights(!state.lights);
 $('bSlow').onclick=()=>setSpeed(state.speed-10);$('bFast').onclick=()=>setSpeed(state.speed+10);
 $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
@@ -699,7 +700,7 @@ function readInput(dt){
   if(gp){const ax=gp.axes[0]||0;if(Math.abs(ax)>.12)steer-=ax;const rt=gp.buttons[7]?gp.buttons[7].value:0,lt=gp.buttons[6]?gp.buttons[6].value:0;gas=Math.max(gas,rt);rev=Math.max(rev,lt);
     const ly=gp.axes[1]||0;if(ly<-.2)gas=Math.max(gas,-ly);if(ly>.2)rev=Math.max(rev,ly);
     const pr=i=>gp.buttons[i]&&gp.buttons[i].pressed&&!padPrev[i];
-    if(state.mode==='play'){if(pr(5))walkToggle();if(!WALK.on){if(pr(0))toggleGear();if(pr(1)){if(hasWinch())winchKey(true);else winch()}if(hasWinch()&&padPrev[1]&&!(gp.buttons[1]&&gp.buttons[1].pressed))winchKey(false)}if(pr(3))cycleCam();if(pr(2))setLights(!state.lights)}
+    if(state.mode==='play'){if(pr(5))walkToggle();if(pr(4))walkBack();if(!WALK.on){if(pr(0))toggleGear();if(pr(1)){if(hasWinch())winchKey(true);else winch()}if(hasWinch()&&padPrev[1]&&!(gp.buttons[1]&&gp.buttons[1].pressed))winchKey(false)}if(pr(3))cycleCam();if(pr(2))setLights(!state.lights)}
     if(pr(9)){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ski')skiKeyDown('escape');else if(state.mode==='boat')boatKeyDown('escape');else if(state.mode==='fly')flyKeyDown('escape');else if(state.mode==='cave')caveKeyDown('escape');else if(state.mode==='menu')startRun()}
     padPrev={};gp.buttons.forEach((b,i)=>padPrev[i]=b.pressed)}
   steer=Math.max(-1,Math.min(1,steer));

@@ -249,6 +249,10 @@ body.is-touch .ski-help{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
 /* on foot (js/walker.js): the jump button, and no winch or gear */
 #hud.walk .tb.sk{display:grid}
 #hud.walk #bWinch,#hud.walk #bGear,#hud.walk .gauges .spd{display:none}
+/* «Tilbake til bil»: only on foot, and lit up when he is far from the car */
+#bBack{display:none;white-space:nowrap}
+#hud.walk #bBack{display:grid}
+#bBack.far{background:var(--sand);color:var(--ink)}
 .alist .pdot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;border:1px solid var(--paper);vertical-align:1px}
 .alist .nm small{font-family:var(--f-body,inherit);font-size:.78rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-left:4px}
 /* drive together */
