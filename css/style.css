@@ -340,6 +340,19 @@ body.is-touch #boatHud.two #bPauseB{bottom:auto;transform:none}
 .cv-notice{position:absolute;top:30%;left:50%;transform:translateX(-50%);font-family:var(--f-display);font-size:clamp(1.5rem,4.4vw,2.5rem);color:var(--sand);text-shadow:0 2px 0 var(--ink),0 0 18px rgba(0,0,0,.8);opacity:0;transition:opacity .3s;white-space:nowrap}
 .cv-notice.on{opacity:1}.cv-notice.bad{color:var(--signal)}
 #caveHud .toast{top:42%}
+/* ---------- Gruve 7 (js/gruve7.js): lanterns and time top left, the part of the mine in the middle, coal top right, how far you have come along the bottom ---------- */
+#mineHud{position:fixed;inset:0;z-index:10;pointer-events:none}
+#mnSwipe{position:absolute;inset:0;pointer-events:auto;touch-action:none}
+#mnLights{display:flex;gap:7px;padding:2px 0 1px}
+#mnLights i{width:17px;height:22px;border-radius:5px 5px 3px 3px;border:2px solid #14120E;background:#3a3630;position:relative;transition:background .3s,box-shadow .3s}
+#mnLights i::before{content:"";position:absolute;left:3px;right:3px;top:-6px;height:4px;border:2px solid #14120E;border-bottom:0;border-radius:4px 4px 0 0}
+#mnLights i.on{background:#ffc94a;box-shadow:0 0 10px #ffb030,inset 0 -5px 0 rgba(217,67,47,.45)}
+.mn-coal{border-left-color:#ffb040}
+.mn-coal b{color:#ffd9a0}
+#mnPause{position:absolute;pointer-events:auto;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+.mn-prog{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(12px + env(safe-area-inset-bottom,0px));width:min(420px,70vw);height:10px;background:rgba(20,18,14,.78);border:2px solid #14120E;border-radius:6px;overflow:hidden}
+.mn-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,#e5a92b,#fff0c0)}
+#mineHud .cv-notice{top:24%}
 /* the pedals: grey metal with ridges, like a car's. They work with the mouse too */
 .tb.pedal{position:absolute;pointer-events:auto;bottom:calc(14px + env(safe-area-inset-bottom,0px));width:86px;height:112px;border-radius:12px;border:3px solid #14120E;
   background:linear-gradient(180deg,#8a8580,#5a5650 60%,#45413c);box-shadow:0 5px 0 #14120E,inset 0 2px 0 rgba(255,255,255,.25);display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:7px;padding:12px 0 10px;transition:transform .05s}
