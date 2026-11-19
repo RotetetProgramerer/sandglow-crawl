@@ -122,6 +122,13 @@ function bIsland(I,R){const g=new THREE.Group(),r=I.r,look=I.look;g.position.set
     for(const[dx,s]of[[-10,7],[6,5]])bAdd(g,new THREE.IcosahedronGeometry(s,1),bStd(0xffffff,{flatShading:false}),mx+dx,52+s*.6,mz);
     [0xc8463a,0xe5a92b,0x4f7bb5,0x5e8a4a,0xb06a3a].forEach((c,i)=>{bAdd(g,new THREE.BoxGeometry(9,8,8),bStd(c),-22+i*12,12,r*.74+(i%2)*6);bAdd(g,new THREE.BoxGeometry(10,2,9),bStd(0xf1f5f8),-22+i*12,17,r*.74+(i%2)*6,false)});
     around(6,r*.9,r*.99,(x,z)=>{const b=bAdd(g,new THREE.ConeGeometry(7+R()*8,14+R()*14,5),bStd(0xd6ecf8),x,5,z);b.rotation.y=R()*6});top=56}
+  else if(look==='pirat'){bAdd(g,new THREE.CylinderGeometry(r-18,r-6,8,13),bStd(0x4f9a44),0,4,0);   // Piratøya: jungle and palms, the white skull in the north, the fort on its cliff in the east and a wreck on the beach
+    around(22,r*.1,r*.6,(x,z,i)=>{const s=6+R()*5;bAdd(g,new THREE.IcosahedronGeometry(s,0),bStd([0x2d6b2a,0x3b7f33,0x4a8f3a][i%3]),x,10+s,z)});
+    around(14,r*.62,r*.86,(x,z)=>{const p=bPalm(1+R()*.5);p.position.set(x,8,z);p.rotation.y=R()*6;g.add(p)});
+    const sk=bAdd(g,new THREE.SphereGeometry(1,12,8),bStd(0xe4dcc4),-r*.12,30,-r*.52);sk.scale.set(24,26,24);for(const sd of[-1,1])bAdd(g,new THREE.SphereGeometry(6,8,6),new THREE.MeshBasicMaterial({color:0x14100c}),-r*.12+sd*9,34,-r*.52+21,false);
+    bAdd(g,new THREE.BoxGeometry(22,10,6),new THREE.MeshBasicMaterial({color:0x14100c}),-r*.12,13,-r*.52+21,false);
+    const fx=r*.5,fz=-r*.05;bAdd(g,new THREE.CylinderGeometry(r*.19,r*.23,22,9),bStd(0x8a7a70),fx,18,fz);bAdd(g,new THREE.BoxGeometry(34,10,34),bStd(0x8a8478),fx,34,fz);for(const[a,b]of[[-17,-17],[17,-17],[-17,17],[17,17]])bAdd(g,new THREE.CylinderGeometry(5,5,18,8),bStd(0x6f6a60),fx+a,38,fz+b);
+    const wr=bAdd(g,new THREE.BoxGeometry(12,8,34),bStd(0x5c3b24),-r*.78,7,r*.2);wr.rotation.set(0,.9,.4);top=75}
   else if(look==='skilso')top=bSkilso(g,I,R);
   // rocks along the shore
   if(look!=='by'){const n=4+Math.floor(R()*5);for(let i=0;i<n;i++){const a=R()*Math.PI*2,k=bRock(5+R()*10,R,look==='vulkan'?0x3e3a38:0x6f6a66);k.position.set(Math.cos(a)*r*(.92+R()*.1),0,Math.sin(a)*r*(.92+R()*.1));g.add(k)}}

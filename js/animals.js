@@ -309,7 +309,7 @@ function updateSnakes(dt,tm){for(const k of ANIMALS.snakes){k.s+=dt*k.sp;const s
 /* ---------- build / update ---------- */
 function clearAnimals(){if(typeof SAV!=='undefined'){SAV.preds=[];SAV.vultures=[];SAV.all=[]}if(typeof ORK!=='undefined'){ORK.all=[];ORK.cv=null}if(typeof POL!=='undefined'){POL.bears=[];POL.seals=[];POL.walruses=[];POL.dogs=[]}ANIMALS.parrots=[];ANIMALS.monkeys=[];ANIMALS.butterflies=null;ANIMALS.crabs=[];ANIMALS.eagle=null;ANIMALS.bear=null;ANIMALS.gulls=[];ANIMALS.deer=[];ANIMALS.rabbits=[];ANIMALS.fish=[];ANIMALS.lizards=[];
   ANIMALS.caimans=[];ANIMALS.jaguar=null;ANIMALS.frogs=[];ANIMALS.egrets=[];ANIMALS.snakes=[]}
-function buildAnimals(lv,def){clearAnimals();const A=def.animals;if(!A)return;const R=mulberry32(def.seed+77);if(!lv.perches)lv.perches=[];const hasP=lv.perches.length>0;   // only the birds and monkeys need somewhere to sit
+function buildAnimals(lv,def){clearAnimals();const A=def.animals;if(!A){if(typeof buildPirates==='function')buildPirates(lv,def);return}const R=mulberry32(def.seed+77);if(!lv.perches)lv.perches=[];const hasP=lv.perches.length>0;   // only the birds and monkeys need somewhere to sit
   const pick=L=>L[Math.floor(R()*L.length)];
   // parrots on branches and tree tops
   for(let i=0;i<(A.parrots||0)&&hasP;i++){const p=pick(lv.perches),g=makeParrot(PARROT_COLS[i%PARROT_COLS.length]);g.position.set(p.x,p.y+.08,p.z);g.rotation.y=R()*6.28;levelGroup.add(g);
@@ -354,8 +354,10 @@ function buildAnimals(lv,def){clearAnimals();const A=def.animals;if(!A)return;co
   for(const o of(A.frogs||[]))buildFrogs(o,R);for(const o of(A.egrets||[]))buildEgrets(o,R);for(const o of(A.snakes||[]))buildSnakes(o,R);
   if(typeof buildSavanna==='function')buildSavanna(lv,def,R);   // lions, cheetahs, crocodiles, the herds and vultures (js/savannedyr.js)
   if(typeof buildDesert==='function')buildDesert(lv,def,R);     // camels and the caravan (js/orkendyr.js)
-  if(typeof buildPolar==='function')buildPolar(lv,def,R)}       // polar bears, reindeer, seals, walruses and sled dogs (js/polardyr.js)
-function updateAnimals(dt){if(!car)return;const tm=performance.now()*.001;updateParrots(dt,tm);updateMonkeys(dt,tm);updateButterflies(dt,tm);updateCrabs(dt,tm);updateEagle(dt,tm);updateBear(dt,tm);updateGulls(dt,tm);updateGrazers(dt,tm);updateFish(dt,tm);updateLizards(dt,tm);
+  if(typeof buildPolar==='function')buildPolar(lv,def,R);
+  if(typeof buildPirates==='function')buildPirates(lv,def)}     // the pirates, the skull, the ships and the cannons on Piratøya (js/pirater.js)
+//       // polar bears, reindeer, seals, walruses and sled dogs (js/polardyr.js)
+function updateAnimals(dt){if(!car)return;const tm=performance.now()*.001;if(typeof updatePirates==='function')updatePirates(dt,tm);updateParrots(dt,tm);updateMonkeys(dt,tm);updateButterflies(dt,tm);updateCrabs(dt,tm);updateEagle(dt,tm);updateBear(dt,tm);updateGulls(dt,tm);updateGrazers(dt,tm);updateFish(dt,tm);updateLizards(dt,tm);
   updateCaimans(dt,tm);updateJaguar(dt,tm);updateFrogs(dt,tm);updateEgrets(dt,tm);updateSnakes(dt,tm);if(typeof updateSavanna==='function')updateSavanna(dt,tm);if(typeof updateDesert==='function')updateDesert(dt,tm);if(typeof updatePolar==='function')updatePolar(dt,tm)}
 
 /* ---------- the rolling boulder ---------- */

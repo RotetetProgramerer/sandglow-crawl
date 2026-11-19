@@ -14,6 +14,7 @@ js/animals.js         Dyr (papegøyer, apekatter, kaimaner, jaguar, frosker og f
 js/savannedyr.js      Dyrene på Løveøya: løver, geparder og krokodiller som angriper, flokkene som flykter og gribbene.
 js/orkendyr.js        Kamelene på Kameløya: flokker som beiter og går unna bilen, og karavanen med beduinen som leder den.
 js/polardyr.js        Dyrene på Svalbard: isbjørner som angriper, reinsdyr, sel ved pustehullene, hvalross og sledehunder.
+js/pirater.js         Piratøya: sjørøverne, hodeskallen, skipene, kanonene på fortet og de tre prøvene (skatten, ordduellen og spøkelset).
 js/ambience.js        Jungellyd laget med WebAudio (ingen lydfiler).
 js/skier.js           Fysikken for skiløperen i Gautefall: carving, skrens, hockeystopp, hopp og landing (ingen DOM, testes uten nettleser).
 js/ski.js             Skianlegget i spillet: stolheisen, skiløperen (modell og stillinger), turen opp og ned, kamera, mellomtider, spøkelset og lyd.
@@ -628,3 +629,40 @@ Spillet er en PWA. Bruk [PWABuilder](https://www.pwabuilder.com): lim inn adress
 ## Lisens
 
 Koden er MIT-lisensiert (se `LICENSE`). Skriftene Barlow Condensed og Saira Stencil One er under SIL Open Font License. three.js er MIT.
+
+## Piratøya: sjørøverøya og de tre prøvene
+
+`data/levels/14-pirat.js` er en sjørøverøy i evig solnedgang, sørvest for Tromøya i skjærgården. Fergen går dit fra Tromøya, Bykkevika, Trinnvik og Løveøya. Øya er inspirert av de gamle pek-og-klikk-eventyrene om sjørøvere, men stedene, figurene og replikkene er våre egne. Husk at på øyene er +x vest og +z nord.
+
+| Sted | Hva |
+|---|---|
+| Kaia | Sjørøverbyen i sør. En skute med svart flagg ligger fortøyd ved siden av brygga. |
+| Skumkroa | Rett innenfor byen: et skjevt hus med tønner og et bord ute, der de tre gamle sjørøverne sitter. Det er de som gir deg prøvene. |
+| Apejungelen | Midt på øya: store trær med lianer, apekatter og papegøyer, og lagunen med hengebroa. |
+| Kanonfortet | På klippen i øst: murer, tårn, porter mot nord og sør, og tre kanoner som skyter ut over havet. |
+| Hodeskalleklippen | I nord: en kjempestor hodeskalle med glødende øyne. Gapet er åpent, og du kan kjøre inn. |
+| Sverdmesteren | Vest på øya: hytta til sverdmester Smilla, som slåss med ord. |
+| Skipsvraket | På stranda i vest. En sjørøver med treben og papegøye går fram og tilbake der. |
+| Skattestranda | I nordvest: et rødt kryss i sanda mellom to palmer som bøyer seg mot hverandre. |
+
+| Løype | Vanskelighet | Hva |
+|---|---|---|
+| Strandhuggerrunden | Lett | Fra Skumkroa langs stranda til skipsvraket og hjem forbi sverdmesteren. |
+| Apestien | Middels | Gjennom jungelen og over hengebroa på lagunen. |
+| Kanonløpet | Vanskelig | Opp til Kanonfortet, gjennom borggården og ned sørsiden. |
+
+**De tre prøvene** (`js/pirater.js`). Stopp ved bordet utenfor Skumkroa (merket med «!»), så forteller de tre gamle hva du må gjøre:
+
+| Prøve | Slik gjør du | Belønning |
+|---|---|---|
+| Skattejakten | Parker på det røde krysset på Skattestranda og stå stille. Bilen graver, og kista kommer opp av sanda. | 80 ⚙ |
+| Ordduellen | Stopp hos sverdmesteren. Hun sier noe frekt, og du velger ett av tre svar. Det svaret som passer til fornærmelsen, gir poeng. Første til tre vinner. Du kan prøve så mange ganger du vil. | 60 ⚙ |
+| Motprøven | Kjør helt inn i gapet på hodeskallen. Et spøkelse sier «BØ!» og blåser bilen ut igjen. | 60 ⚙ |
+
+Når alle tre er klart, kjører du tilbake til Skumkroa. Da blir du sjørøverkaptein: 150 ⚙, og et piratflagg på bilen som følger med til alle øyene. Det som er gjort, lagres i `prof.pirat` (`x`, `duel`, `boo`, `kap`). Ingenting på øya koster straffepoeng eller muttere.
+
+**Ellers på øya:** Spøkelsesskuta seiler rundt øya ute på havet, og kanonene på fortet skyter etter den med røyk, smell og plask (bare til pynt). Fra Skumkroa høres en sjømannsvise på trekkspill, og månen og stjernene står på himmelen over solnedgangen.
+
+**Endre øya:** Banen setter `c.piratDef` i `build(c)`: `skull` (hodeskallen og punktet inni der spøkelset kommer), `cannons`, `dig` (krysset), `inn` (bordet) og `duel` (sverdmesteren) med hvor nær du må være, `wreck`, `ship`, `ghost:{r,speed}`, `lights` (lykter), `folk` (sjørøverne: `hat`, `coat`, `sit`, `patch`, `peg`, `beard`, `sword`, `mug`, `scope`, `parrot`, `wave`) og `patrol` (runden til den som går på stranda). Fornærmelsene og svarene står i `PIR_DUEL` og `PIR_WRONG` i `js/pirater.js`: legg til en linje for en ny fornærmelse.
+
+Testen: `node tools/test-levels.js pirat`. Sjørøverne og prøvene er ikke med i testen, de finnes bare i nettleseren.
