@@ -34,6 +34,7 @@ function nearestPortal(){let b=null;for(const p of portals){const d=Math.hypot(p
 function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aYes').hidden=false;
   if(typeof k==='string'&&k.startsWith('ski')){skiAsk(k);return}   // Gautefall: the ski trip (js/ski.js)
   if(typeof k==='string'&&k.startsWith('boat')){boatAsk(k);return}
+  if(k==='skuter'){skuterAsk();return}   // Isbjørnøya: hire a snowmobile, or hand it back
   if(k==='fly'){flyAsk(k);return}   // Trinnvik: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
   if(k==='ferry'){const here=LEVELS[state.levelIdx];$('aName').textContent='Fergen';$('aKind').textContent='Kaia på '+here.name;$('aDesc').textContent='Hvor vil du reise? Overfarten koster 5 muttere. Du har '+fmtN(prof.nuts)+'.';$('aBest').textContent='';$('aQ').textContent='';
     const dests=ROUTES.filter(r=>r.includes(here.id)).map(r=>r[0]===here.id?r[1]:r[0]).map(id=>LEVELS.find(l=>l.id===id)).filter(Boolean);
@@ -48,16 +49,18 @@ function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aYes
 function setOffer(k){if(state.offerK===k)return;state.offerK=k;const el=$('offer');if(!k){el.hidden=true;return}
   const b=best[courseKey(LEVELS[state.levelIdx],k)];
   $('oKind').textContent=['','Lett løype','Middels løype','Vanskelig løype'][k.diff]+' · '+k.gates.length+' porter';$('oName').textContent=k.name;
-  $('oBest').textContent=b?'Din beste: '+fmtTime(b.t):'Ikke kjørt ennå';$('oGo').firstChild.textContent='START ';el.hidden=false}
+  $('oBest').textContent=(b?'Din beste: '+fmtTime(b.t):'Ikke kjørt ennå')+(k.def.skuter?' · med snøskuter':'');$('oGo').firstChild.textContent='START ';el.hidden=false}
 function acceptOffer(){const k=state.offerK;if(!k||state.mode!=='play'||state.course)return;setOffer(null);startCourse(k)}
 function answerAsk(yes){if(state.mode!=='ask')return;$('ask').hidden=true;const k=state.askK;state.askK=null;
   if(typeof k==='string'&&k.startsWith('ski')){skiAnswer(k,yes);return}
   if(typeof k==='string'&&k.startsWith('boat')){boatAnswer(k,yes);return}
   if(k==='fly'){flyAnswer(k,yes);return}
+  if(k==='skuter'){state.askCool='skuter';state.mode='play';if(yes){skuterSet(!onSkuter());toast(onSkuter()?'🛷 Snøskuteren er din. God tur, og pass deg for isbjørnen!':'Takk for turen! Bilen din står klar')}return}
   if(k==='garage'){state.askCool='garage';if(yes){state.mode='play';toGarage()}else{state.mode='play';toast('Kjør videre når du vil')}return}
   if(k==='ferry'){state.askCool='ferry';state.mode='play';if(yes&&yes.dest)startFerry(yes.dest);return}
   if(yes)startCourse(k);else{state.mode='play';state.askCool=k.id;toast('Kjør videre når du vil')}}
-function startCourse(k){setOffer(null);placeCar(car,k.start.p.x,k.start.p.z,Math.atan2(k.start.tan.x,k.start.tan.z));camSnap=true;state.course=k;state.free=false;resetRunState();LV.gates=k.gates;LV.crates=k.crates;buildGates(LV);buildCrates(LV);resetCrates();
+function startCourse(k){setOffer(null);if(LV.skuterDef)skuterSet(!!k.def.skuter);   // Isbjørnøya: the scooter courses lend you a snowmobile, the others are driven by car
+  placeCar(car,k.start.p.x,k.start.p.z,Math.atan2(k.start.tan.x,k.start.tan.z));camSnap=true;state.course=k;state.free=false;resetRunState();LV.gates=k.gates;LV.crates=k.crates;buildGates(LV);buildCrates(LV);resetCrates();
   gateVis.forEach((g,i)=>{g.touched=false;setGateState(i,'pending')});gateWake={i:0,t:0};buildCourseArrows(k);
   if(k.def.night)setNight(true);
   state.checkpoint={x:k.start.p.x,z:k.start.p.z,h:Math.atan2(k.start.tan.x,k.start.tan.z)};
@@ -88,6 +91,7 @@ function updateWorld(dt){
     const mb=LV.marinaDef;if(mb){const d=Math.hypot(mb.ask.x-car.pos.x,mb.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='boat'){openAsk('boat');return}if(d>3.5&&state.askCool==='boat')state.askCool=null}
     const ap=LV.airportDef;if(ap){const d=Math.hypot(ap.ask.x-car.pos.x,ap.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='fly'){openAsk('fly');return}if(d>3.5&&state.askCool==='fly')state.askCool=null}   // the airport: park on the blue square to fly   // the marina: park on the blue square to take a boat out
     const cd=LV.caveDef;if(cd){const d=Math.hypot(cd.mouth.x-car.pos.x,cd.mouth.z-car.pos.z);if(d<cd.r&&state.askCool!=='cave'){caveEnter();return}if(d>cd.r+3&&state.askCool==='cave')state.askCool=null}   // Kameløya: drive into the cave mouth and the view turns to the side (js/grotte.js)
+    const sk=LV.skuterDef;if(sk){const d=Math.hypot(sk.ask.x-car.pos.x,sk.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='skuter'){openAsk('skuter');return}if(d>3.5&&state.askCool==='skuter')state.askCool=null}   // Isbjørnøya: the blue square at the snowmobile hire
     const ga=LEVELS[state.levelIdx].garageAt;if(ga){const d=Math.hypot(ga[0]-car.pos.x,ga[1]-car.pos.z);if(d<2.4&&state.askCool!=='garage'){openAsk('garage');return}if(d>4.5&&state.askCool==='garage')state.askCool=null}}
   else{setOffer(null);const ng=LV.gates[state.next];if(ng&&Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)>30){endCourse();toast('For langt fra løypa: løpet er avbrutt',true)}}
   const tm=performance.now()*.001;for(const p of portals){if(Math.abs(p.x-car.pos.x)+Math.abs(p.z-car.pos.z)>40)continue;p.lights.forEach((l,i)=>l.material.opacity=.6+.4*Math.sin(tm*5+i*1.3))}
@@ -101,6 +105,27 @@ function updateBreakables(dt){if(!LV.breakables||!LV.propCyls)return;
     for(const id of f.b.ids){const o=LV.cylList[id];_bp.set(o.x,o.y,o.z);_bq.setFromEuler(new THREE.Euler(o.rx||0,o.ry||0,o.rz||0));_bs.set(o.sx,o.sy??o.sx,o.sz??o.sx);_bm.compose(_bp,_bq,_bs);
       _bq.setFromAxisAngle(_bs.set(f.ax,0,f.az).normalize(),a);_bt.makeRotationFromQuaternion(_bq);_bt.setPosition(f.b.x,f.y0,f.b.z);_bt.multiply(new THREE.Matrix4().makeTranslation(-f.b.x,-f.y0,-f.b.z));_bm.premultiply(_bt);LV.propCyls.setMatrixAt(id,_bm)}
     LV.propCyls.instanceMatrix.needsUpdate=true;if(a>=1.5)falling.splice(i,1)}}
+
+/* ---------- the snowmobile hire (Isbjørnøya) ---------- */
+// The level sets c.skuterDef={ask:{x,z},park:{x,z,h}}. Drive onto the blue square: «Vil du leie en snøskuter?». The car is swapped for the
+// snowmobile where it stands (a car in data/cars.js with hire:true, so the others in the room see it too), and your own car is drawn
+// parked beside the hut until you hand the snowmobile back on the same square. Leaving the island, the menu and the garage hand it back too.
+let skuterOwn=-1,skuterPark=null;   // the player's own car (index in CARS) while on the snowmobile, and the parked copy of it
+const onSkuter=()=>skuterOwn>=0;
+function skuterSwap(i){const old=car,x=old.pos.x,z=old.pos.z,h=Math.atan2(old.fw.x,old.fw.z);if(typeof stopWinch==='function'&&WN.active)stopWinch();
+  state.carIdx=i;const tune=tuneFrom(CARS[i].hire?{}:prof.parts);car=makeCar(CARS[i],tune);car.rope=null;car.assist=state.assist;car.speedScale=state.speed/100;car.low=old.low;
+  applyPaint();buildCarVis(Object.assign({},CARS[i],{tune}));placeCar(car,x,z,h);camSnap=true;clearTracks()}
+function skuterParked(on){if(skuterPark){if(skuterPark.g.parent)skuterPark.g.parent.remove(skuterPark.g);skuterPark.g.traverse(o=>{if(o.geometry)o.geometry.dispose()});const i=G.colliders.indexOf(skuterPark.col);if(i>=0)G.colliders.splice(i,1);skuterPark=null}
+  const D=LV&&LV.skuterDef;if(!on||!D||!D.park)return;const cfg=Object.assign({},CARS[skuterOwn],{tune:tuneFrom(prof.parts)}),g=new THREE.Group(),P=D.park,wr=cfg.wr||WR,phys=makeCar(CARS[skuterOwn],cfg.tune);
+  g.add(buildBody(cfg));phys.wheels.forEach((w,i)=>{const v=carWheel(cfg,i%2===0?1:-1,i>1);v.root.position.set(w.mount.x,restWheelY(cfg),w.mount.z);g.add(v.root)});
+  g.position.set(P.x,H(P.x,P.z)+wr-restWheelY(cfg),P.z);g.rotation.y=P.h||0;levelGroup.add(g);const col={x:P.x,z:P.z,r:.75};G.colliders.push(col);skuterPark={g,col}}
+function skuterSet(on){if(on===onSkuter())return;const si=CARS.findIndex(c=>c.id==='skuter');if(si<0)return;
+  if(on){skuterOwn=state.carIdx;skuterSwap(si);skuterParked(true)}else{const i=skuterOwn;skuterParked(false);skuterOwn=-1;skuterSwap(i)}}
+// back to the player's own car without moving anything (the level, the menu or the garage is about to place the car)
+function skuterOff(){if(!onSkuter())return;const i=skuterOwn;skuterParked(false);skuterOwn=-1;if(car)skuterSwap(i);else state.carIdx=i}
+function skuterAsk(){const on=onSkuter();$('aName').textContent='Skuterutleia';$('aKind').textContent=LEVELS[state.levelIdx].name;
+  $('aDesc').textContent=on?'Bilen din står parkert ved hytta. Skuterløypene låner deg en skuter uansett, så du kan trygt levere denne.':'Snøskuteren har ski foran og belte bak: rask og med godt grep på snø og is, men treg på bar bakke. Den er gratis å låne, og bilen din står trygt parkert her så lenge.';
+  $('aBest').textContent=on?'':'Skuteren blir igjen på øya når du tar fergen.';$('aQ').textContent=on?'Vil du levere skuteren og ta bilen?':'Vil du kjøre snøskuter?';$('aNo').textContent='NEI, kjør videre';$('ask').hidden=false;$('aYes').focus()}
 
 /* ---------- roaming the archipelago ---------- */
 // «Kjør!» in the menu: free driving, starting on Tromøya or wherever you last were

@@ -13,6 +13,8 @@
 //             ride hjulene sitter så mye høyere under karosseriet (lavere bil)   susp fjæringsvei (1 = som de andre, mindre er kortere og stivere)
 //             pow motorkraft (1 = som de andre)   gh styrer også hvor taket er når bilen velter
 //             style 'trophy' tegner en trophy truck (js/carmodel.js buildTrophy)   damp støtdempere (1 = som de andre, mer demper hopp og humper)
+//             hire:true bilen vises ikke i menyen (snøskuteren leies på Isbjørnøya)   trackR sporvidde bak (standard som foran)
+//             belt:{snow,ice,bare,drag} snøskuter: ski foran og belte bak. Grep ganges med snow/ice/bare etter underlaget, drag bremser på bar bakke
 //             stab bilen retter seg selv opp (som vekt-delen i verkstedet, legges til den)   air bilen flyr rett i lufta, og gass/brems styrer nesen
 CARS.push(
 {id:'kobbe',name:'Kobbe',kind:'Kort 2-dørs',L:1.62,wb:1.08,mass:9.2,gh:.31,hood:.42,win:1,style:'box',snorkel:true,spare:'rear',stats:[3,5,3],extras:['spade','axe','cans2'],
@@ -37,5 +39,10 @@ CARS.push(
 // Bygget for fart i terrenget og store hopp: den flyr rett i lufta, og gass løfter nesen, brems senker den (som i en ekte trophy truck)
 {id:'trophy',name:'Trophy Truck',kind:'Ørkenracer 4WD',L:2.7,wb:1.62,mass:10.4,gh:.2,hood:.62,win:1,style:'trophy',spare:'none',stats:[3,4,5],
    wr:.29,track:1.34,tireW:.25,susp:1.7,damp:1.5,stab:2,air:1,top:1.4,pow:1.3,col:'#1f5fc4',
-   desc:'Ørkenracer med enorm fjæring, store dekk og bred sporvidde. Svært stødig, lander mykt etter store hopp og er rask i terrenget. I lufta løfter gass nesen og brems senker den. Ingen vinsj, og den er ingen klatrer i bratt stein.'}
+   desc:'Ørkenracer med enorm fjæring, store dekk og bred sporvidde. Svært stødig, lander mykt etter store hopp og er rask i terrenget. I lufta løfter gass nesen og brems senker den. Ingen vinsj, og den er ingen klatrer i bratt stein.'},
+// snøskuteren på Isbjørnøya: leies på Skuterutleia (den blå ruta), og skuterløypene låner deg en ved start. Ski foran og belte bak:
+// rask og med godt grep på snø og is, treg og sliten på bar bakke. Den vises ikke i menyen (hire) og tar ikke deler fra verkstedet.
+{id:'skuter',name:'Snøskuter',kind:'Leieskuter',hire:true,L:1.9,wb:1.2,mass:7.5,gh:.04,hood:.6,win:0,style:'skuter',spare:'none',stats:[2,4,3],
+   wr:.15,track:.92,trackR:.5,tireW:.1,susp:1.15,damp:1.5,stab:3.2,air:1,top:1.3,pow:2.3,belt:{snow:1.6,ice:2.3,bare:.8,drag:.05},
+   desc:'Snøskuter med ski foran og belte bak. Rask og med godt grep på snø og is, men treg på bar bakke.'}
 );

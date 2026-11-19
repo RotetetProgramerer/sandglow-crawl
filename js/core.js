@@ -557,7 +557,7 @@ function makeCar(cfg,tune){
   const m=cfg.mass,L=cfg.L,tr=cfg.track||TRACK,W=Math.max(.92,tr),car={cfg,m,tune,wr:cfg.wr||WR,pos:new V3(),vel:new V3(),q:new Q4(),w:new V3(),steer:0,throttle:0,low:true,assist:true,speedScale:1,
     depth:-1,I:new V3(m/12*(.55*.55+L*L)*1.1,m/12*(W*W+L*L)*1.1,m/12*(W*W+.55*.55)*1.6),wheels:[],pts:[],up:new V3(0,1,0),fw:new V3(0,0,1),lf:new V3(1,0,0)};
   car.K=m*9.8/4/(.4*TRAVEL*k);car.C=2*Math.sqrt(car.K*m/4)*[.5,.65,.8,.9][tune.lv?tune.lv.susp:0]*(cfg.damp||1);   // damp: stronger shocks (the trophy truck's bypass shocks)
-  for(const fz of[1,-1])for(const sx of[1,-1])car.wheels.push({mount:new V3(sx*tr/2,MOUNT_Y+(cfg.ride||0)+(tune.travel-TRAVEL*k)-tune.lift,fz*cfg.wb/2),front:fz>0,left:sx>0,comp:0,prev:0,had:false,contact:false,center:new V3(),spin:0,vl:0,slip:0,surf:0,P:new V3()});
+  for(const fz of[1,-1])for(const sx of[1,-1])car.wheels.push({mount:new V3(sx*(fz<0&&cfg.trackR||tr)/2,MOUNT_Y+(cfg.ride||0)+(tune.travel-TRAVEL*k)-tune.lift,fz*cfg.wb/2),front:fz>0,left:sx>0,comp:0,prev:0,had:false,contact:false,center:new V3(),spin:0,vl:0,slip:0,surf:0,P:new V3()});
   const roof=.08+.34+cfg.gh+.12;
   for(const sx of[1,-1]){for(const sz of[1,-1]){car.pts.push(new V3(sx*.44,-.06,sz*L*.47),new V3(sx*.42,roof,sz*L*.42),new V3(sx*.42,.03,sz*(L/2+.09)),new V3(sx*.47,.3,sz*L*.3))}}
   car.pts.push(new V3(0,-.14,0),new V3(0,-.13,cfg.wb*.3),new V3(0,-.13,-cfg.wb*.3));
@@ -578,7 +578,7 @@ function stepCar(car,dt){
   _f.set(0,-g*m,0);_tq.set(0,0,0);
   const TU=car.tune||TUNE0,TRV=TU.travel,RT=TU.right+(car.cfg.stab||0);   // RT: how hard the car rights itself (the weight part in the garage, and stab on a car built wide and low)
   const low=car.low,vmax=(low?1.7*TU.vlow:5.6*TU.vhigh*(car.cfg.top||1))*(car.speedScale||1),WRc=car.wr,fmot=(low?.62:.15)*TU.fmot*(car.cfg.pow||1)*m*g,vt=car.throttle*vmax,gripMul=(car.assist?1.12:1)*TU.grip;
-  const dy=Math.max(.35,up.y);
+  const dy=Math.max(.35,up.y),BELT=car.cfg.belt;   // belt: a snowmobile. Skis in front that steer but neither drive nor brake, and a belt behind that bites in snow and on ice
   for(const wh of car.wheels){
     _M.copy(wh.mount).applyQuaternion(q).add(car.pos);
     _C0.copy(up).multiplyScalar(-TRV).add(_M);
@@ -599,13 +599,13 @@ function stepCar(car,dt){
       const Nf=Math.min(spring/Math.max(.35,_n.dot(up)),m*g*3);
       _r.copy(_P).sub(car.pos);_vp.copy(car.w).cross(_r).add(car.vel);
       _tF.copy(_wf).addScaledVector(_n,-_wf.dot(_n)).normalize();_tS.crossVectors(_n,_tF);
-      const vl=_vp.dot(_tF),vs=_vp.dot(_tS),surf=surfAt(bx,bz),wd=WL(bx,bz)-bh,lim=GRIP[surf]*gripMul*(wd>0?.82:1)*Nf;
-      const fm=Math.min(fmot,lim);let fl=(vt-vl)*meff*inv;fl=Math.max(-fm,Math.min(fm,fl));
+      const vl=_vp.dot(_tF),vs=_vp.dot(_tS),surf=surfAt(bx,bz),wd=WL(bx,bz)-bh,snow=surf===S.SNOW||surf===S.ICE,lim=GRIP[surf]*gripMul*(wd>0?.82:1)*Nf*(BELT?(snow?(surf===S.ICE?BELT.ice:BELT.snow):BELT.bare):1);
+      const fm=BELT&&wh.front?0:Math.min(fmot,lim);let fl=(vt-vl)*meff*inv;fl=Math.max(-fm,Math.min(fm,fl));
       let fs=-vs*meff*inv;fs=Math.max(-lim,Math.min(lim,fs));
       const mag=Math.hypot(fl,fs);if(mag>lim&&mag>0){const k=lim/mag;fl*=k;fs*=k}
       // mud and water resistance (opposes wheel velocity, never reverses it)
-      const md=MUDDRAG[surf],spd=Math.hypot(vl,vs);
-      if((md||wd>0)&&spd>1e-3){let dr=0;if(md)dr+=(md[0]+md[1]*spd)*m*g;if(wd>0)dr+=Math.min(wd,.5)*.09*spd*m*g;dr=Math.min(dr,spd*meff*inv*.9);fl-=vl/spd*dr;fs-=vs/spd*dr}
+      const md=MUDDRAG[surf],spd=Math.hypot(vl,vs),bd=BELT&&!snow?BELT.drag:0;   // bd: skis and belt scrape on bare ground
+      if((md||wd>0||bd)&&spd>1e-3){let dr=bd*m*g;if(md)dr+=(md[0]+md[1]*spd)*m*g;if(wd>0)dr+=Math.min(wd,.5)*.09*spd*m*g;dr=Math.min(dr,spd*meff*inv*.9);fl-=vl/spd*dr;fs-=vs/spd*dr}
       _t.copy(_n).multiplyScalar(Nf).addScaledVector(_tF,fl).addScaledVector(_tS,fs);
       _f.add(_t);_rc.crossVectors(_r,_t);_tq.add(_rc);
       wh.vl=vl;wh.slip=Math.abs(car.throttle)>.05?Math.abs(vt-vl):0;wh.surf=surf;wh.P.copy(_P);wh.wd=wd;

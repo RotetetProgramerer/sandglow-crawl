@@ -13,6 +13,7 @@ js/game.js            Spillet: grafikk, kamera, lyd, meny, garasje, poeng.
 js/animals.js         Dyr (papegøyer, apekatter, kaimaner, jaguar, frosker og flere) og den rullende steinen.
 js/savannedyr.js      Dyrene på Løveøya: løver, geparder og krokodiller som angriper, flokkene som flykter og gribbene.
 js/orkendyr.js        Kamelene på Kameløya: flokker som beiter og går unna bilen, og karavanen med beduinen som leder den.
+js/polardyr.js        Dyrene på Isbjørnøya: isbjørner som angriper, reinsdyr, sel ved pustehullene, hvalross og sledehunder.
 js/ambience.js        Jungellyd laget med WebAudio (ingen lydfiler).
 js/skier.js           Fysikken for skiløperen i Gautefall: carving, skrens, hockeystopp, hopp og landing (ingen DOM, testes uten nettleser).
 js/ski.js             Skianlegget i spillet: stolheisen, skiløperen (modell og stillinger), turen opp og ned, kamera, mellomtider, spøkelset og lyd.
@@ -112,10 +113,15 @@ Nytt element: kopier en fil i `js/props/`, gi den et nytt navn i `PROPS.navn`, o
 | `damp` | Valgfritt. Støtdempere, 1 er som de andre. Mer demper humper og landinger, så bilen ikke spretter. |
 | `stab` | Valgfritt. Hvor hardt bilen retter seg opp når den krenger, lagt til vekt-delen fra verkstedet. Gjør bilen vanskeligere å velte. |
 | `air` | Valgfritt. Bilen flyr rett i lufta: krengning og stamping dør ut, og gass løfter nesen, brems senker den. 1 er trophy truckens. |
+| `hire` | Valgfritt. `true` skjuler kjøretøyet i menyen og verkstedet. Brukes av snøskuteren, som leies på Isbjørnøya. |
+| `trackR` | Valgfritt. Sporvidde bak, hvis den er annerledes enn foran. |
+| `belt` | Valgfritt. `{snow,ice,bare,drag}` gjør kjøretøyet til en snøskuter: forhjulene er ski (styrer, men driver og bremser ikke), bakhjulene er beltet. Grepet ganges med `snow` på snø, `ice` på is og `bare` på alt annet, og `drag` bremser på bar bakke. |
 
 `style:'monster'` tegner en monstertruck i stedet for en vanlig crawler (`buildMonster` i `js/carmodel.js`), se Knøtt.
 
 `style:'sport'` tegner en sportsbil med glatt karosseri (`buildSport` i `js/carmodel.js`), se Porsche 911 Turbo. Formen kommer fra tabellen `SP911`: ekte mål i millimeter, én rad per tverrsnitt fra nesen og bakover (bunn, bredde, skjermer, vinduslinje, tak). Bilen skaleres så akselavstanden blir `wb`. `gh` bestemmer hvor taket er når bilen ligger opp ned, og kan være negativt for en lav bil.
+
+`style:'skuter'` tegner snøskuteren med fører (`buildSkuter` og `buildSkuterSki` i `js/carmodel.js`), se «Isbjørnøya» under.
 
 `style:'trophy'` tegner en trophy truck (`buildTrophy` i `js/carmodel.js`), se Trophy Truck: et smalt karosseri lavt mellom brede skjermer, store terrengdekk på svarte beadlock-felger, takluke, lysrampe, to reservehjul og tank på planet under et rørbur, og startnummer på dørene. Fjæringen tegnes mellom karosseriet og hjulene hver gang bilen flytter seg (`trophyLinks`), så du ser A-armene og støtdemperne foran og den stive akselen bak jobbe. Bilen er gratis.
 
@@ -505,6 +511,53 @@ node tools/test-grotte.js
 Hver bil skal vise `MÅL`, helst `velt 0` og `juv 0`, og `bensin` bør ikke gå helt ned til 0. Testen sjekker også at ingen diamanter ligger inne i steinen, og viser hvor lavt taket er på det trangeste.
 
 **Banefelt:** `c.caveDef={mouth:{x,z},r,open:{x,z},dir,out:{x,z,h},back:{x,z,h},door:{x,z}}` i `build(c)`: kjører bilen innenfor `r` av `mouth`, starter grotten. `open` er den mørke åpningen i fjellveggen og `dir` retningen inn i fjellet, `out` er der bilen står når du kjører ut igjen, `back` og `door` er bakdøra. `cavePath` på banen er bare for testen: `node tools/test-levels.js orken` kjører kløfta inn til åpningen (`GROTTE`) og ut igjen.
+
+## Isbjørnøya: den arktiske øya og snøskuteren
+
+`data/levels/13-svalbard.js` er en arktisk øy inspirert av Svalbard, nord i skjærgården mellom Hisøya og Nidelva. Fergen går dit fra Tromøya, Hisøya og Nidelva. Det finnes ingen trær, bare snø, is og stein. Husk at på øyene er +x vest og +z nord.
+
+| Sted | Hva |
+|---|---|
+| Kaia | Landsbyen i sør: fargerike hus med snø på takene. Ved veien inn står skiltet «ISBJØRNFARE · gjelder hele øya». |
+| Skuterutleia | Rett innenfor landsbyen: rød hytte, skutere på rekke, bensinpumpe, veiviser til Nordpolen og en snømann. Kjør inn på den blå ruta for å leie snøskuter. |
+| Reindalen | Den brede dalen midt på øya, med reinsdyr. Veien går nordover til brefoten. |
+| Isbjørnbreen | Iskappen i nord: en slak snøbakke opp fra sør, blåis, bresprekker i øst, en nunatak, og en brefront som er et stup rett i havet. Isfjell flyter utenfor. |
+| Isfjorden | Vest: blank is. Seler ligger ved pustehullene, en skøyte har frosset fast, og en isbjørn vokter iskanten. |
+| Gruvefjellet | Øst: et platåfjell med gruveinngang og kullvogn i sørveggen, taubane med kibber ned til taubanesentralen ved sjøen, og satellittstasjonen med radarkupler på toppen. |
+| Frøhvelvet | En betongkile med lysende front som stikker ut av vestveggen på Gruvefjellet. |
+| Fangsthytta | Nordvest: tjæret hytte, fiskehjell, slede, sledehunder, og hvalross på stranda nedenfor. |
+
+| Løype | Vanskelighet | Kjøretøy | Hva |
+|---|---|---|---|
+| Skutersafari | Lett | Snøskuter | En lang runde gjennom Reindalen og over viddene i sørvest. |
+| Breløpet | Middels | Snøskuter | Opp på breen, en runde på iskappen og ned igjen med to hopp. |
+| Fjordisen | Middels | Bil | Over den blanke isen rundt pustehullene. |
+| Gruveveien | Vanskelig | Bil | Opp den bratte veien til platået og ned nordsiden. |
+
+**Snøskuteren** er et kjøretøy i `data/cars.js` med `hire:true` (vises ikke i menyen), `style:'skuter'` og `belt:{…}`. Den har ski foran og belte bak: rask og med godt grep på snø og is, treg på bar bakke, og den flyr rett i lufta som trophy trucken. Den tar ikke deler fra verkstedet, men får lakken din.
+
+- **Leie:** kjør inn på den blå ruta ved Skuterutleia og svar JA. Bilen byttes med skuteren der den står, og bilen din tegnes parkert ved hytta. Den samme ruta tar skuteren tilbake. Det er gratis.
+- **Løypene:** en løype med `skuter:true` låner deg en skuter ved start, og de andre løypene setter deg tilbake i bilen. Rekordene blir derfor rettferdige.
+- **Skuteren blir på øya:** fergen, menyen og verkstedet gir deg bilen tilbake.
+- **Flerspiller:** de andre i rommet ser deg på skuter.
+
+Koden ligger i `js/world.js` («the snowmobile hire»). Banen setter `c.skuterDef={ask:{x,z},park:{x,z,h}}` i `build(c)`: `ask` er den blå ruta, `park` er der bilen står imens. Fysikken er `belt` i `stepCar` (`js/core.js`).
+
+**Dyrene** (`js/polardyr.js`). Banefeltet `animals` tar:
+
+| Felt | Hva |
+|---|---|
+| `polarbears:[{at,r,n}]` | Isbjørner. De rusler rundt og snuser når de er i ro. Kommer du innenfor 11 enheter, snur de seg mot deg, og innenfor 7,5 angriper de, som løvene på Løveøya (tallene står i `SAV_KIND.bear`). Et treff kaster bilen rundt og koster 5 straffepoeng i et løp eller 3 muttere i fri kjøring. I lavt gir tar bjørnen deg igjen; i høyt gir eller på skuter slipper du unna. |
+| `reindeer:[{at,r,n}]` | Svalbardrein: korte bein og runde kropper. De beiter i flokk og trasker unna bilen. |
+| `seals:[{at:[x,z],n}]` | Sel ved et pustehull (`at` er hullet). Kommer du nær, vrikker de seg til hullet og stuper, og titter opp igjen når det er stille. |
+| `walruses:[{at,r,n}]` | Hvalross som ligger i ro, løfter hodet og grynter. De flytter seg ikke, og dytter bilen til side. |
+| `dogs:[[x,z,retning],…]` | Sledehunder som følger bilen med hodet og logrer. |
+
+Binna med unge, fjellrevene og snøuglene står i ro og kommer fra `data/dyr.js`.
+
+**Terrenget:** `glH` er breen (bredden på kanten styrer om det er snøbakke eller isvegg), `mesa` er Gruvefjellet med de to veiene i `RAMPS`, og `landExtra` lar breen og fjordisen gå helt ut i havet. Hoppene i Breløpet lages av `jump` i `build(c)`.
+
+Testen: `node tools/test-levels.js svalbard`. Skuterløypene kjøres med skuteren. Dyrene er ikke med i testen.
 
 ## Kaimanøya: jungeløya
 

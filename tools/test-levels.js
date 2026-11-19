@@ -72,12 +72,13 @@ function skiTest(def,lv,k){const s=makeSkier(),run=makeSkiRun(k),tgt=SKI_TARGET[
 // drives one line (a level, or one course inside an open world) in both gears
 function drive(def,lv,line,label){
   for(const low of[true,false]){
-    const car=makeCar(TCAR);car.assist=false;car.low=low;const s=line.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));
+    const car=makeCar(line.def&&line.def.skuter?CARS.find(c=>c.id==='skuter'):TCAR);car.assist=false;car.low=low;const s=line.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));   // skuterløypene på Isbjørnøya kjøres med snøskuter
     for(let i=0;i<480;i++)stepCar(car,dt);
+    const look=line.def&&line.def.skuter&&!low?Math.max(.012,2.6/line.pts.reduce((L,p,i,P)=>i?L+Math.hypot(p.x-P[i-1].x,p.z-P[i-1].z):0,0)):.012;   // the snowmobile is fast in high gear: the autopilot looks 2.6 units ahead
     let pt=0,flips=0,maxDepth=-9,flood=0,drown=0,lava=0,gT={},evs=[],t=0,stuck=0,lastProg=0,jumps=0,air=0;
     for(let i=0;i<240*160;i++){
       let best=1e9,bt=pt;for(let k=0;k<=60;k++){const tt=Math.min(1,pt+k*.002),p=line.P(tt),d=Math.hypot(p.x-car.pos.x,p.z-car.pos.z);if(d<best){best=d;bt=tt}}pt=bt;
-      const tg=line.P(Math.min(1,pt+.012)),dx=tg.x-car.pos.x,dz=tg.z-car.pos.z,fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);
+      const tg=line.P(Math.min(1,pt+look)),dx=tg.x-car.pos.x,dz=tg.z-car.pos.z,fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);
       car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);
       if(!isFinite(car.pos.x)){console.log(def.id,'FEIL: fysikken eksploderte');break}
       maxDepth=Math.max(maxDepth,car.depth);if(car.depth>car.tune.wade)flood+=dt;else flood=Math.max(0,flood-dt*2);
@@ -89,7 +90,7 @@ function drive(def,lv,line,label){
       if(i>0&&i%2400===0){if(pt-lastProg<.004){stuck++;evs.push('fast@'+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1));const p=line.P(Math.min(1,pt+.02)),tn=line.T(Math.min(1,pt+.02));placeCar(car,p.x,p.z,Math.atan2(tn.x,tn.z))}lastProg=pt}
       if(pt>.985){t=i*dt;break}
     }
-    console.log(label.padEnd(14),low?'LAV ':'HØY ','prog',pt.toFixed(2),'tid',(t||0).toFixed(0).padStart(3)+'s','velt',flips,'fast',stuck,'maksDybde',maxDepth.toFixed(2),'drown',drown,'lava',lava,'hopp',jumps,'kasser',line.crates.length);
+    console.log((label+(line.def&&line.def.skuter?' (skuter)':'')).padEnd(14),low?'LAV ':'HØY ','prog',pt.toFixed(2),'tid',(t||0).toFixed(0).padStart(3)+'s','velt',flips,'fast',stuck,'maksDybde',maxDepth.toFixed(2),'drown',drown,'lava',lava,'hopp',jumps,'kasser',line.crates.length);
     if(process.argv[3]==='v'&&evs.length)console.log('   hendelser:',evs.join(' '));
     if(def.shortcutGates){const[a,b]=def.shortcutGates;if(gT[a]!==undefined&&gT[b]!==undefined)console.log('   hovedrute mellom port',a+1,'og',b+1,':',(gT[b]-gT[a]).toFixed(1)+'s')}
   }
