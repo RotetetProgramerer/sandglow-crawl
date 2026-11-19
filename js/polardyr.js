@@ -1,6 +1,6 @@
 'use strict';
 /* =================================================================
-   ARCTIC ANIMALS (Isbjørnøya): the ones that move.
+   ARCTIC ANIMALS (Svalbard): the ones that move.
    Polar bears amble about on the fjord ice and by the glacier. Come too close and they charge like the lions on Løveøya (they use
    the predators in js/savannedyr.js: a warning, a charge, a hit that throws the car about and costs 5 penalty points in a race or
    3 nuts while roaming). A car in low gear cannot outrun one; high gear or a snowmobile can.

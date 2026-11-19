@@ -34,7 +34,7 @@ function nearestPortal(){let b=null;for(const p of portals){const d=Math.hypot(p
 function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aYes').hidden=false;
   if(typeof k==='string'&&k.startsWith('ski')){skiAsk(k);return}   // Gautefall: the ski trip (js/ski.js)
   if(typeof k==='string'&&k.startsWith('boat')){boatAsk(k);return}
-  if(k==='skuter'){skuterAsk();return}   // Isbjørnøya: hire a snowmobile, or hand it back
+  if(k==='skuter'){skuterAsk();return}   // Svalbard: hire a snowmobile, or hand it back
   if(k==='fly'){flyAsk(k);return}   // Trinnvik: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
   if(k==='ferry'){const here=LEVELS[state.levelIdx];$('aName').textContent='Fergen';$('aKind').textContent='Kaia på '+here.name;$('aDesc').textContent='Hvor vil du reise? Overfarten koster 5 muttere. Du har '+fmtN(prof.nuts)+'.';$('aBest').textContent='';$('aQ').textContent='';
     const dests=ROUTES.filter(r=>r.includes(here.id)).map(r=>r[0]===here.id?r[1]:r[0]).map(id=>LEVELS.find(l=>l.id===id)).filter(Boolean);
@@ -59,7 +59,7 @@ function answerAsk(yes){if(state.mode!=='ask')return;$('ask').hidden=true;const 
   if(k==='garage'){state.askCool='garage';if(yes){state.mode='play';toGarage()}else{state.mode='play';toast('Kjør videre når du vil')}return}
   if(k==='ferry'){state.askCool='ferry';state.mode='play';if(yes&&yes.dest)startFerry(yes.dest);return}
   if(yes)startCourse(k);else{state.mode='play';state.askCool=k.id;toast('Kjør videre når du vil')}}
-function startCourse(k){setOffer(null);if(LV.skuterDef)skuterSet(!!k.def.skuter);   // Isbjørnøya: the scooter courses lend you a snowmobile, the others are driven by car
+function startCourse(k){setOffer(null);if(LV.skuterDef)skuterSet(!!k.def.skuter);   // Svalbard: the scooter courses lend you a snowmobile, the others are driven by car
   placeCar(car,k.start.p.x,k.start.p.z,Math.atan2(k.start.tan.x,k.start.tan.z));camSnap=true;state.course=k;state.free=false;resetRunState();LV.gates=k.gates;LV.crates=k.crates;buildGates(LV);buildCrates(LV);resetCrates();
   gateVis.forEach((g,i)=>{g.touched=false;setGateState(i,'pending')});gateWake={i:0,t:0};buildCourseArrows(k);
   if(k.def.night)setNight(true);
@@ -91,7 +91,7 @@ function updateWorld(dt){
     const mb=LV.marinaDef;if(mb){const d=Math.hypot(mb.ask.x-car.pos.x,mb.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='boat'){openAsk('boat');return}if(d>3.5&&state.askCool==='boat')state.askCool=null}
     const ap=LV.airportDef;if(ap){const d=Math.hypot(ap.ask.x-car.pos.x,ap.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='fly'){openAsk('fly');return}if(d>3.5&&state.askCool==='fly')state.askCool=null}   // the airport: park on the blue square to fly   // the marina: park on the blue square to take a boat out
     const cd=LV.caveDef;if(cd){const d=Math.hypot(cd.mouth.x-car.pos.x,cd.mouth.z-car.pos.z);if(d<cd.r&&state.askCool!=='cave'){caveEnter();return}if(d>cd.r+3&&state.askCool==='cave')state.askCool=null}   // Kameløya: drive into the cave mouth and the view turns to the side (js/grotte.js)
-    const sk=LV.skuterDef;if(sk){const d=Math.hypot(sk.ask.x-car.pos.x,sk.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='skuter'){openAsk('skuter');return}if(d>3.5&&state.askCool==='skuter')state.askCool=null}   // Isbjørnøya: the blue square at the snowmobile hire
+    const sk=LV.skuterDef;if(sk){const d=Math.hypot(sk.ask.x-car.pos.x,sk.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='skuter'){openAsk('skuter');return}if(d>3.5&&state.askCool==='skuter')state.askCool=null}   // Svalbard: the blue square at the snowmobile hire
     const ga=LEVELS[state.levelIdx].garageAt;if(ga){const d=Math.hypot(ga[0]-car.pos.x,ga[1]-car.pos.z);if(d<2.4&&state.askCool!=='garage'){openAsk('garage');return}if(d>4.5&&state.askCool==='garage')state.askCool=null}}
   else{setOffer(null);const ng=LV.gates[state.next];if(ng&&Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)>30){endCourse();toast('For langt fra løypa: løpet er avbrutt',true)}}
   const tm=performance.now()*.001;for(const p of portals){if(Math.abs(p.x-car.pos.x)+Math.abs(p.z-car.pos.z)>40)continue;p.lights.forEach((l,i)=>l.material.opacity=.6+.4*Math.sin(tm*5+i*1.3))}
@@ -106,7 +106,7 @@ function updateBreakables(dt){if(!LV.breakables||!LV.propCyls)return;
       _bq.setFromAxisAngle(_bs.set(f.ax,0,f.az).normalize(),a);_bt.makeRotationFromQuaternion(_bq);_bt.setPosition(f.b.x,f.y0,f.b.z);_bt.multiply(new THREE.Matrix4().makeTranslation(-f.b.x,-f.y0,-f.b.z));_bm.premultiply(_bt);LV.propCyls.setMatrixAt(id,_bm)}
     LV.propCyls.instanceMatrix.needsUpdate=true;if(a>=1.5)falling.splice(i,1)}}
 
-/* ---------- the snowmobile hire (Isbjørnøya) ---------- */
+/* ---------- the snowmobile hire (Svalbard) ---------- */
 // The level sets c.skuterDef={ask:{x,z},park:{x,z,h}}. Drive onto the blue square: «Vil du leie en snøskuter?». The car is swapped for the
 // snowmobile where it stands (a car in data/cars.js with hire:true, so the others in the room see it too), and your own car is drawn
 // parked beside the hut until you hand the snowmobile back on the same square. Leaving the island, the menu and the garage hand it back too.

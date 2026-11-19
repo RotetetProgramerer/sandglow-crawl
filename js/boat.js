@@ -115,7 +115,7 @@ function bIsland(I,R){const g=new THREE.Group(),r=I.r,look=I.look;g.position.set
     bAdd(g,new THREE.CylinderGeometry(r*.11,r*.11,.6,14),bStd(0x3f9aa0,{flatShading:false,roughness:.2}),r*.05,8.3,-r*.06,false);
     around(9,r*.12,r*.2,(x,z)=>{const p=bPalm(.9+R()*.4);p.position.set(x+r*.05,8,z-r*.06);p.rotation.y=R()*6;g.add(p)});
     const py=bAdd(g,new THREE.ConeGeometry(22,24,4),bStd(0xd2b07a),-r*.12,20,r*.48);py.rotation.y=.4;top=70}
-  else if(look==='svalbard'){bAdd(g,new THREE.CylinderGeometry(r-26,r-10,8,13),bStd(0xeef2f5),0,4,0);   // Isbjørnøya: the ice cap with its blue front to the north, the mine mountain with the radomes, coloured houses by the quay, and icebergs
+  else if(look==='svalbard'){bAdd(g,new THREE.CylinderGeometry(r-26,r-10,8,13),bStd(0xeef2f5),0,4,0);   // Svalbard: the ice cap with its blue front to the north, the mine mountain with the radomes, coloured houses by the quay, and icebergs
     const gl=bAdd(g,new THREE.SphereGeometry(1,12,6,0,Math.PI*2,0,Math.PI/2),bStd(0xf6f9fc),-r*.08,8,-r*.4);gl.scale.set(r*.56,36,r*.46);
     bAdd(g,new THREE.BoxGeometry(r*.78,15,7),bStd(0x8fc4e0),-r*.08,7.5,-r*.84);
     const mx=r*.46,mz=-r*.04;bAdd(g,new THREE.CylinderGeometry(r*.22,r*.29,40,8),bStd(0x5f6268),mx,28,mz);bAdd(g,new THREE.CylinderGeometry(r*.225,r*.225,3,8),bStd(0xf1f5f8),mx,49,mz,false);

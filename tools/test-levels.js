@@ -72,7 +72,7 @@ function skiTest(def,lv,k){const s=makeSkier(),run=makeSkiRun(k),tgt=SKI_TARGET[
 // drives one line (a level, or one course inside an open world) in both gears
 function drive(def,lv,line,label){
   for(const low of[true,false]){
-    const car=makeCar(line.def&&line.def.skuter?CARS.find(c=>c.id==='skuter'):TCAR);car.assist=false;car.low=low;const s=line.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));   // skuterløypene på Isbjørnøya kjøres med snøskuter
+    const car=makeCar(line.def&&line.def.skuter?CARS.find(c=>c.id==='skuter'):TCAR);car.assist=false;car.low=low;const s=line.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));   // skuterløypene på Svalbard kjøres med snøskuter
     for(let i=0;i<480;i++)stepCar(car,dt);
     const look=line.def&&line.def.skuter&&!low?Math.max(.012,2.6/line.pts.reduce((L,p,i,P)=>i?L+Math.hypot(p.x-P[i-1].x,p.z-P[i-1].z):0,0)):.012;   // the snowmobile is fast in high gear: the autopilot looks 2.6 units ahead
     let pt=0,flips=0,maxDepth=-9,flood=0,drown=0,lava=0,gT={},evs=[],t=0,stuck=0,lastProg=0,jumps=0,air=0;

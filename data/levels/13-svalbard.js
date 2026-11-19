@@ -1,4 +1,4 @@
-// Isbjørnøya: den arktiske øya helt nord i skjærgården (120 × 120), inspirert av Svalbard. Ingen trær, bare snø, is og stein.
+// Svalbard: den arktiske øya helt nord i skjærgården (120 × 120), oppkalt etter og inspirert av det ekte Svalbard. Ingen trær, bare snø, is og stein.
 // Fargerike hus ved kaia i sør, Skuterutleia rett innenfor, Reindalen midt på øya, Isbjørnbreen i nord med brefront rett i havet,
 // Isfjorden i vest med sel ved pustehullene og en isbjørn ute ved iskanten, Gruvefjellet i øst med taubane, radarkupler og frøhvelv,
 // og fangsthytta med sledehunder og hvalross i nordvest. Husk: på øyene er +x vest og +z nord.
@@ -60,7 +60,7 @@ const ROADS=[
 ];
 
 LEVELS.push(
-{ id:'svalbard', name:'Isbjørnøya', diff:2, seed:7818, size:120, coast:42, world:true,
+{ id:'svalbard', name:'Svalbard', diff:2, seed:7818, size:120, coast:42, world:true,
   desc:'Den arktiske øya helt i nord: bre, islagt fjord, gruvefjell og isbjørner som ikke liker besøk. Lei en snøskuter ved kaia og kjør over viddene.',
   start:[VROAD[0]+1,VROAD[1]+2.5,0],
   sky:['#4577b8','#f6dcc8'], fog:0xe9e4e8, fogNear:34, fogFar:128, sun:0xffe9d2, sunI:1.05, hemi:[0xe2ecf8,0x8c96a8,.74], sunDir:[-22,13,-10], rockCol:'#5f6268',
@@ -121,7 +121,7 @@ LEVELS.push(
       c.cyl(sx,y+1.2,sz,.15,.03,'#2a2a2a');c.cyl(sx,y+1.23,sz,.1,.16,'#2a2a2a');c.cyl(sx,y+1.03,sz+.2,.025,.16,'#f08a2a',{rx:Math.PI/2});c.box(sx,y+.9,sz,.4,.06,.4,'#c8463a',.4);
       for(const sd of[-1,1]){ball(sx+sd*.07,y+1.12,sz+.16,.022,'#14110e');c.cyl(sx+sd*.42,y+.72,sz,.018,.4,'#5a4330',{rz:sd*1.1})}c.colliders.push({x:sx,z:sz,r:.36})}
     // isbjørnskiltet ved veien inn fra kaia
-    c.fx.push({type:'sign',x:VROAD[0]-1.9,z:VROAD[1]+1.5,ang:Math.PI,text:'ISBJØRNFARE',sub:'gjelder hele øya',w:1.5});
+    c.fx.push({type:'sign',x:VROAD[0]-1.9,z:VROAD[1]+1.5,ang:Math.PI,text:'ISBJØRNFARE',sub:'gjelder hele Svalbard',w:1.5});
     // --- Isfjorden: pustehull, en innefrosset skøyte og isfiske ---
     for(const[x,z]of HOLES){c.cyl(x,ICE_Y+.004,z,.62,.012,'#173f5a');c.cyl(x,ICE_Y+.002,z,.78,.012,'#8fbcd4');c.block(x,z,2.4)}
     {const bx=34.2,bz=2.6,y=ICE_Y;c.box(bx,y-.12,bz,.95,.62,2.7,'#c8463a',.5,{rz:.16});c.box(bx,y+.44,bz,.8,.05,2.4,'#8a6a3a',.5,{rz:.16});c.box(bx-.1,y+.46,bz-.5,.55,.42,.8,'#f2efe6',.5,{rz:.16});

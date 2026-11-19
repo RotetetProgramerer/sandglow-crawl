@@ -13,7 +13,7 @@ js/game.js            Spillet: grafikk, kamera, lyd, meny, garasje, poeng.
 js/animals.js         Dyr (papegøyer, apekatter, kaimaner, jaguar, frosker og flere) og den rullende steinen.
 js/savannedyr.js      Dyrene på Løveøya: løver, geparder og krokodiller som angriper, flokkene som flykter og gribbene.
 js/orkendyr.js        Kamelene på Kameløya: flokker som beiter og går unna bilen, og karavanen med beduinen som leder den.
-js/polardyr.js        Dyrene på Isbjørnøya: isbjørner som angriper, reinsdyr, sel ved pustehullene, hvalross og sledehunder.
+js/polardyr.js        Dyrene på Svalbard: isbjørner som angriper, reinsdyr, sel ved pustehullene, hvalross og sledehunder.
 js/ambience.js        Jungellyd laget med WebAudio (ingen lydfiler).
 js/skier.js           Fysikken for skiløperen i Gautefall: carving, skrens, hockeystopp, hopp og landing (ingen DOM, testes uten nettleser).
 js/ski.js             Skianlegget i spillet: stolheisen, skiløperen (modell og stillinger), turen opp og ned, kamera, mellomtider, spøkelset og lyd.
@@ -113,7 +113,7 @@ Nytt element: kopier en fil i `js/props/`, gi den et nytt navn i `PROPS.navn`, o
 | `damp` | Valgfritt. Støtdempere, 1 er som de andre. Mer demper humper og landinger, så bilen ikke spretter. |
 | `stab` | Valgfritt. Hvor hardt bilen retter seg opp når den krenger, lagt til vekt-delen fra verkstedet. Gjør bilen vanskeligere å velte. |
 | `air` | Valgfritt. Bilen flyr rett i lufta: krengning og stamping dør ut, og gass løfter nesen, brems senker den. 1 er trophy truckens. |
-| `hire` | Valgfritt. `true` skjuler kjøretøyet i menyen og verkstedet. Brukes av snøskuteren, som leies på Isbjørnøya. |
+| `hire` | Valgfritt. `true` skjuler kjøretøyet i menyen og verkstedet. Brukes av snøskuteren, som leies på Svalbard. |
 | `trackR` | Valgfritt. Sporvidde bak, hvis den er annerledes enn foran. |
 | `belt` | Valgfritt. `{snow,ice,bare,drag}` gjør kjøretøyet til en snøskuter: forhjulene er ski (styrer, men driver og bremser ikke), bakhjulene er beltet. Grepet ganges med `snow` på snø, `ice` på is og `bare` på alt annet, og `drag` bremser på bar bakke. |
 
@@ -121,7 +121,7 @@ Nytt element: kopier en fil i `js/props/`, gi den et nytt navn i `PROPS.navn`, o
 
 `style:'sport'` tegner en sportsbil med glatt karosseri (`buildSport` i `js/carmodel.js`), se Porsche 911 Turbo. Formen kommer fra tabellen `SP911`: ekte mål i millimeter, én rad per tverrsnitt fra nesen og bakover (bunn, bredde, skjermer, vinduslinje, tak). Bilen skaleres så akselavstanden blir `wb`. `gh` bestemmer hvor taket er når bilen ligger opp ned, og kan være negativt for en lav bil.
 
-`style:'skuter'` tegner snøskuteren med fører (`buildSkuter` og `buildSkuterSki` i `js/carmodel.js`), se «Isbjørnøya» under.
+`style:'skuter'` tegner snøskuteren med fører (`buildSkuter` og `buildSkuterSki` i `js/carmodel.js`), se «Svalbard» under.
 
 `style:'trophy'` tegner en trophy truck (`buildTrophy` i `js/carmodel.js`), se Trophy Truck: et smalt karosseri lavt mellom brede skjermer, store terrengdekk på svarte beadlock-felger, takluke, lysrampe, to reservehjul og tank på planet under et rørbur, og startnummer på dørene. Fjæringen tegnes mellom karosseriet og hjulene hver gang bilen flytter seg (`trophyLinks`), så du ser A-armene og støtdemperne foran og den stive akselen bak jobbe. Bilen er gratis.
 
@@ -512,13 +512,13 @@ Hver bil skal vise `MÅL`, helst `velt 0` og `juv 0`, og `bensin` bør ikke gå 
 
 **Banefelt:** `c.caveDef={mouth:{x,z},r,open:{x,z},dir,out:{x,z,h},back:{x,z,h},door:{x,z}}` i `build(c)`: kjører bilen innenfor `r` av `mouth`, starter grotten. `open` er den mørke åpningen i fjellveggen og `dir` retningen inn i fjellet, `out` er der bilen står når du kjører ut igjen, `back` og `door` er bakdøra. `cavePath` på banen er bare for testen: `node tools/test-levels.js orken` kjører kløfta inn til åpningen (`GROTTE`) og ut igjen.
 
-## Isbjørnøya: den arktiske øya og snøskuteren
+## Svalbard: den arktiske øya og snøskuteren
 
-`data/levels/13-svalbard.js` er en arktisk øy inspirert av Svalbard, nord i skjærgården mellom Hisøya og Nidelva. Fergen går dit fra Tromøya, Hisøya og Nidelva. Det finnes ingen trær, bare snø, is og stein. Husk at på øyene er +x vest og +z nord.
+`data/levels/13-svalbard.js` er en arktisk øy inspirert av det ekte Svalbard, nord i skjærgården mellom Hisøya og Nidelva. Fergen går dit fra Tromøya, Hisøya og Nidelva. Det finnes ingen trær, bare snø, is og stein. Husk at på øyene er +x vest og +z nord.
 
 | Sted | Hva |
 |---|---|
-| Kaia | Landsbyen i sør: fargerike hus med snø på takene. Ved veien inn står skiltet «ISBJØRNFARE · gjelder hele øya». |
+| Kaia | Landsbyen i sør: fargerike hus med snø på takene. Ved veien inn står skiltet «ISBJØRNFARE · gjelder hele Svalbard». |
 | Skuterutleia | Rett innenfor landsbyen: rød hytte, skutere på rekke, bensinpumpe, veiviser til Nordpolen og en snømann. Kjør inn på den blå ruta for å leie snøskuter. |
 | Reindalen | Den brede dalen midt på øya, med reinsdyr. Veien går nordover til brefoten. |
 | Isbjørnbreen | Iskappen i nord: en slak snøbakke opp fra sør, blåis, bresprekker i øst, en nunatak, og en brefront som er et stup rett i havet. Isfjell flyter utenfor. |

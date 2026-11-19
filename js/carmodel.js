@@ -343,7 +343,7 @@ function trophyLinks(cfg){const L=[],zf=cfg.wb/2,V=(x,y,z)=>new THREE.Vector3(x,
       add(i,V(sx*.4,.27,z+.12),V(-sx*.13,.03,.1),.032,M.red);add(i,V(sx*.43,.26,z-.12),V(-sx*.15,.03,-.1),.022,M.steel)}}
   return L}
 
-/* ---------- the snowmobile (Isbjørnøya): cowl in the paint, belt under the tunnel, and a rider in a scooter suit and helmet ---------- */
+/* ---------- the snowmobile (Svalbard): cowl in the paint, belt under the tunnel, and a rider in a scooter suit and helmet ---------- */
 // The physics has four wheels: the two in front are the skis (buildSkuterSki draws them, and they steer), the two at the back sit close
 // together under the belt and are not drawn. The ground is about .33 under the origin when the scooter stands still.
 let SKM=null;
