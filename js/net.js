@@ -93,10 +93,11 @@ const netFin=(a,n)=>Array.isArray(a)&&a.length===n&&a.every(v=>typeof v==='numbe
 
 function netSend(m){if(!NET.tr)return;m.f=NET.me;if(NET.host){for(const L of NET.links.values())L.send(m)}else if(NET.hostLink)NET.hostLink.send(m)}
 function netRelay(from,m){for(const L of NET.links.values())if(L.id!==from)L.send(m)}
-function netOnLink(L){if(NET.host){NET.links.set(L.id,L);return}
+function netOnLink(L){if(NET.host){const old=NET.links.get(L.id);NET.links.set(L.id,L);if(old&&old!==L)old.close();return}   // a guest that reconnects replaces its old link
   NET.hostLink=L;L.send({t:'hello',f:NET.me,v:NET_VER,name:NET.name,info:myInfo()})}
 function netOnClose(L){
-  if(NET.host){NET.links.delete(L.id);const p=NET.players.get(L.id);if(p){netRemove(p,p.name+' forlot rommet');netSendRoster()}return}
+  if(NET.host){if(NET.links.get(L.id)!==L)return;   // an old link closing late must not throw out the guest that has already reconnected
+    NET.links.delete(L.id);const p=NET.players.get(L.id);if(p){netRemove(p,p.name+' forlot rommet');netSendRoster()}return}
   if(L!==NET.hostLink||NET.leaving)return;NET.hostLink=null;if(!NET.on){netStop();netStatus(netErrText('noroom'),true);return}
   // lost the host: try to get back in a few times before giving up
   NET.retry=0;toast('Mistet kontakten med verten, prøver igjen …',true);netReconnect()}
@@ -259,7 +260,7 @@ function netPauseUI(){const box=$('pNet');if(!box)return;box.hidden=!NET.on;if(!
     else{sub.textContent='På '+l.name+' · ta fergen dit';pr.textContent='5 ⚙';b.onclick=()=>netFerryTo(p.id);b.disabled=!state.world}
     nm.appendChild(sub);b.append(nm,pr);list.appendChild(b)}}
 // «Kjør!» in the room: free driving on the same island as the others, side by side at the start
-function netGo(){$('mp').hidden=true;let lv=null;for(const p of[...NET.players.values()].sort((a,b)=>a.slot-b.slot))if(p.lv&&isIsland(LEVELS.find(l=>l.id===p.lv)||{})){lv=p.lv;break}
+function netGo(){$('mp').hidden=true;let lv=null;for(const p of[...NET.players.values()].sort((a,b)=>a.slot-b.slot))if(p.lv&&p.buf.length&&p.buf[p.buf.length-1].v&&isIsland(LEVELS.find(l=>l.id===p.lv)||{})){lv=p.lv;break}   // only friends who are out driving, not the ones still in the menu
   if(lv)store.set('roam',{id:lv});startRoam();
   if(lv){const s=LV.start,h=Math.atan2(s.tan.x,s.tan.z),side=NET.slot%2?1:-1,k=Math.ceil(NET.slot/2)*1.5;placeCar(car,s.p.x+Math.cos(h)*side*k,s.p.z-Math.sin(h)*side*k,h);camSnap=true;state.checkpoint={x:car.pos.x,z:car.pos.z,h}}}
 function initNet(){if(!$('mp'))return;
