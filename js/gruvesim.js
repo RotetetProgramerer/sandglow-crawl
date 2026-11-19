@@ -8,7 +8,7 @@
      rocks, parked wagons, barriers and walls close a track: change to another one
      low beams and icicles hang over the track: duck
      broken rails over a shaft: jump (a jump started late, close to the edge, gives a burst of speed)
-   A hit spins the wagon round: it loses speed and three lumps of coal, and rolls on. Nobody is put back and nobody is out.
+   A hit spins the wagon round: it loses speed and two lumps of coal, and rolls on. Nobody is put back and nobody is out.
    What makes a wagon fast:
      coal        every lump you carry makes the wagon a little faster (up to 20 lumps)
      speed pads  glowing arrows on a track
@@ -26,15 +26,15 @@ const MSTEP=1/120;
 // what stands there (in lanes); coalS/coalH: how close a lump of coal must be, along the track and in height.
 // spinT/fallT: how long a hit or a fall into a shaft takes; invT: how long nothing can hit the wagon afterwards; drop: lumps lost;
 // coalCap/coalV: how many lumps count for the speed, and how much each gives. The rest are the bursts of speed: how long, and how much faster
-const MCFG={lane:2,g:24,jv:8.6,duckT:.55,laneRate:6.5,slipRate:3.3,acc:3.2,accBoost:16,brk:9,half:1.2,len:2.6,hitW:.42,coalS:1.25,coalH:1.15,jumpBuf:.16,
-  spinT:1,fallT:1.4,invT:1.1,drop:3,coalCap:20,coalV:.004,count:3,startEarly:.35,startLate:.22,startT:1.5,startK:1.3,stallT:.8,
+const MCFG={lane:2,g:24,jv:8.6,duckT:.8,laneRate:6.5,slipRate:3.3,acc:3.2,accBoost:16,brk:9,half:1.2,len:2.6,hitW:.5,coalS:1.25,coalH:1.15,jumpBuf:.22,
+  spinT:.8,fallT:1.2,invT:1.4,drop:2,coalCap:20,coalV:.004,count:3,startEarly:.35,startLate:.22,startT:1.5,startK:1.3,stallT:.8,
   padT:1.1,padK:1.22,padLen:3.4,turboT:2.6,turboK:1.38,trickT:.7,trickK:1.15,perfT:1.1,perfK:1.22,perfD:2.4,draftMin:2.7,draftMax:11,draftT:1.1,draftBoostT:1.3,draftK:1.16,
   boxS:1.4,boxRe:5,rollT:1,magT:7,magS:4,shotV:24,shotLife:2.2,trapBack:2.8};
 const MLANE={V:-1,M:0,H:1};
 // what you do about each kind of obstacle, how long it is along the track, and whether a pickaxe or a turbo breaks it
 const MKIND={ras:{need:'lane',d:.8,brk:true},vogn:{need:'lane',d:1.3,brk:true},bukk:{need:'lane',d:.35,brk:true},vegg:{need:'lane',d:.6},bjelke:{need:'duck',d:.25},istapper:{need:'duck',d:.35,brk:true},brudd:{need:'jump',d:0}};
 // the three rivals. skill: how fast they are; react: how far ahead they see (seconds); flub: how often they miss an obstacle
-const MRIVALS=[{name:'Kull-Kari',skill:1.012,react:.8,flub:.07},{name:'Dynamitt-Dag',skill:1,react:.62,flub:.13},{name:'Gamle Olaf',skill:.986,react:.95,flub:.1}];
+const MRIVALS=[{name:'Kull-Kari',skill:.985,react:.8,flub:.09},{name:'Dynamitt-Dag',skill:.97,react:.62,flub:.15},{name:'Gamle Olaf',skill:.955,react:.95,flub:.12}];
 const MITEMS={turbo:'Turbo',hakke:'Hakke',felle:'Steinfelle',skjold:'Skjold',magnet:'Magnet'};
 
 /* ---------- the mine ---------- */
@@ -49,7 +49,7 @@ function makeMine(def){
     rett(l){go(l,0,0)},sving(l,dx){go(l,dx,0)},bakke(l,dy,dx=0){go(l,dx,dy)},
     ras(...a){ob('ras',a)},vogn(...a){ob('vogn',a)},bukk(...a){ob('bukk',a)},
     bjelke(...a){ob('bjelke',a)},istapper(...a){ob('istapper',a)},
-    brudd(len=3.4){ob('brudd',[],len)},
+    brudd(len=3){ob('brudd',[],len)},
     // a set of points: only the given track goes on, the other two end in a wall. A sign over the tracks warns well before
     veksel(open,warn=26){const o=ob('vegg',['V','M','H'].filter(k=>k!==open));o.open=MLANE[open];o.warn=s-warn},
     // n lumps of coal in a row on one track, from dx past the pen; h is how high over the rails they hang
@@ -113,7 +113,7 @@ function stepMineCart(R,c,inp,dt){const m=R.m,Z=m.zones[mineZone(m,c.s)],slip=Z.
   side();
   // the speed follows the part of the mine; the coal on board, the rival's skill and a burst of speed come on top
   c.boost=Math.max(0,c.boost-dt);if(c.boost<=0)c.boostK=1;
-  {let k=R.scale*(1+c.coal*MCFG.coalV)*c.boostK;if(c.i){k*=c.skill*(R.easy?.94:1)*(1+Math.max(-.06,Math.min(.09,(R.P.s-c.s)*.0012)))}
+  {let k=R.scale*(1+c.coal*MCFG.coalV)*c.boostK;if(c.i){k*=c.skill*(R.easy?.94:1)*(1+Math.max(-.1,Math.min(.07,(R.P.s-c.s)*.0014)))}
     const d=Z.v*k-c.v;c.v+=d>0?Math.min(d,(c.boost>0?MCFG.accBoost:MCFG.acc)*dt):Math.max(d,-MCFG.brk*dt)}
   // jump and duck. A jump asked for just before landing is remembered; ducking in the air brings the wagon down fast
   if(inp.jump)c.buf=MCFG.jumpBuf;else c.buf=Math.max(0,c.buf-dt);
@@ -158,7 +158,8 @@ function stepMineRace(R,inp,dt){const m=R.m,C=R.carts,P=R.P;
   for(const c of C){if(c.fin||c.stun>0||c.air){c.draft=0;continue}let near=false;for(const o of C)if(o!==c&&!o.fall&&o.s-c.s>MCFG.draftMin&&o.s-c.s<MCFG.draftMax&&Math.abs(o.x-c.x)<.5)near=true;
     c.draft=near?c.draft+dt:Math.max(0,c.draft-dt*2);if(c.draft>=MCFG.draftT){c.draft=0;mBoost(c,MCFG.draftBoostT,MCFG.draftK);R.ev.push({type:'draft',c:c.i})}}
   // two wagons on the same track cannot be in the same place: the one behind is held back and gives the one in front a push
-  for(const a of C)for(const b of C){if(a===b||a.fall||b.fall||b.s<=a.s||b.s-a.s>=MCFG.len||Math.abs(a.x-b.x)>=.7||Math.abs(a.y-b.y)>=1)continue;
+  // (a wagon that is in does not stand in the way of those still coming)
+  for(const a of C)for(const b of C){if(a===b||a.fall||b.fall||b.fin||b.s<=a.s||b.s-a.s>=MCFG.len||Math.abs(a.x-b.x)>=.7||Math.abs(a.y-b.y)>=1)continue;
     a.s=b.s-MCFG.len;if(a.v>b.v){const dv=a.v-b.v;a.v-=dv*.8;b.v+=dv*.25;if(a.bumpT<=0){a.bumpT=.5;R.ev.push({type:'bump',c:a.i,o:b.i})}}}
   // pickaxes in the air: they spin the first wagon they reach, or break what closes the track
   for(let i=R.shots.length-1;i>=0;i--){const q=R.shots[i];q.s+=q.v*dt;q.life-=dt;let done=q.life<=0||q.s>m.len+20;

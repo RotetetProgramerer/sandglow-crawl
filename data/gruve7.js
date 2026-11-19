@@ -18,7 +18,7 @@
 const GRUVE7={name:'Gruve 7',
   build(c){
     // --- Stollen: rett og rolig. Her lærer du å bytte spor, dukke og hoppe ---
-    c.sone('Stollen','stoll',11);
+    c.sone('Stollen','stoll',9.5);
     c.rett(30);c.kull('M',5,2.4,-18);c.ras('V');
     c.rett(16);c.kull('H',4,2.4,-9);c.ras('M');
     c.rett(16);c.kull('M',4,2.4,-9);c.ras('H');
@@ -33,7 +33,7 @@ const GRUVE7={name:'Gruve 7',
     c.sving(22,2);
 
     // --- Kullfløtsen: lavt under taket. Mye dukking, og vogner som står igjen på sporene ---
-    c.sone('Kullfløtsen','kull',12.5);c.cp('Kullfløtsen');c.kasse(5);
+    c.sone('Kullfløtsen','kull',10.5);c.cp('Kullfløtsen');c.kasse(5);
     c.rett(14);c.kull('M',2,3,-1.5);c.bjelke();
     c.rett(13);c.kull('M',2,3,-1.5);c.bjelke();
     c.sving(15,-2);c.kull('V',4,2.4,-8);c.vogn('M');
@@ -54,7 +54,7 @@ const GRUVE7={name:'Gruve 7',
     c.bakke(14,-.8);
 
     // --- Permafrosten: is på veggene, istapper fra taket og glatte skinner. Bytt spor i god tid ---
-    c.sone('Permafrosten','is',13.5);c.cp('Permafrosten');c.kasse(6);
+    c.sone('Permafrosten','is',11.5);c.cp('Permafrosten');c.kasse(6);
     c.rett(18);c.kull('H',5,2.4,-10);c.istapper('V','M');
     c.sving(16,2);c.kull('M',4,2.4,-8);c.ras('H');
     c.rett(17);c.kull('M',2,3,-1.5);c.istapper();
@@ -73,7 +73,7 @@ const GRUVE7={name:'Gruve 7',
     c.rett(18);
 
     // --- Den gamle sjakta: bratt nedover og fort. Skinnene er brutt flere steder ---
-    c.sone('Den gamle sjakta','sjakt',16.5);c.cp('Den gamle sjakta');c.kasse(7);
+    c.sone('Den gamle sjakta','sjakt',13.5);c.cp('Den gamle sjakta');c.kasse(7);
     c.bakke(20,-3);c.bue('M',4,8.5);c.brudd();
     c.bakke(16,-2.5);c.bue('M',4,8.5);c.brudd();
     c.bakke(17,-2.5);c.kull('V',4,2.6,-9);c.ras('M');
@@ -94,7 +94,7 @@ const GRUVE7={name:'Gruve 7',
     c.rett(16);
 
     // --- Opp i dagen: det siste strekket opp mot lyset og taubanen ---
-    c.sone('Opp i dagen','dag',14);c.cp('Opp i dagen');c.kasse(5);
+    c.sone('Opp i dagen','dag',12);c.cp('Opp i dagen');c.kasse(5);
     c.bakke(16,1.5);c.kull('V',4,2.4,-8);c.bukk('M');
     c.bakke(14,1.5);c.kull('M',4,2.4,-7);c.bukk('V','H');
     c.bakke(15,1.5);c.bue('M',4,7.5);c.brudd();

@@ -580,7 +580,7 @@ Hver bil skal vise `MÅL`, helst `velt 0` og `juv 0`, og `bensin` bør ikke gå 
 
 Koden ligger i `js/world.js` («the snowmobile hire»). Banen setter `c.skuterDef={ask:{x,z},park:{x,z,h}}` i `build(c)`: `ask` er den blå ruta, `park` er der bilen står imens. Fysikken er `belt` i `stepCar` (`js/core.js`).
 
-**Gruve 7** (`js/gruve7.js`, `js/gruvesim.js`, `data/gruve7.js`). Kjør helt inn til den mørke gruveinngangen i sørveggen på Gruvefjellet. Da blir du en gruvearbeider i en gruvevogn, og kjører om kapp mot Kull-Kari, Dynamitt-Dag og Gamle Olaf gjennom fjellet. Vognene ruller av seg selv på tre spor, og du ser din egen bakfra. Farten øker for hver del av gruva, og et løp tar omtrent halvannet minutt.
+**Gruve 7** (`js/gruve7.js`, `js/gruvesim.js`, `data/gruve7.js`). Kjør helt inn til den mørke gruveinngangen i sørveggen på Gruvefjellet. Da blir du en gruvearbeider i en gruvevogn, og kjører om kapp mot Kull-Kari, Dynamitt-Dag og Gamle Olaf gjennom fjellet. Vognene ruller av seg selv på tre spor, og du ser din egen bakfra. Farten øker for hver del av gruva, og et løp tar omtrent ett minutt og tre kvarter.
 
 | Du gjør | Taster | Berøring | Til hva |
 |---|---|---|---|
@@ -589,7 +589,7 @@ Koden ligger i `js/world.js` («the snowmobile hire»). Banen setter `c.skuterDe
 | Dukker | ↓, S | Sveip ned | Under lave bjelker og istapper |
 | Bruker utstyret | Mellomrom, Enter, X | Trykk, eller knappen nede til høyre | Det du fant i en kasse |
 
-- **Krasj:** vogna snurrer rundt, mister farten og tre kullklumper, og ruller videre. Faller du ned i en sjakt, settes vogna på skinnene igjen på den andre siden. Ingen blir satt tilbake, og ingen ryker ut.
+- **Krasj:** vogna snurrer rundt, mister farten og to kullklumper, og ruller videre. Faller du ned i en sjakt, settes vogna på skinnene igjen på den andre siden. Ingen blir satt tilbake, og ingen ryker ut.
 - **Kull er fart:** hver klump du har om bord (opptil 20), gjør vogna 0,4 % raskere. Hver klump du plukker, er også 3 muttere.
 - **Mer fart:** fartsfeltene (lysende piler), et sent hopp over et brudd («Perfekt hopp!»), dragsug rett bak en rival, og et hopp akkurat når nedtellingen sier «GÅ». Hopper du for tidlig, blir vogna stående et øyeblikk.
 - **Kassene** ligger på rekke over sporene og kommer tilbake etter fem sekunder. Lederen får mest steinfeller og skjold, den som ligger sist, mest turbo.
@@ -602,7 +602,7 @@ Koden ligger i `js/world.js` («the snowmobile hire»). Banen setter `c.skuterDe
 | Skjold | Tar ett treff for deg. |
 | Magnet | Drar til seg kull fra alle tre sporene i sju sekunder. |
 
-- **Rivalene** kjører med den samme fysikken som deg og styres av `minePilot`. De bommer av og til på en hindring, bruker utstyr, og holder litt igjen når de leder og gir på når de ligger bak, så løpet er jevnt til siste strekk. Tallene deres står i `MRIVALS`.
+- **Rivalene** kjører med den samme fysikken som deg og styres av `minePilot`. De er litt tregere enn deg, bommer av og til på en hindring, bruker utstyr, og holder igjen når de leder, så du alltid kan ta dem igjen. Tallene deres står i `MRIVALS`.
 - **Premie:** 150, 80, 40 eller 10 muttere etter plassen, 50 til uten et eneste krasj, og 5 for hver tiende kullklump på rad. Etter løpet kommer du ut av dagåpningen oppe på platået.
 - **Lett modus** gjør rivalene 6 % saktere. Fartsgrensen fra menyen gjelder mellom 70 % og 115 %.
 - **Rekorden** er bestetiden, beste plass og flest kull i ett løp.
