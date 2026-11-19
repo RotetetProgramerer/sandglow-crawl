@@ -69,7 +69,7 @@ LEVELS.push(
   biome:(x,z)=>{const R=Math.hypot(x,z);return{snow:.8+.2*glMask(x,z),beach:.6*smt((R-(isl(x,z)-9))/5),jungle:0,swamp:0,desert:0}},
   landExtra:(x,z)=>Math.max(glMask(x,z),smt((FJ_R+1.2-Math.hypot(x-FJ[0],z-FJ[1]))/.8)),   // breen og fjordisen går helt ut i havet
   path:[[VROAD[0]+1,VROAD[1]+2.5],[VROAD[0]+2.5,VROAD[1]+4],[VROAD[0]+4,VROAD[1]+2.5],[VROAD[0]+2.5,VROAD[1]+1],[VROAD[0]+1,VROAD[1]+2.5]],
-  challenges:CH, roads:ROADS, village:{at:VIL,dir:VA/DEG,snow:true},
+  challenges:CH, roads:ROADS, airport:{at:[-38.5,-2],dir:180,end:-1,road:[[-29,15]],ground:'snow'}, village:{at:VIL,dir:VA/DEG,snow:true},
   mapLabels:[[VIL[0]+3.5,VIL[1]+1,'Kaia'],[RENT[0]+5,RENT[1]-2.5,'Skuterutleia'],[4,-4,'Reindalen'],[GL[0],GL[1]+3,'Isbjørnbreen'],[FJ[0],FJ[1]-1,'Isfjorden'],
     [MT[0],MT[1]+11.5,'Gruvefjellet'],[VAULT[0]+3.5,VAULT[1]+2.6,'Frøhvelvet'],[HUT[0]+1,HUT[1]+3.4,'Fangsthytta'],[SENTRAL[0]-1,SENTRAL[1]+3.5,'Taubanen']],
   animals:{

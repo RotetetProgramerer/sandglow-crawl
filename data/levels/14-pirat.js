@@ -57,7 +57,7 @@ LEVELS.push(
   ambience:'jungle', wind:true,
   biome:(x,z)=>{const R=Math.hypot(x,z),dJ=Math.hypot(x-JUN[0],z-JUN[1]),dL=Math.hypot(x-LAG[0],z-LAG[1]);return{jungle:.25+.75*smt((15-dJ)/6),swamp:.6*smt((7-dL)/3),beach:smt((R-(isl(x,z)-9))/5),snow:0,desert:0}},
   path:[[-5,-18],[-6.5,-16.5],[-8,-18],[-6.5,-19.5],[-5,-18]],
-  challenges:CH, roads:ROADS, village:{at:VIL,dir:VA/DEG},
+  challenges:CH, roads:ROADS, airport:{at:[-31,-25],dir:225,len:40,end:1,road:[[-18.4,-25.5]]}, village:{at:VIL,dir:VA/DEG},
   mapLabels:[[VIL[0]+3,VIL[1]+1,'Kaia'],[KRO[0]+2.5,KRO[1]-3,'Skumkroa'],[JUN[0]+3,JUN[1]+8,'Apejungelen'],[MAS[0],MAS[1]+10.5,'Kanonfortet'],[SK[0],SK[1]-6.5,'Hodeskalleklippen'],
     [VRAK[0]-4.5,VRAK[1]+2,'Skipsvraket'],[KRYSS[0]-3,KRYSS[1]-3,'Skattestranda'],[SVERD[0]-2,SVERD[1]+3.2,'Sverdmesteren']],
   animals:{parrots:12,circling:5,monkeys:10,butterflies:40,crabs:9,crabsAt:[VRAK[0]-4,VRAK[1]+1],gulls:{at:[VIL[0]+2,VIL[1]+3],n:6}},
@@ -136,7 +136,7 @@ LEVELS.push(
     // det js/pirater.js trenger: hodeskallen, kanonene, krysset, kroa, sverdmesteren, vraket, skuta ved kaia og folkene
     {const dx=Math.cos(VA),dz=Math.sin(VA),px=-dz,pz=dx,at=(f,s)=>[VIL[0]+dx*f+px*s,VIL[1]+dz*f+pz*s],yaw=Math.atan2(dx,dz),sk=at(10.5,-8.5),fy=1.0+MAS_TOP;
       c.piratDef={skull:c.piratSkull,cannons:c.piratCannons,dig:{x:KRYSS[0],z:KRYSS[1]},inn:{x:BORD[0],z:BORD[1],r:2.1},duel:{x:SVERD[0],z:SVERD[1],r:1.9},
-        wreck:{x:VRAK[0],z:VRAK[1],ry:.9},ship:{x:sk[0],z:sk[1],ry:yaw+Math.PI/2},ghost:{r:54,speed:.035},
+        wreck:{x:VRAK[0],z:VRAK[1],ry:.9},ship:{x:sk[0],z:sk[1],ry:yaw+Math.PI/2},ghost:{r:58.5,speed:.035},
         lights:[[KRO[0]-1.6,KRO[1]+1.5,1.5],[BORD[0],BORD[1],1.0],[MAS[0]-.4,MAS[1]+4,2.2],[MAS[0]-.2,MAS[1]-4,2.2],[SVERD[0]+.4,SVERD[1]-.4,1.2]],
         folk:[
           {x:BORD[0]+Math.cos(.4)*.95,z:BORD[1]+Math.sin(.4)*.95,face:BORD,sit:1,hat:'tricorn',coat:'#7a2a2a',beard:'#d8d8d0',mug:1},

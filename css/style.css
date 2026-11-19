@@ -207,6 +207,8 @@ html{box-sizing:border-box}*,*::before,*::after{box-sizing:inherit}body{margin:0
 .alist{display:flex;flex-direction:column;gap:6px}
 .alist button{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px;text-align:left;border:1px solid var(--line);padding:9px 12px;background:var(--ink-2)}
 .alist button:hover{border-color:var(--sand)}
+.alist.two{display:grid;grid-template-columns:1fr 1fr;max-height:56vh;overflow-y:auto}   /* the cargo plane: every island, two abreast */
+.alist.two button{padding:8px 10px}
 .alist .nm{font-family:var(--f-display);font-size:1.15rem;color:var(--paper)}
 .alist .sub{display:block;font-size:.85rem;color:var(--muted)}
 .alist .pr{font-family:var(--f-display);color:var(--sand);align-self:center}

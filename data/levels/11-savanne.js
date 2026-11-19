@@ -50,7 +50,7 @@ LEVELS.push(
   ambience:'jungle',
   biome:(x,z)=>{const R=Math.hypot(x,z),dr=lineD(RIV,x,z),dw=Math.hypot(x-WH[0],z-WH[1]);return{jungle:.35,swamp:Math.max(smt((6-dr)/4),smt((WH_R+5-dw)/4))*.8,beach:smt((R-(isl(x,z)-9))/5),snow:0,desert:.5}},
   path:[[VROAD[0]+1.5,VROAD[1]+1],[VROAD[0]+3,VROAD[1]+2.5],[VROAD[0]+4.5,VROAD[1]+1],[VROAD[0]+3,VROAD[1]-.5],[VROAD[0]+1.5,VROAD[1]+1]],
-  challenges:CH, roads:ROADS, village:{at:VIL,dir:VA/DEG},
+  challenges:CH, roads:ROADS, airport:{at:[40.5,-3],dir:0,end:-1,road:[[30,-15]]}, village:{at:VIL,dir:VA/DEG},
   mapLabels:[[KOP[0],KOP[1]-1,'Løveklippen'],[WH[0],WH[1]+.5,'Vannhullet'],[-14,19.5,'Krokodilleelva'],[CAMP[0],CAMP[1]-2.5,'Safarileiren'],[GROVE[0],GROVE[1]+2.5,'Baobablunden'],[20,-16,'Sletta'],[VIL[0]+3,VIL[1]-1,'Kaia']],
   animals:{
     lions:[{at:[KOP[0]+1.5,KOP[1]+1],r:3.5,n:3},{at:[24,14],r:2.5,n:2}],

@@ -34,6 +34,21 @@ function marinaTest(def,lv){const m=lv.marinaDef,car=makeCar(TCAR);car.assist=fa
     const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);
     if(car.depth>0)fell++;if(car.up.y<.2){console.log(def.id.padEnd(14),'MARINA   FEIL: velt ved',car.pos.x.toFixed(1),car.pos.z.toFixed(1));return}}
   const ok=wp>=pts.length;console.log(def.id.padEnd(14),'MARINA  ',ok?'OK  ':'FEIL',(road?'veien og ':'')+'inn på den blå ruta'+(ok?' tid '+t.toFixed(0)+'s':' (stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+')'),'vann',fell)}
+// the cargo plane: from where the airport road starts, along it, onto the pad, up the ramp and into the hold; then out again backwards down the ramp
+const inHold=(car,C)=>{const rx=car.pos.x-C.x,rz=car.pos.z-C.z,u=rx*C.ux+rz*C.uz,v=rx*C.uz-rz*C.ux;return Math.abs(u)<C.half&&Math.abs(v)<C.hw&&car.pos.y>C.fy-.2};
+function cargoTest(def,lv){const A=lv.airportDef,C=A.cargo,car=makeCar(TCAR);car.assist=false;car.low=true;
+  const pts=A.generic?A.route:[C.pad,C.foot,{x:C.x,z:C.z}],from=A.generic?A.from:{x:C.pad.x-C.ux*3,z:C.pad.z-C.uz*3},nx=pts[0];placeCar(car,from.x,from.z,Math.atan2(nx.x-from.x,nx.z-from.z));for(let i=0;i<480;i++)stepCar(car,dt);
+  let fell=0,wp=0,t=0;
+  for(let i=0;i<240*90;i++){const w=pts[wp],dx=w.x-car.pos.x,dz=w.z-car.pos.z,d=Math.hypot(dx,dz);if(d<(wp===pts.length-1?.8:1.1)){wp++;if(wp>=pts.length){t=i*dt;break}continue}
+    const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);
+    if(car.depth>0)fell++;if(car.up.y<.2){console.log(def.id.padEnd(14),'LASTEFLY FEIL: velt ved',car.pos.x.toFixed(1),car.pos.z.toFixed(1));process.exitCode=1;return}}
+  const inn=wp>=pts.length&&inHold(car,C);
+  console.log(def.id.padEnd(14),'LASTEFLY',inn?'OK  ':'FEIL',inn?'opp rampa og inn i lasterommet tid '+t.toFixed(0)+'s':'stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+' (punkt '+wp+'/'+pts.length+')','vann',fell);if(!inn||fell)process.exitCode=1;
+  // out: the car stands in the hold with its nose towards the ramp (as after a flight) and drives out to the pad
+  const c2=makeCar(TCAR);c2.assist=false;c2.low=true;placeCar(c2,C.x,C.z,Math.atan2(-C.ux,-C.uz));c2.pos.y=C.fy+.5;for(let i=0;i<240;i++)stepCar(c2,dt);const sat=inHold(c2,C);
+  let out=false;for(let i=0;i<240*30;i++){const dx=C.pad.x-c2.pos.x,dz=C.pad.z-c2.pos.z;if(Math.hypot(dx,dz)<1){out=true;break}
+    const fw=c2.fw,lf=c2.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);c2.steer=Math.max(-.6,Math.min(.6,ang*1.5));c2.throttle=1;stepCar(c2,dt);if(c2.up.y<.2)break}
+  console.log(def.id.padEnd(14),'LASTEFLY',sat&&out?'OK  ':'FEIL',sat&&out?'ut av lasterommet og ned på plassen':(sat?'kom ikke ut: ':'sto ikke i lasterommet: ')+c2.pos.x.toFixed(1)+','+c2.pos.y.toFixed(2)+','+c2.pos.z.toFixed(1));if(!(sat&&out))process.exitCode=1}
 // drives the road to the airport (Trinnvik) and onto its blue square: lv.airportDef.from, then .route
 function airportTest(def,lv){const A=lv.airportDef,car=makeCar(TCAR);car.assist=false;car.low=true;const pts=A.route,nx=pts[0];placeCar(car,A.from.x,A.from.z,Math.atan2(nx.x-A.from.x,nx.z-A.from.z));for(let i=0;i<480;i++)stepCar(car,dt);
   let fell=0,wp=0,t=0;
@@ -100,7 +115,8 @@ for(const def of LEVELS){
   const lv=genLevel(def);
   if(lv.ferry)villageTest(def,lv);
   if(lv.marinaDef)marinaTest(def,lv);
-  if(lv.airportDef)airportTest(def,lv);
+  if(lv.airportDef&&lv.airportDef.ask)airportTest(def,lv);
+  if(lv.airportDef&&lv.airportDef.cargo)cargoTest(def,lv);
   if(lv.caveDef)caveTest(def,lv);
   for(const k of(lv.pistes||[]))skiTest(def,lv,k);
   if(def.world){for(const k of lv.courses)drive(def,lv,k,def.id+'/'+k.id);continue}   // an open world: every course on its own

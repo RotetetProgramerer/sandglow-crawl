@@ -314,7 +314,8 @@
       <li><b>Bruk mutterne</b> i verkstedet på basen: dekk, fjæring, motor, lakk og en ny bil.</li>
       <li><b>Finn gullmutterne</b> (fem per øy) og ta fergen fra landsbyen til de andre øyene.</li>
       <li><b>Kjør båtløp</b> fra Captain Theis' marina nordøst på øya: parker på den blå ruta.</li>
-      <li><b>Fly</b> fra flyplassen øst på Trinnvik: parker på den blå ruta ved flyet.</li>
+      <li><b>Fly mellom øyene:</b> hver øy har flyplass. Kjør opp rampa og inn i lasteflyet, velg øy og fly dit selv. Det er gratis.</li>
+      <li><b>Rundflyging</b> fra flyplassen øst på Trinnvik: parker på den blå ruta ved småflyet.</li>
       <li><b>Pass deg for dyrene på Løveøya.</b> Løver, geparder og krokodiller angriper hvis du kommer for nær.</li>
       <li><b>Hopp på sanddynene på Kameløya,</b> og let etter den hemmelige grotten. Der inne er hver diamant verdt 10 muttere.</li>
       <li><b>Sitter du fast?</b> Lavt gir (G), vinsj (R) eller «Hent bilen» i pausemenyen (Esc).</li>
@@ -359,9 +360,9 @@
 </section>
 <section class="overlay dialog" id="flyPause" hidden>
   <div class="sheet">
-    <h2>Pause</h2>
+    <h2 id="fpTitle">Pause</h2>
     <button class="go" id="fpResume">Fortsett</button>
-    <div class="row"><button class="ghost" id="fpRestart">Start på nytt</button><button class="ghost" id="fpMenu">Velg tur</button></div>
+    <div class="row"><button class="ghost" id="fpRestart">Start på nytt</button><button class="ghost" id="fpMenu">Velg tur</button><button class="ghost" id="fpSkip" hidden>Hopp over flyturen</button></div>
     <div class="row"><button class="ghost" id="fpCar">Tilbake til bilen</button><button class="ghost" id="fpSound">Lyd: på</button></div>
     <ul class="log">
       <li><b>På bakken:</b> W eller ↑ gir gass, S eller ↓ bremser, A/D eller ←/→ styrer.</li>
@@ -488,6 +489,7 @@
 <script src="js/skiresort.js"></script>
 <script src="js/boat.js"></script>
 <script src="js/plane.js"></script>
+<script src="js/cargo.js"></script>
 <script src="js/grotte.js"></script>
 <script src="js/net.js"></script>
 <script src="js/gps.js"></script>

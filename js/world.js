@@ -31,11 +31,12 @@ function buildPortals(lv){portals=[];if(!lv.courses||!lv.courses.length)return;
     const b=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.6),new THREE.MeshBasicMaterial({map:portalSign(k),side:THREE.DoubleSide}));b.position.set(sx,sy+1.25,sz);b.rotation.y=Math.atan2(-tn.x,-tn.z);g.add(b);
     levelGroup.add(g);portals.push({k,g,x:p.x,z:p.z,lights:g.children.filter(o=>o.isSprite)})}}
 function nearestPortal(){let b=null;for(const p of portals){const d=Math.hypot(p.x-car.pos.x,p.z-car.pos.z);if(!b||d<b.d)b={k:p.k,d}}return b}
-function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aYes').hidden=false;
+function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aList').classList.remove('two');$('aYes').hidden=false;
   if(typeof k==='string'&&k.startsWith('ski')){skiAsk(k);return}   // Gautefall: the ski trip (js/ski.js)
   if(typeof k==='string'&&k.startsWith('boat')){boatAsk(k);return}
   if(typeof k==='string'&&k.startsWith('pirat')){pirAsk(k);return}   // Piratøya: the old pirates at Skumkroa and the war of words (js/pirater.js)
   if(k==='skuter'){skuterAsk();return}   // Svalbard: hire a snowmobile, or hand it back
+  if(k==='cargo'){cargoAsk();return}   // every island: the cargo plane at the airport (js/cargo.js)
   if(k==='fly'){flyAsk(k);return}   // Trinnvik: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
   if(k==='ferry'){const here=LEVELS[state.levelIdx];$('aName').textContent='Fergen';$('aKind').textContent='Kaia på '+here.name;$('aDesc').textContent='Hvor vil du reise? Overfarten koster 5 muttere. Du har '+fmtN(prof.nuts)+'.';$('aBest').textContent='';$('aQ').textContent='';
     const dests=ROUTES.filter(r=>r.includes(here.id)).map(r=>r[0]===here.id?r[1]:r[0]).map(id=>LEVELS.find(l=>l.id===id)).filter(Boolean);
@@ -55,6 +56,7 @@ function acceptOffer(){const k=state.offerK;if(!k||state.mode!=='play'||state.co
 function answerAsk(yes){if(state.mode!=='ask')return;$('ask').hidden=true;const k=state.askK;state.askK=null;
   if(typeof k==='string'&&k.startsWith('ski')){skiAnswer(k,yes);return}
   if(typeof k==='string'&&k.startsWith('boat')){boatAnswer(k,yes);return}
+  if(k==='cargo'){cargoAnswer(yes);return}
   if(k==='fly'){flyAnswer(k,yes);return}
   if(typeof k==='string'&&k.startsWith('pirat')){pirAnswer(k,yes);return}
   if(k==='skuter'){state.askCool='skuter';state.mode='play';if(yes){skuterSet(!onSkuter());toast(onSkuter()?'🛷 Snøskuteren er din. God tur, og pass deg for isbjørnen!':'Takk for turen! Bilen din står klar')}return}
@@ -91,7 +93,8 @@ function updateWorld(dt){
     if(LV.ferry&&onFerryDeck()&&state.askCool!=='ferry'){openAsk('ferry');return}if(LV.ferry&&!onFerryDeck()&&state.askCool==='ferry')state.askCool=null;
     const sa=LEVELS[state.levelIdx].skiAt;if(sa&&LV.liftDef){const d=Math.hypot(sa[0]-car.pos.x,sa[1]-car.pos.z);if(d<1.6&&state.askCool!=='ski'){openAsk('ski');return}if(d>3.5&&state.askCool==='ski')state.askCool=null}   // Gautefall: park on the blue square to go skiing
     const mb=LV.marinaDef;if(mb){const d=Math.hypot(mb.ask.x-car.pos.x,mb.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='boat'){openAsk('boat');return}if(d>3.5&&state.askCool==='boat')state.askCool=null}
-    const ap=LV.airportDef;if(ap){const d=Math.hypot(ap.ask.x-car.pos.x,ap.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='fly'){openAsk('fly');return}if(d>3.5&&state.askCool==='fly')state.askCool=null}   // the airport: park on the blue square to fly   // the marina: park on the blue square to take a boat out
+    const ap=LV.airportDef;if(ap&&ap.ask){const d=Math.hypot(ap.ask.x-car.pos.x,ap.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='fly'){openAsk('fly');return}if(d>3.5&&state.askCool==='fly')state.askCool=null}
+    if(ap&&ap.cargo){if(cargoInHold()&&state.askCool!=='cargo'){openAsk('cargo');return}if(!cargoNear()&&state.askCool==='cargo')state.askCool=null}   // the cargo plane: drive into the hold to be asked where to fly   // the airport: park on the blue square to fly   // the marina: park on the blue square to take a boat out
     const cd=LV.caveDef;if(cd){const d=Math.hypot(cd.mouth.x-car.pos.x,cd.mouth.z-car.pos.z);if(d<cd.r&&state.askCool!=='cave'){caveEnter();return}if(d>cd.r+3&&state.askCool==='cave')state.askCool=null}   // Kameløya: drive into the cave mouth and the view turns to the side (js/grotte.js)
     const sk=LV.skuterDef;if(sk){const d=Math.hypot(sk.ask.x-car.pos.x,sk.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='skuter'){openAsk('skuter');return}if(d>3.5&&state.askCool==='skuter')state.askCool=null}   // Svalbard: the blue square at the snowmobile hire
     if(typeof pirWorld==='function'&&pirWorld())return;   // Piratøya: stop by the table at Skumkroa or by the sword master
