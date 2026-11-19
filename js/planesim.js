@@ -76,6 +76,15 @@ const onRunway=(x,z)=>!!airportAt(x,z);
 // the cargo plane ready on an airport's runway, and where a landing begins: `out` behind the threshold, in line with the runway
 function makeCargo(A){const s=A.start,pl=makePlane(s.x,s.y,s.z,s.a);pl.cfg=PCARGO;return pl}
 const cargoApproach=(A,out=700,up=110)=>({x:A.cx-A.hx*(A.hl+out),y:A.top+up,z:A.cz-A.hz*(A.hl+out),a:A.a});
+// the best way in to an airport: from the end with the longest straight approach that stays inside the sea and clear of every island.
+// (x,y,z) is where the final approach begins, `out` from the threshold (tx,tz); (hx,hz) and a are the way you land.
+function cargoFinal(B){if(B._fin)return B._fin;let best=null;
+  for(const sg of[1,-1]){const hx=B.hx*sg,hz=B.hz*sg,tx=B.cx-hx*B.hl,tz=B.cz-hz*B.hl,lim=SEA.bound-330;let o=900;
+    for(;o>=300;o-=50){const fx=tx-hx*o,fz=tz-hz*o;if(Math.abs(fx)>lim||Math.abs(fz)>lim)continue;let ok=true;
+      for(const I of seaIslands()){const ax=I.x-fx,az=I.z-fz,u=Math.max(0,Math.min(o,ax*hx+az*hz));if(Math.hypot(ax-hx*u,az-hz*u)<I.r+(I.id===B.id?0:10)){ok=false;break}}
+      if(ok)break}
+    if(o<300)o=0;if(!best||o>best.out+100)best={out:o,hx,hz,a:Math.atan2(-hx,-hz),tx,tz,x:tx-hx*o,z:tz-hz*o,y:B.top+20+o*.09}}
+  return B._fin=best}
 // where a landed plane has come to: the airport it stands on, or the airport of the island it has put down on
 function cargoWhere(x,z){const A=airportAt(x,z,true);if(A)return A;for(const I of seaIslands())if(Math.hypot(x-I.x,z-I.z)<I.r+20){const B=seaAirport(I.id);if(B)return B}return null}
 // a flight from data/flights.js with its rings turned to face the way through (yaw), and where you start: lined up on the runway

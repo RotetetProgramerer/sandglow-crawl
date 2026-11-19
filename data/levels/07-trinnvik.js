@@ -23,8 +23,8 @@ const upper=(x,z)=>Math.max(rectIn(UP,x,z,.25),rectIn(BAKKEN,x,z,.25)*clamp((z-B
 const dPH=(x,z)=>Math.hypot(x-PH[0],z-PH[1]);
 // flyplassen øst på øya (js/plane.js): fylt ut i sjøen, rullebanen nord–sør, oppstillingsplassen med terminal, tårn og hangar.
 // Flyplassveien går fra enden av Promenaden langs stranda; den ligger også på fylling der stranda er smal.
-const AIR={x0:-57,x1:-36,z0:-44,z1:16}, AIRH=1.05;
-const RWY={x0:-53.2,x1:-48.4,z0:-31,z1:13}, APRON={x0:-46.5,x1:-38.5,z0:-16,z1:-1.5}, CPAD={x0:-55.2,x1:-45.2,z0:-42.6,z1:-31};   // CPAD: plassen bak lasteflyet
+const AIR={x0:-57,x1:-36,z0:-47,z1:16}, AIRH=1.05;
+const RWY={x0:-53.2,x1:-48.4,z0:-31,z1:13}, APRON={x0:-46.5,x1:-38.5,z0:-16,z1:-1.5}, CPAD={x0:-55.2,x1:-45.2,z0:-45.6,z1:-33.5};   // CPAD: plassen bak lasteflyet
 const AIRVEI=[[-8,-30.5],[-14,-34.2],[-22,-35.2],[-30,-32.2],[-36,-27.2],[-40,-21.8],[-41.6,-16.8]];
 const lineD=(L,x,z)=>{let m=1e9;for(let i=0;i<L.length-1;i++){const a=L[i],b=L[i+1],ex=b[0]-a[0],ez=b[1]-a[1],L2=ex*ex+ez*ez||1e-9;let t=((x-a[0])*ex+(z-a[1])*ez)/L2;t=t<0?0:t>1?1:t;m=Math.min(m,Math.hypot(x-a[0]-ex*t,z-a[1]-ez*t))}return m};
 const airLand=(x,z)=>Math.max(rectIn(AIR,x,z,1.2),smt((2.8-lineD(AIRVEI,x,z))/1.2)*smt((Math.hypot(x,z)-33)/3));
@@ -231,8 +231,8 @@ LEVELS.push(
     c.fx.push({type:'sign',x:-44.6,z:-15.4,ang:Math.PI,text:'FLYPLASS',sub:'kjør inn på den blå ruta'});
     for(const[lx,lz]of[[-37.6,-17.5],[-37.6,-2],[-46.8,-1]])c.lamp(lx,lz,{ang:Math.atan2(-lx-42,-(lz+9))});
     // lasteflyet står sør på rullebanen med nesa mot nord og rampa ned på plassen bak (c.cargoPlane, js/plane.js tegner det); veien dit går fra oppstillingsplassen
-    c.road([[-44.6,-15],[-46.6,-26],[-47.4,-34.5],[-49.6,-38.4]],{hw:1.2,bench:false,surf:S.ASPHALT});
-    const CG=c.cargoPlane((RWY.x0+RWY.x1)/2,-24.6,0,AIRH);c.fx.push({type:'sign',x:-44.4,z:-33.6,ang:-Math.PI/2,text:'LASTEFLY',sub:'kjør opp rampa'});
+    c.road([[-44.6,-15],[-46.6,-28],[-47.4,-37.5],[-49.6,-41.4]],{hw:1.2,bench:false,surf:S.ASPHALT});
+    const CG=c.cargoPlane((RWY.x0+RWY.x1)/2,-27.6,0,AIRH);c.fx.push({type:'sign',x:-44.4,z:-36.6,ang:-Math.PI/2,text:'LASTEFLY',sub:'kjør opp rampa'});
     c.airportDef={x:-42.5,z:-9,y:AIRH,ask:{x:-41.8,z:-12.9},plane:{x:-43.6,z:-8.4,yaw:-Math.PI/2},sock:{x:-55.4,z:-6},rwy:RWY,cargo:CG,
       route:[...AIRVEI.slice(1).map(p=>({x:p[0],z:p[1]})),{x:-41.8,z:-12.9}],from:{x:AIRVEI[0][0],z:AIRVEI[0][1]}};
     // --- gullmutterne ---

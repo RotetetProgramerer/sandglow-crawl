@@ -31,7 +31,7 @@ function gpsUpdate(dt){if(!GPS.on)return;
   const d=GPS.dest,P=GPS.route.pts,there=Math.hypot(d.x-car.pos.x,d.z-car.pos.z)<d.r||(d.kind==='ferry'&&onFerryDeck());
   // where on the route the car is: the nearest point a little behind or ahead of the last one
   let bd=1e9,bi=GPS.pi;for(let k=Math.max(0,GPS.pi-8);k<Math.min(P.length,GPS.pi+50);k++){const e=Math.hypot(P[k].x-car.pos.x,P[k].z-car.pos.z);if(e<bd){bd=e;bi=k}}GPS.pi=bi;
-  if(there||(bi>=P.length-2&&bd<1.6)){gpsStop('Du er framme: '+d.name+(d.kind==='ferry'&&d.to?'. Velg '+d.to+' når fergen spør.':''));return}
+  if(there||(bi>=P.length-2&&bd<1.6)){gpsStop('Du er framme: '+d.name+(d.kind==='ferry'&&d.to?'. Velg '+d.to+' når fergen spør.':d.fly&&d.to?'. Kjør opp rampa og velg '+d.to+'.':''));return}
   // off the route for a while (a shortcut, a tow, a wrong turn): find the way again from here
   GPS.againT-=dt;GPS.checkT-=dt;if(GPS.checkT>0)return;GPS.checkT=.25;
   if(bd>3.2){let gd=1e9,gi=bi;for(let k=0;k<P.length;k++){const e=Math.hypot(P[k].x-car.pos.x,P[k].z-car.pos.z);if(e<gd){gd=e;gi=k}}if(gd<2){GPS.pi=gi;GPS.offT=0;return}GPS.offT+=.25}else GPS.offT=0;
@@ -99,9 +99,13 @@ function gpsArchTap(e){const r=MAP.big.getBoundingClientRect(),sz=r.width,u=e.cl
   // the ferry routes as a graph: the first leg of the shortest trip there
   const prev={[here]:null},q=[here];while(q.length){const a=q.shift();for(const[x,y]of ROUTES){const b=x===a?y:y===a?x:null;if(b&&!(b in prev)){prev[b]=a;q.push(b)}}}
   let leg=hit.id in prev?hit.id:null;while(leg&&prev[leg]!==here)leg=prev[leg];
-  const via=leg&&leg!==hit.id?LEVELS.find(l=>l.id===leg):null,f=gpsPlacesHere().find(p=>p.kind==='ferry');if(!f)return;
+  const via=leg&&leg!==hit.id?LEVELS.find(l=>l.id===leg):null,f=gpsPlacesHere().find(p=>p.kind==='ferry'),air=gpsPlacesHere().find(p=>p.id==='cargo');
+  // no ferry straight there: the cargo plane flies to every island, so the GPS takes you to the airport instead
+  if(air&&(via||!leg||!f)){const ok=gpsSet(Object.assign({},air,{name:'Lasteflyet til '+hit.name,to:hit.name,fly:true}));setMapTab('island');
+    if(ok)$('mapInfo').textContent='Det går ingen ferge rett til '+hit.name+', men lasteflyet flyr dit. Kjør opp rampa og velg '+hit.name+'. Den blå pilen viser vei til flyplassen ('+gpsM(GPS.route.len)+').';return}
+  if(!f)return;
   const ok=gpsSet(Object.assign({},f,{name:'Fergen til '+hit.name,to:(via||hit).name}));setMapTab('island');
-  if(ok)$('mapInfo').textContent=(via?'Det går ingen ferge rett til '+hit.name+'. Ta fergen til '+via.name+' først. ':'Kjør om bord på fergen og velg '+hit.name+'. ')+'Den blå pilen viser vei til kaia ('+gpsM(GPS.route.len)+').'}
+  if(ok)$('mapInfo').textContent=(via?'Det går ingen ferge rett til '+hit.name+'. Ta fergen til '+via.name+' først. ':'Kjør om bord på fergen og velg '+hit.name+'. ')+'Den blå pilen viser vei til kaia ('+gpsM(GPS.route.len)+').'+(air?' Du kan også fly dit gratis fra flyplassen.':'')}
 // the quick buttons under the map: the big places on this island, and stop
 function gpsChips(){const el=$('mGps');if(!el)return;if(MAP.tab==='arch'||!LV){el.innerHTML='';return}
   const list=gpsPlacesHere().filter(p=>p.kind!=='course'&&p.kind!=='label');

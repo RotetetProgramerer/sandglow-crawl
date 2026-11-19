@@ -9,7 +9,7 @@
    Loaded after boat.js; uses the globals of game.js, world.js, net.js and boat.js (state, renderer, AC, prof, best, NET, BT …) at run time.
    ================================================================= */
 const FL={on:false,fade:null,phase:'',cam:null,pl:null,mesh:null,route:null,flight:null,ringGrp:null,ringVis:[],time:0,acc:0,camYaw:0,camPitch:0,result:false,paused:false,
-  hudT:0,res:null,airport:null,sock:null,snd:null,notes:[],took:false,landed:false,wake:0,orbit:0,from:new THREE.Vector3()};
+  hudT:0,res:null,airport:null,cargo:null,small:null,big:null,sock:null,snd:null,notes:[],took:false,landed:false,wake:0,orbit:0,from:new THREE.Vector3()};
 const flyKey=f=>'trinnvik/fly/'+f.id;
 const flyDone=()=>FLIGHTS.filter(f=>best[flyKey(f)]).length;
 const _fv=new THREE.Vector3(),_fv2=new THREE.Vector3(),_fv3=new THREE.Vector3();
@@ -53,7 +53,8 @@ function fAirportSea(){const A=airSea(),L=A.land,R=A.rwy,g=new THREE.Group(),cx=
   bAdd(g,new THREE.CylinderGeometry(3.4,4,30,10),bStd(0xf2e8d0,{flatShading:false}),W.x,top+15,W.z);bAdd(g,new THREE.BoxGeometry(10,6,10),new THREE.MeshStandardMaterial({color:0x1a262d,roughness:.1,metalness:.5}),W.x,top+33,W.z);bAdd(g,new THREE.BoxGeometry(11.5,1.2,11.5),bStd(0xd9432f),W.x,top+36.6,W.z,false);
   bAdd(g,new THREE.CylinderGeometry(.35,.4,16,6),bStd(0xe9e6df),S.x,top+8,S.z,false);
   const sock=new THREE.Group(),sg=new THREE.CylinderGeometry(1.6,.7,8,10,1,true);sg.rotateX(Math.PI/2);sg.translate(0,0,4);sock.position.set(S.x,top+15.5,S.z);bAdd(sock,sg,new THREE.MeshStandardMaterial({color:0xff6a2a,side:THREE.DoubleSide}),0,0,0,false);g.add(sock);FL.sock=sock;
-  BT.scene.add(g);BT.isl.push({I:{x:cx,z:cz,r:Math.hypot(L.x1-L.x0,L.z1-L.z0)/2},g})}
+  BT.scene.add(g);BT.isl.push({I:{x:cx,z:cz,r:Math.hypot(L.x1-L.x0,L.z1-L.z0)/2},g});
+  if(typeof cgSeaAirports==='function')cgSeaAirports()}   // the airports of the other islands (js/cargo.js)
 
 /* ---------- the ground under the plane: a ray straight down through the islands and the airport ---------- */
 const _fRay=new THREE.Raycaster(),_fO=new THREE.Vector3(),_fDown=new THREE.Vector3(0,-1,0);
@@ -64,14 +65,15 @@ function fGround(x,z){let top=null;_fO.set(x,1400,z);_fRay.set(_fO,_fDown);_fRay
 const FW={ground:fGround,bound:SEA.bound};
 
 /* ---------- the airport on the island: your plane in your paint and the windsock ---------- */
-function buildAirport(lv){FL.airport=null;const A=lv.airportDef;if(!A)return;if(!BTEX)BTEX=bMakeTex();const g=new THREE.Group();
-  const pm=fPlaneMesh((PAINTS[prof.paint]||PAINTS[0]).c);pm.scale.setScalar(.17);pm.position.set(A.plane.x,A.y+PCFG.gear*.17,A.plane.z);pm.rotation.y=A.plane.yaw+Math.PI;g.add(pm);
+function buildAirport(lv){FL.airport=null;const A=lv.airportDef;if(!A)return;if(!BTEX)BTEX=bMakeTex();const g=new THREE.Group();let pm=null;
+  if(A.plane){pm=fPlaneMesh((PAINTS[prof.paint]||PAINTS[0]).c);pm.scale.setScalar(.17);pm.position.set(A.plane.x,A.y+PCFG.gear*.17,A.plane.z);pm.rotation.y=A.plane.yaw+Math.PI;g.add(pm)}   // Trinnvik: the small plane
   const sock=new THREE.Group();sock.position.set(A.sock.x,A.y+1.62,A.sock.z);const geo=new THREE.CylinderGeometry(.13,.05,.75,8,1,true);geo.rotateX(Math.PI/2);geo.translate(0,0,.38);
   sock.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0xff6a2a,side:THREE.DoubleSide})));g.add(sock);
-  levelGroup.add(g);FL.airport={A,plane:pm,sock,paint:prof.paint}}
-// the windsock swings in the wind, and the plane follows the paint you choose in the garage
+  levelGroup.add(g);FL.airport={A,plane:pm,sock,paint:prof.paint};if(A.cargo&&typeof cargoIsland==='function')cargoIsland(A,g)}   // every island: the cargo plane (js/cargo.js)
+// the windsock swings in the wind, and the planes follow the paint you choose in the garage
 function fAirportAnim(){const M=FL.airport;if(!M)return;const t=performance.now()*.001;M.sock.rotation.y=2.2+.25*Math.sin(t*.7)+.08*Math.sin(t*3.1);M.sock.rotation.x=.25+.1*Math.sin(t*1.3);
-  if(M.paint!==prof.paint){M.paint=prof.paint;fPaint(M.plane,(PAINTS[prof.paint]||PAINTS[0]).c)}}
+  if(M.paint!==prof.paint){M.paint=prof.paint;if(M.plane)fPaint(M.plane,(PAINTS[prof.paint]||PAINTS[0]).c);if(M.cargo)fPaint(M.cargo,(PAINTS[prof.paint]||PAINTS[0]).c)}
+  if(M.cargo&&typeof cargoAnim==='function')cargoAnim()}
 
 /* ---------- the rings of a flight: gold for the next one, white for the rest; passed rings are gone ---------- */
 function fRings(route){if(FL.ringGrp){BT.scene.remove(FL.ringGrp);bDispose(FL.ringGrp)}const grp=FL.ringGrp=new THREE.Group();FL.ringVis=[];
@@ -101,8 +103,8 @@ function flyExit(){if(FL.fade||!FL.on)return;$('fade').classList.add('on');
     renderer.setScissorTest(false);renderer.setViewport(0,0,innerWidth,innerHeight);state.mode='play';state.askCool='fly';camSnap=true;showHud();toast('Tilbake ved bilen')}}}
 const fSel=()=>{const id=store.get('flyPick','fri');if(id==='fri')return null;const f=FLIGHTS.find(q=>q.id===id);return f||null};
 // on the runway, nose to the north: a course (its rings) or null to fly where you like
-function fSetup(f){FL.flight=f;FL.route=flightRoute(f);fRings(FL.route);const s=FL.route.start;FL.pl=makePlane(s.x,s.y,s.z,s.a);
-  if(!FL.mesh){FL.mesh=fPlaneMesh((PAINTS[prof.paint]||PAINTS[0]).c);BT.scene.add(FL.mesh)}else fPaint(FL.mesh,(PAINTS[prof.paint]||PAINTS[0]).c);FL.mesh.visible=true;
+function fSetup(f){FL.cargo=null;if(FL.big)FL.big.visible=false;if(typeof cgGuide==='function')cgGuide(null);FL.flight=f;FL.route=flightRoute(f);fRings(FL.route);const s=FL.route.start;FL.pl=makePlane(s.x,s.y,s.z,s.a);
+  if(!FL.small){FL.small=fPlaneMesh((PAINTS[prof.paint]||PAINTS[0]).c);BT.scene.add(FL.small)}else fPaint(FL.small,(PAINTS[prof.paint]||PAINTS[0]).c);FL.mesh=FL.small;FL.mesh.visible=true;
   FL.camYaw=s.a;FL.time=0;FL.acc=0;FL.took=false;FL.landed=false;FL.result=false;FL.paused=false;FL.res=null;fPose(0)}
 function flyMenu(){FL.result=false;FL.paused=false;$('result').hidden=true;$('flyPause').hidden=true;$('boatHud').classList.add('menu');FL.phase='menu';fSetup(fSel());fMenuRender();$('flyMenu').hidden=false;$('fmGo').focus()}
 function fMenuRender(){const sel=fSel(),row=(id,name,desc,diff,b,on)=>`<button data-fly="${id}" aria-pressed="${on}"><span><span class="nm"><i class="pdot" style="background:${DIFFCOL[diff]}"></i>${name}</span><span class="sub">${desc}${b?' Beste: '+fmtTime(b.t)+'.':''}</span></span><span class="pr">${id==='fri'?'':b?'★'.repeat(b.s)+'☆'.repeat(3-b.s):'☆☆☆'}</span></button>`;
@@ -111,22 +113,23 @@ function fMenuRender(){const sel=fSel(),row=(id,name,desc,diff,b,on)=>`<button d
   const touch=document.body.classList.contains('is-touch');$('fmKeys').textContent=touch?'Knappene på skjermen: opp og ned stiger og synker, piler svinger, ⚡ gir full fart.':'W eller ↑ for gass og stige, S eller ↓ for å synke og bremse, A/D eller ←/→ for å svinge, mellomrom for full fart.'}
 function flyBegin(){fSetup(fSel());$('flyMenu').hidden=true;$('flyPause').hidden=true;$('result').hidden=true;$('boatHud').classList.remove('menu','won');FL.phase='fly';
   fNotice(FL.flight?'Hold gass for å ta av · ring 1 venter':'Hold gass for å ta av',2600);fHUD()}
-function fPause(on){if(!FL.on||FL.result||FL.phase!=='fly')return;FL.paused=!!on;$('flyPause').hidden=!on;if(on){$('fpRestart').hidden=!FL.flight;$('fpSound').textContent='Lyd: '+(state.sound?'på':'av');$('fpResume').focus()}}
+function fPause(on){if(!FL.on||FL.result||FL.phase!=='fly')return;FL.paused=!!on;$('flyPause').hidden=!on;if(on){const cg=!!FL.cargo;$('fpRestart').hidden=!FL.flight;$('fpMenu').hidden=cg;$('fpSkip').hidden=!cg;$('fpCar').textContent=cg?'Avbryt og bli på '+FL.cargo.from.name:'Tilbake til bilen';$('fpTitle').textContent=cg?'Lasteflyet':'Pause';$('fpSound').textContent='Lyd: '+(state.sound?'på':'av');$('fpResume').focus()}}
 function flyKeyDown(k){if(FL.fade||!FL.on||FL.result)return;
+  if(FL.cargo&&k==='enter'&&$('flyPause').hidden&&FL.phase==='fly'){cargoSkip();return}   // the cargo flight: Enter lands you at the island you chose
   if(FL.phase==='menu'){if(k==='escape')flyExit();else if(k==='enter'&&document.activeElement===document.body)$('fmGo').click();return}
   if(k==='escape'||k==='p'){fPause($('flyPause').hidden);return}if(!$('flyPause').hidden)return;if(k==='m')setSound(!state.sound)}
 function fNotice(text,ms=1500){const n=$('bpane0').querySelector('.bnotice');n.textContent=text;n.style.opacity=1;clearTimeout(n._t);n._t=setTimeout(()=>n.style.opacity=0,ms)}
 
 /* ---------- every 60 Hz step: the controls, the plane, the rings, crashes and landings ---------- */
 function fInput(){const I=state.inp||{gas:0,rev:0,steer:0,jump:false};return{gas:I.gas,rev:I.rev,steer:I.steer,jump:!!I.jump||keys.has('shift')}}
-function fStep(){BT.wave+=BSTEP;const pl=FL.pl,R=FL.route,flying=FL.phase==='fly';if(!pl)return;
+function fStep(){BT.wave+=BSTEP;const pl=FL.pl,R=FL.route,flying=FL.phase==='fly';if(!pl)return;if(FL.cargo){cgStep();return}
   const inp=flying?fInput():FL.phase==='done'?{gas:pl.p<0?.3:0,rev:pl.p>.05?.3:0,steer:0}:{gas:0,rev:1,steer:0};
   if(flying&&FL.flight)FL.time+=BSTEP;
   stepPlane(pl,inp,FW);FL.inp=inp;
   if(flying&&FL.flight){const e=planeRing(pl,R);if(e){fxSparkle(bV(pl.x,pl.y,pl.z));sndGate();if(e.type==='finish')fFinish();else fNotice('Ring '+(e.i+1)+' av '+R.rings.length,1100)}}
   for(const e of pl.ev){
     if(e.type==='takeoff'){FL.took=true;FL.landed=false;if(flying)fNotice('Du er i lufta!',1300)}
-    else if(e.type==='land'){FL.landed=true;if(flying)fNotice(e.runway?'Landet på Trinnvik lufthavn':'Landet utenfor flyplassen',2200);fxSplash(bV(pl.x,pl.y-PCFG.gear,pl.z))}
+    else if(e.type==='land'){FL.landed=true;if(flying){const ap=e.runway&&airportAt(pl.x,pl.z);fNotice(ap?'Landet på '+ap.name+' lufthavn':'Landet utenfor flyplassen',2200)}fxSplash(bV(pl.x,pl.y-PCFG.gear,pl.z))}
     else if(e.type==='crash'){FL.mesh.visible=false;if(e.water)fxSplash(bV(pl.x,2,pl.z));else fxHit(bV(pl.x,pl.y,pl.z),0x666666);fxHit(bV(pl.x,pl.y+2,pl.z),0xf4f2ec);fBoom();if(flying)fNotice(e.water?'Plask! Prøv igjen':'Krasj! Prøv igjen',1800)}
     else if(e.type==='respawn')fRespawn();
     else if(e.type==='edge'&&flying)fNotice('Snu – her slutter kartet',1500)}
@@ -179,7 +182,7 @@ function updateFly(dt){
   if(FL.phase==='done'){FL.doneT+=dt;if(FL.doneT>2.6&&!FL.result)fShowResult()}
   bWorldAnim(dt,now);seaDraw(now,now*.001);fPose(now*.001);fRingLook();if(FL.sock){FL.sock.rotation.y=2.2+.25*Math.sin(now*.0007);FL.sock.rotation.x=.2+.1*Math.sin(now*.0013)}
   fCamera(dt,now);if(FL.phase==='fly'||FL.phase==='done'){FL.hudT-=dt;if(FL.hudT<=0){FL.hudT=1/30;fHUD()}}
-  if(FL.pl&&FL.phase)seaSend('p',FL.pl,dt);fSndUpdate();
+  if(FL.pl&&FL.phase)seaSend(FL.cargo?'c':'p',FL.pl,dt);fSndUpdate();
   renderer.setScissorTest(false);renderer.setViewport(0,0,innerWidth,innerHeight);bPlace(FL.cam,FL.mesh.position);renderer.render(BT.scene,FL.cam);return true}
 function fPose(t){const pl=FL.pl,m=FL.mesh;if(!pl||!m)return;m.position.set(pl.x,pl.y,pl.z);m.rotation.set(pl.p,pl.a,pl.r);
   const sp=pl.ground&&!FL.took&&FL.phase!=='fly'?0:.25+pl.s*.25+(FL.inp&&FL.inp.gas?.2:0);m.userData.prop.rotation.z+=sp*(1+Math.sin(t*50)*.05);m.userData.disc.material.opacity=Math.min(.35,sp*.5)}
@@ -187,16 +190,16 @@ function fPose(t){const pl=FL.pl,m=FL.mesh;if(!pl||!m)return;m.position.set(pl.x
 function fCamera(dt,now){const pl=FL.pl,c=FL.cam,P=FL.mesh.position;if(!pl)return;
   if(FL.phase==='menu'||FL.phase==='done'&&FL.doneT>.6){FL.orbit+=dt*.25;c.position.lerp(_fv.set(P.x+Math.sin(FL.orbit)*60,P.y+18,P.z+Math.cos(FL.orbit)*60),1-Math.pow(.96,dt*60));c.lookAt(P.x,P.y+2,P.z);return}
   FL.camYaw=bLerpA(FL.camYaw,pl.a,1-Math.pow(.92,dt*60));FL.camPitch+=(pl.p*.5-FL.camPitch)*(1-Math.pow(.92,dt*60));
-  const back=pl.ground?36:46,up=pl.ground?9:12,cp=Math.cos(FL.camPitch),h=_fv2.set(-Math.sin(FL.camYaw)*cp,Math.sin(FL.camPitch),-Math.cos(FL.camYaw)*cp);
+  const K=FL.cargo?2.7:1,back=(pl.ground?36:46)*K,up=(pl.ground?9:12)*K,cp=Math.cos(FL.camPitch),h=_fv2.set(-Math.sin(FL.camYaw)*cp,Math.sin(FL.camPitch),-Math.cos(FL.camYaw)*cp);
   const want=_fv.copy(P).addScaledVector(h,-back);want.y+=up;const g=fGround(want.x,want.z).h+4;if(want.y<g)want.y=g;
-  if(FL.snap){c.position.copy(want);FL.snap=false}else c.position.lerp(want,1-Math.pow(.85,dt*60));c.lookAt(_fv3.copy(P).addScaledVector(h,30));
-  const fov=60+Math.max(0,pl.s-PCFG.cruise)*8;if(Math.abs(c.fov-fov)>.05){c.fov+=(fov-c.fov)*(1-Math.pow(.92,dt*60));c.updateProjectionMatrix()}}
+  if(FL.snap){c.position.copy(want);FL.snap=false}else c.position.lerp(want,1-Math.pow(.85,dt*60));c.lookAt(_fv3.copy(P).addScaledVector(h,30*K));
+  const fov=60+Math.max(0,pl.s-(pl.cfg||PCFG).cruise)*8;if(Math.abs(c.fov-fov)>.05){c.fov+=(fov-c.fov)*(1-Math.pow(.92,dt*60));c.updateProjectionMatrix()}}
 function fLayout(){if(!FL.on||!FL.cam)return;const W=innerWidth,H=innerHeight,s=$('bpane0').style;s.left=s.top='0px';s.width=W+'px';s.height=H+'px';$('bpane0').hidden=false;
   const ms=$('bminiBox').style,cs=$('bclock').style,ps=$('bPauseB').style;for(const k of['left','top','width','height'])ms[k]='';cs.left=cs.top=ps.left=ps.top='';$('bminiBox').hidden=$('bclock').hidden=false;
   FL.cam.aspect=W/H;FL.cam.fov=W<H?70:60;FL.cam.updateProjectionMatrix()}
 
 /* ---------- the HUD: compass to the next ring (or home), what is next, speed and height, the clock and the minimap ---------- */
-function fHUD(){const pl=FL.pl,R=FL.route,ui=$('bpane0'),A=airSea();if(!pl)return;
+function fHUD(){const pl=FL.pl,R=FL.route,ui=$('bpane0'),A=airSea();if(!pl)return;if(FL.cargo){cgHUD();return}
   $('bclock').textContent=fmtTime(FL.time);$('bclock').hidden=!FL.flight;ui.querySelector('.bpl').textContent='Pilot';ui.querySelector('.bname').textContent=bNames()[0];
   ui.querySelector('.bkn').textContent=Math.round(pl.s*PCFG.kts)+' kn';ui.querySelector('.balt').textContent=(pl.ground?0:Math.max(0,Math.round(pl.y-PCFG.gear)))+' m høyde';
   ui.querySelector('.bboost i').style.width=Math.min(100,pl.s/PCFG.turbo*100)+'%';
@@ -205,12 +208,13 @@ function fHUD(){const pl=FL.pl,R=FL.route,ui=$('bpane0'),A=airSea();if(!pl)retur
   bCompass({ui:{compass:ui.querySelector('.bcompass').getContext('2d')},b:{a:pl.a},col:(PAINTS[prof.paint]||PAINTS[0]).c},Math.atan2(dx,-dz));fMinimap()}
 function fMinimap(){const cv=$('bmini'),c=cv.getContext('2d'),w=cv.width,h=cv.height,sc=w/2/SEA.bound,M=(x,z)=>[w/2+x*sc,h/2+z*sc],pl=FL.pl,A=airSea();
   c.fillStyle='#6fa3c4';c.fillRect(0,0,w,h);c.fillStyle='#e9dcb9';c.strokeStyle='#5a3a1a';c.lineWidth=1;for(const I of seaIslands()){const[u,v]=M(I.x,I.z);c.beginPath();c.arc(u,v,Math.max(2.5,I.r*sc),0,6.283);c.fill();c.stroke()}
-  {const[u0,v0]=M(A.rwy.x0,A.rwy.z0),[u1,v1]=M(A.rwy.x1,A.rwy.z1);c.fillStyle='#3a3d40';c.fillRect(u0-1,v0,Math.max(2,u1-u0+2),v1-v0)}
+  c.strokeStyle='#3a3d40';c.lineWidth=3;for(const Q of seaAirports()){const[u0,v0]=M(Q.cx-Q.hx*Q.hl,Q.cz-Q.hz*Q.hl),[u1,v1]=M(Q.cx+Q.hx*Q.hl,Q.cz+Q.hz*Q.hl);c.beginPath();c.moveTo(u0,v0);c.lineTo(u1,v1);c.stroke()}c.lineWidth=1;
+  if(FL.cargo)cgMiniDest(c,M);
   const R=FL.route;if(R&&FL.flight){c.setLineDash([4,4]);c.strokeStyle='rgba(20,18,14,.6)';c.lineWidth=1.5;c.beginPath();const[su,sv]=M(R.start.x,R.start.z);c.moveTo(su,sv);R.rings.forEach(q=>{const[u,v]=M(q.x,q.z);c.lineTo(u,v)});c.stroke();c.setLineDash([]);
     c.font='700 10px "Barlow Condensed", sans-serif';c.textAlign='center';c.textBaseline='middle';
     R.rings.forEach((q,i)=>{if(i<pl.ring)return;const[u,v]=M(q.x,q.z);c.fillStyle=i===pl.ring?'#e5a92b':'#f4f2ec';c.strokeStyle='#14120E';c.beginPath();c.arc(u,v,5.5,0,6.283);c.fill();c.stroke();c.fillStyle='#14120E';c.fillText(i+1,u,v+.5)})}
   const arrow=(x,z,a,col)=>{const[u,v]=M(x,z);c.save();c.translate(u,v);c.rotate(-a);c.fillStyle=col;c.strokeStyle='#fff';c.lineWidth=1.5;c.beginPath();c.moveTo(0,-8);c.lineTo(5.5,5.5);c.lineTo(0,3);c.lineTo(-5.5,5.5);c.closePath();c.fill();c.stroke();c.restore()};
-  for(const o of SEA_O.values())if(o.live){if(o.k==='p')arrow(o.x,o.z,o.a,o.col);else{const[u,v]=M(o.x,o.z);c.fillStyle=o.col;c.strokeStyle='#fff';c.beginPath();c.arc(u,v,4,0,6.283);c.fill();c.stroke()}}
+  for(const o of SEA_O.values())if(o.live){if(o.k!=='b')arrow(o.x,o.z,o.a,o.col);else{const[u,v]=M(o.x,o.z);c.fillStyle=o.col;c.strokeStyle='#fff';c.beginPath();c.arc(u,v,4,0,6.283);c.fill();c.stroke()}}
   arrow(pl.x,pl.z,pl.a,(PAINTS[prof.paint]||PAINTS[0]).c);c.fillStyle='#14120E';c.font='700 12px "Barlow Condensed", sans-serif';c.textAlign='center';c.fillText('N',w/2,12)}
 
 /* ---------- the others at sea: boats and planes from the «Kjør sammen» room ---------- */
@@ -218,11 +222,11 @@ function fMinimap(){const cv=$('bmini'),c=cv.getContext('2d'),w=cv.width,h=cv.he
 // drawn by the race (js/boat.js); everything else is drawn here, a little behind real time so it moves smoothly.
 const SEA_O=new Map();let seaT=0;
 function seaSend(k,o,dt){if(typeof NET==='undefined'||!NET.on||!NET.players.size)return;seaT-=dt;if(seaT>0)return;seaT=.1;const f=v=>+(+v).toFixed(2);
-  const col=k==='p'?(PAINTS[prof.paint]||PAINTS[0]).c:(BT.P[0]&&BT.P[0].col)||'#e3a62a';
-  netSend({t:'Bv',k,tm:netNow(),x:f(o.x),y:f(k==='p'?o.y:0),z:f(o.z),a:+(+o.a).toFixed(3),p:k==='p'?+o.p.toFixed(3):0,r:k==='p'?+o.r.toFixed(3):0,s:f(k==='p'?o.s:o.speed),c:col,h:k==='p'&&o.crash?1:0})}
-function seaNet(p,m){const num=v=>typeof v==='number'&&isFinite(v);if((m.k!=='b'&&m.k!=='p')||![m.tm,m.x,m.y,m.z,m.a,m.p,m.r,m.s].every(num)||typeof m.c!=='string'||!/^#[0-9a-f]{6}$/i.test(m.c))return;
+  const air=k!=='b',col=air?(PAINTS[prof.paint]||PAINTS[0]).c:(BT.P[0]&&BT.P[0].col)||'#e3a62a';   // k: b = boat, p = the small plane, c = the cargo plane
+  netSend({t:'Bv',k,tm:netNow(),x:f(o.x),y:f(air?o.y:0),z:f(o.z),a:+(+o.a).toFixed(3),p:air?+o.p.toFixed(3):0,r:air?+o.r.toFixed(3):0,s:f(air?o.s:o.speed),c:col,h:air&&o.crash?1:0})}
+function seaNet(p,m){const num=v=>typeof v==='number'&&isFinite(v);if((m.k!=='b'&&m.k!=='p'&&m.k!=='c')||![m.tm,m.x,m.y,m.z,m.a,m.p,m.r,m.s].every(num)||typeof m.c!=='string'||!/^#[0-9a-f]{6}$/i.test(m.c))return;
   if(!BT.built)return;let o=SEA_O.get(p.id);if(o&&(o.k!==m.k||o.c!==m.c)){seaDrop(o);o=null}
-  if(!o){const mesh=m.k==='p'?fPlaneMesh(m.c):bBoatMesh(m.c,(p.slot|0)+1,netCol(p.slot));if(m.k==='b')bName(mesh,p.name||'?');const tag=netTag(p.name||'?',netCol(p.slot));tag.scale.set(60,15,1);BT.scene.add(mesh,tag);
+  if(!o){const mesh=m.k==='c'?cgSeaMesh(m.c):m.k==='p'?fPlaneMesh(m.c):bBoatMesh(m.c,(p.slot|0)+1,netCol(p.slot));if(m.k==='b')bName(mesh,p.name||'?');const tag=netTag(p.name||'?',netCol(p.slot));tag.scale.set(60,15,1);BT.scene.add(mesh,tag);
     o={id:p.id,k:m.k,c:m.c,col:netCol(p.slot),mesh,tag,buf:[],x:m.x,y:m.y,z:m.z,a:m.a,live:false,seen:0};SEA_O.set(p.id,o)}
   o.buf.push({tm:m.tm,x:m.x,y:m.y,z:m.z,a:m.a,p:m.p,r:m.r,s:m.s,h:!!m.h});if(o.buf.length>30)o.buf.shift();o.seen=performance.now()}
 function seaDrop(o){BT.scene.remove(o.mesh);bDispose(o.mesh);BT.scene.remove(o.tag);o.tag.material.map.dispose();o.tag.material.dispose();SEA_O.delete(o.id)}
@@ -232,7 +236,7 @@ function seaDraw(now,t){if(!BT.built)return;for(const o of SEA_O.values()){const
   o.live=!!(p&&b.length&&now-o.seen<3000&&!race&&!b[b.length-1].h);o.mesh.visible=o.tag.visible=o.live;if(!o.live)continue;
   const rt=now-(p.off||0)-NET_DELAY;let A=b[0],C=b[0],k=0;if(rt>=b[b.length-1].tm)A=C=b[b.length-1];else if(rt>b[0].tm){for(let i=1;i<b.length;i++)if(b[i].tm>=rt){A=b[i-1];C=b[i];k=(rt-A.tm)/Math.max(1,C.tm-A.tm);break}}
   o.x=A.x+(C.x-A.x)*k;o.z=A.z+(C.z-A.z)*k;o.a=bLerpA(A.a,C.a,k);const s=A.s+(C.s-A.s)*k;
-  if(o.k==='p'){o.y=A.y+(C.y-A.y)*k;o.mesh.position.set(o.x,o.y,o.z);o.mesh.rotation.set(A.p+(C.p-A.p)*k,o.a,A.r+(C.r-A.r)*k);o.mesh.userData.prop.rotation.z+=.5+s*.25;o.mesh.userData.disc.material.opacity=.3}
+  if(o.k!=='b'){o.y=A.y+(C.y-A.y)*k;o.mesh.position.set(o.x,o.y,o.z);o.mesh.rotation.set(A.p+(C.p-A.p)*k,o.a,A.r+(C.r-A.r)*k);o.mesh.userData.prop.rotation.z+=.5+s*.25;o.mesh.userData.disc.material.opacity=.3}
   else{o.y=bWave(o.x,o.z,BT.wave)+1.4+Math.min(1,Math.abs(s)/1.6)*.7;o.mesh.position.set(o.x,o.y,o.z);o.mesh.rotation.set(.075*Math.max(-.4,Math.min(1,s/1.2)),o.a,0)}
   o.tag.position.set(o.x,o.y+18,o.z)}}
 
@@ -240,8 +244,9 @@ function initFly(){
   $('fmList').addEventListener('click',e=>{const b=e.target.closest('[data-fly]');if(!b)return;
     store.set('flyPick',b.dataset.fly);fSetup(fSel());fMenuRender()});
   $('fmGo').onclick=()=>{if(FL.phase==='menu')flyBegin()};$('fmBack').onclick=()=>flyExit();
-  $('fpResume').onclick=()=>fPause(false);$('fpRestart').onclick=()=>{fPause(false);flyBegin()};$('fpMenu').onclick=()=>{fPause(false);flyMenu()};$('fpCar').onclick=()=>{fPause(false);flyExit()};
+  $('fpResume').onclick=()=>fPause(false);$('fpRestart').onclick=()=>{fPause(false);flyBegin()};$('fpMenu').onclick=()=>{fPause(false);flyMenu()};$('fpCar').onclick=()=>{fPause(false);if(FL.cargo)cargoAbort();else flyExit()};
   $('fpSound').onclick=()=>{setSound(!state.sound);$('fpSound').textContent='Lyd: '+(state.sound?'på':'av')};
+  $('fpSkip').onclick=()=>{fPause(false);cargoSkip()};
   $('bPauseB').addEventListener('click',()=>{if(FL.on)fPause(true)});
   addEventListener('resize',()=>{if(FL.on)fLayout()});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&FL.on)fPause(true)})}

@@ -73,6 +73,7 @@ for(const f of FLIGHTS){if(only&&f.id!==only)continue;const route=flightRoute(f)
     for(const C of AP)if(C!==B&&Math.hypot(C.lx-B.lx,C.lz-B.lz)<C.ll+B.ll)bad.push('ligger for nær '+C.id);
     if(!cargoWhere(B.start.x,B.start.z)||cargoWhere(B.start.x,B.start.z).id!==B.id)bad.push('flyet står ikke på sin egen flyplass');
     if(!pick(B)[1].free)bad.push('ingen fri landingsrunde');
+    {const F=cargoFinal(B);if(F.out<500||!clear(side(B,F.hx===B.hx&&F.hz===B.hz?1:-1),F.out))bad.push('innflygingen spillet viser (cargoFinal, '+F.out+') er ikke fri')}
     if(!from||from===B.id)console.log(B.id.padEnd(9),'FLYPLASS',bad.length?'FEIL '+bad.join(', '):'OK  ','rullebane mot',((Math.round(-B.a*180/Math.PI)%360+360)%360)+'°','innflyging',o,'motsatt vei',o2,'· lander mot',((Math.round(-pick(B)[0].a*180/Math.PI)%360+360)%360)+'° fra',pick(B)[1].o);if(bad.length)fail++}
   function fly(A,B0){const pl=makeCargo(A),[B,RD]=pick(B0),o=Math.max(500,RD.o),far=cargoApproach(B,o,80),G=B.top+PCARGO.gear,W1=RD.W1,W2=RD.W2;
     let t=0,mode=0,wp=0,take=null,landed=null,roll=0,rounds=0;const ev=[];
