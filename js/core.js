@@ -166,15 +166,28 @@ function placeCrates(k,c,rng){const out=[];for(let i=0;i<6;i++){const t=.09+.8*i
     if(!placed)out.push({x:p.x,z:p.z,y:H(p.x,p.z)+.16,t})}return out}
 
 const smt01=x=>{x=x<0?0:x>1?1:x;return x*x*(3-2*x)};
+// the airport of an island (def.airport): a flat fill built out into the sea along the coast, with the runway on it and the cargo plane at one end.
+//   at:[x,z] the middle of the fill's land edge (on the beach), dir (degrees) points out to sea (default: away from the island's centre),
+//   len: how long the fill is along the coast, end: 1 or -1, which end the cargo plane stands at, road:[[x,z],…] the way there from inland,
+//   ground:'grass'|'sand'|'snow'. Local frame: f = out to sea from `at`, s = along the coast.
+const CARGO={half:3.6,ramp:3.8,hw:1.5,floor:.55};   // the cargo plane's hold: half its length, the ramp's length, half the width, the floor's height over the ground
+function airFrame(def){const o=def.airport;if(!o)return null;if(o._f)return o._f;
+  const x0=o.at[0],z0=o.at[1],a=(o.dir??Math.atan2(z0,x0)/Math.PI*180)*Math.PI/180,dx=Math.cos(a),dz=Math.sin(a),px=-dz,pz=dx,L=o.len??46,F0=-1,F1=12,E=o.end??1,e=1.2;
+  const loc=(x,z)=>{const rx=x-x0,rz=z-z0;return[rx*dx+rz*dz,rx*px+rz*pz]},pt=(f,s)=>[x0+dx*f+px*s,z0+dz*f+pz*s];
+  const w=(x,z)=>{const[f,s]=loc(x,z);return smt01((f-F0+e)/(2*e))*smt01((F1-f+e)/(2*e))*smt01((s+L/2+e)/(2*e))*smt01((L/2-s+e)/(2*e))};
+  const rwy={f0:4,f1:9.5,s0:-L/2+1.5,s1:L/2-1.5,fc:6.75},pad={f0:1,f1:11,s0:Math.min(E*(L/2-9.5),E*(L/2-.8)),s1:Math.max(E*(L/2-9.5),E*(L/2-.8))};
+  const inR=(R,f,s)=>f>=R.f0&&f<=R.f1&&s>=R.s0&&s<=R.s1;
+  return o._f={o,x0,z0,a,dx,dz,px,pz,L,F0,F1,E,h:(def.water??.3)+.75,loc,pt,w,rwy,pad,inR,sC:E*(L/2-16),sA:E*(L/2-3.4)}}
 function genLevel(def){
   setWorld(def.size||70);
   const rng=mulberry32(def.seed),n=makeNoise(def.seed*7+3);
   G.noise=n;G.def=def;G.outside=def.outside??null;G.decks=[];G.lavas=[];G.pistes=[];G.lift=null;TCF.fill(0);TG.fill(0);
   // coast: the level becomes an island. Beyond def.coast the ground sinks under the sea; the last ring before it is beach.
   const coast=def.coast||0;if(coast&&!def._coastBand){const ob=def.waterBand,had=def.water!=null;def._coastBand=true;if(!had)def.water=.3;def.waterBand=(x,z)=>Math.hypot(x,z)>coast-5||(ob?ob(x,z):had)}   // a level without water of its own only gets the sea ring
-  const wsea=def.water;
-  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const k=j*N+i,x=-HALF+i*CELL,z=-HALF+j*CELL;let h=def.base(x,z,n),sf=def.surf(x,z,n);
-    if(coast){const R=Math.hypot(x,z),ex=def.landExtra?def.landExtra(x,z):0,kk=smt01((R-coast+3)/6)*(1-ex);if(kk>0)h+=((wsea-1.8)-h)*kk;if(R>coast-7&&h>wsea-.05&&ex<.5)sf=def.beachSurf??S.SAND}   // landExtra(x,z): 0–1, land built out past the coast (Trinnvik's airport)
+  const wsea=def.water,AF=airFrame(def),AFS=AF?{sand:S.SAND,snow:S.SNOW}[AF.o.ground]??S.GRASS:0;
+  for(let j=0;j<N;j++)for(let i=0;i<N;i++){const k=j*N+i,x=-HALF+i*CELL,z=-HALF+j*CELL;let h=def.base(x,z,n),sf=def.surf(x,z,n);const aw=AF?AF.w(x,z):0;
+    if(coast){const R=Math.hypot(x,z),ex=Math.max(aw,def.landExtra?def.landExtra(x,z):0),kk=smt01((R-coast+3)/6)*(1-ex);if(kk>0)h+=((wsea-1.8)-h)*kk;if(R>coast-7&&h>wsea-.05&&ex<.5)sf=def.beachSurf??S.SAND}   // landExtra(x,z): 0–1, land built out past the coast (Trinnvik's airport)
+    if(aw>0){h+=(AF.h-h)*aw;if(aw>.5){const[f,s2]=AF.loc(x,z);sf=AF.inR(AF.rwy,f,s2)||AF.inR(AF.pad,f,s2)?S.ASPHALT:AFS}}   // def.airport: the fill, flat, with the runway and the pad behind the cargo plane
     TH[k]=h;TS[k]=sf}
   TB.set(TH);
   const curve=new THREE.CatmullRomCurve3(def.path.map(p=>new V3(p[0],0,p[1])),false,'centripetal');
@@ -293,7 +306,7 @@ function genLevel(def){
     // a suspension bridge from A to B (hw = half width). Both ends must lie on solid ground.
     bridge(ax,az,bx,bz,hw,o={}){const len=Math.hypot(bx-ax,bz-az),ux=(bx-ax)/len,uz=(bz-az)/len,y0=o.y0??H(ax,az),y1=o.y1??H(bx,bz),px=-uz*hw,pz=ux*hw,xs=[ax+px,ax-px,bx+px,bx-px],zs=[az+pz,az-pz,bz+pz,bz-pz];
       const dk={ax,az,bx,bz,ux,uz,len,hw,y0,y1,sag:o.sag??.22,x0:Math.min(...xs)-.02,x1:Math.max(...xs)+.02,z0:Math.min(...zs)-.02,z1:Math.max(...zs)+.02};
-      if(o.pier)dk.pier=true;if(o.ferry)dk.ferry=true;G.decks.push(dk);c.fx.push(Object.assign({type:'deck'},dk));c.block((ax+bx)/2,(az+bz)/2,len/2+1);return dk},
+      if(o.pier)dk.pier=true;if(o.ferry)dk.ferry=true;G.decks.push(dk);if(!o.plain)c.fx.push(Object.assign({type:'deck'},dk));c.block((ax+bx)/2,(az+bz)/2,len/2+1);return dk},   // o.plain: drivable, but drawn by someone else (the cargo plane)
     // a village with a ferry quay: houses on a flat pad by the shore, a plank pier out over the water and the ferry's deck at its end.
     // o.at=[x,z] on the beach; o.dir (degrees) points out to sea, default straight away from the island's centre.
     village(o){const vx=o.at[0],vz=o.at[1],a=(o.dir??Math.atan2(vz,vx)/Math.PI*180)*Math.PI/180,dx=Math.cos(a),dz=Math.sin(a),px=-dz,pz=dx,w=def.water??0;
@@ -341,6 +354,48 @@ function genLevel(def){
       const F0=at(11.2,0),F1=at(18.0,0);const fd=c.bridge(F0[0],F0[1],F1[0],F1[1],1.55,{sag:0,y0:padH+.03,y1:padH+.03,pier:true,ferry:true});
       const fc=at(14.6,0);c.ferry={x:fc[0],z:fc[1],dir:a,dx,dz,y:padH+.04,len:6.8,hw:1.55,quay:{x:A[0],z:A[1]},pad:{x:vx,z:vz,h:padH},deck:fd};
       c.village_=o;return c.ferry},
+    // the cargo plane you drive into (js/plane.js draws it): the tail ramp and the floor of the hold are drivable decks, the walls and the bulkhead stop the car.
+    // (x,z) is the middle of the hold, yaw the way the nose points (0 = +z), y the ground it stands on. Returns c.cargoDef.
+    cargoPlane(x,z,yaw,y){const K=CARGO,ux=Math.sin(yaw),uz=Math.cos(yaw),at=(u,v)=>[x+ux*u+uz*v,z+uz*u-ux*v],fy=y+K.floor;
+      const R0=at(-K.half-K.ramp,0),R1=at(-K.half+.15,0),F0=at(-K.half,0),F1=at(K.half+.4,0);
+      c.bridge(R0[0],R0[1],R1[0],R1[1],K.hw,{sag:0,y0:y+.02,y1:fy,plain:true});c.bridge(F0[0],F0[1],F1[0],F1[1],K.hw+.3,{sag:0,y0:fy,y1:fy,plain:true});
+      for(const sd of[-1,1]){const[wx,wz]=at(0,sd*(K.hw+.3));c.colliders.push({x:wx,z:wz,w:.3,d:K.half*2+.3,ry:yaw,anchor:true,y:fy+.5})}
+      {const[wx,wz]=at(K.half+.2,0);c.colliders.push({x:wx,z:wz,w:K.hw*2+.9,d:.3,ry:yaw})}
+      for(const[u,v]of[[5.4,0],[7,0]]){const[nx,nz]=at(u,v);c.colliders.push({x:nx,z:nz,r:1.5})}   // the nose
+      for(let u=-10;u<=8;u+=3){const[bx,bz]=at(u,0);c.block(bx,bz,4)}
+      const P=(u,v)=>{const[qx,qz]=at(u,v);return{x:qx,z:qz}};
+      c.cargoDef={x,z,yaw,y,fy,ux,uz,half:K.half,hw:K.hw,ramp:K.ramp,foot:P(-K.half-K.ramp-.6,0),pad:P(-K.half-K.ramp-2.6,0)};return c.cargoDef},
+    // an airport on a fill off the coast (def.airport, see airFrame above): the runway with its markings and lights, a terminal, a tower, a windsock,
+    // the road from inland, and the cargo plane at one end of the runway with its ramp down. The terrain itself is laid in genLevel.
+    airport(o){const A=airFrame(def),y=A.h,pt=A.pt,R=A.rwy,E=A.E,L=A.L,yawS=Math.atan2(A.px,A.pz),yawF=Math.atan2(A.dx,A.dz),g=o.ground||'grass';
+      const cols={grass:['#6f9a48','#7fa852'],sand:['#d9c08a','#e6d2a2'],snow:['#e8eef4','#f6f9fc']}[g];
+      const bx0=Math.min(...[[A.F0,-L/2],[A.F0,L/2],[A.F1,-L/2],[A.F1,L/2]].map(q=>pt(q[0],q[1])[0])),bx1=Math.max(...[[A.F0,-L/2],[A.F0,L/2],[A.F1,-L/2],[A.F1,L/2]].map(q=>pt(q[0],q[1])[0]));
+      const bz0=Math.min(...[[A.F0,-L/2],[A.F0,L/2],[A.F1,-L/2],[A.F1,L/2]].map(q=>pt(q[0],q[1])[1])),bz1=Math.max(...[[A.F0,-L/2],[A.F0,L/2],[A.F1,-L/2],[A.F1,L/2]].map(q=>pt(q[0],q[1])[1]));
+      cellsIn(bx0-1,bz0-1,bx1+1,bz1+1,(k,px,pz)=>{if(A.w(px,pz)<.5)return;const[f,s]=A.loc(px,pz);
+        if(A.inR(R,f,s))setC(k,mix('#3a3d40','#45484b',G.noise(px*2,pz*2)));else if(A.inR(A.pad,f,s))setC(k,mix('#8a8a86','#9a9994',G.noise(px*2,pz*2)));else setC(k,mix(cols[0],cols[1],G.noise(px*.6,pz*.6)))});
+      for(let s=-L/2+4;s<=L/2-4;s+=7)for(const f of[2,10]){const[qx,qz]=pt(f,s);c.block(qx,qz,5);c.xpts.push({x:qx,z:qz})}
+      // the markings: the centre line, the bars at both thresholds, and the edge lights (red at the ends)
+      const m=y+.004;for(let s=R.s0+5;s<R.s1-4;s+=3.2){const[qx,qz]=pt(R.fc,s);c.box(qx,m,qz,.18,.012,1.6,'#f4f4f0',yawS)}
+      for(const ss of[R.s0+1.2,R.s1-1.2])for(let k=-3;k<=3;k++)if(k){const[qx,qz]=pt(R.fc+k*.65,ss);c.box(qx,m,qz,.3,.012,1.8,'#f4f4f0',yawS)}
+      for(let s=R.s0;s<=R.s1+.01;s+=(R.s1-R.s0)/Math.round((R.s1-R.s0)/4))for(const f of[R.f0-.3,R.f1+.3]){const[qx,qz]=pt(f,s);c.cyl(qx,y,qz,.06,.12,s<R.s0+1||s>R.s1-1?'#d9432f':'#fff3c0')}
+      // the terminal with windows towards the runway, the tower and the windsock, on the half of the fill the plane does not stand on
+      {const[tx,tz]=pt(1.3,-E*6);c.box(tx,y,tz,2.4,1.5,6,'#e9dcb9',yawS);c.box(tx,y+1.5,tz,2.6,.12,6.2,'#3f4a52',yawS);const[gx,gz]=pt(2.52,-E*6);c.box(gx,y+.5,gz,.05,.55,5.2,'#1a262d',yawS);const[ex,ez]=pt(2.53,-E*6);c.box(ex,y,ez,.06,.9,1,'#5a6066',yawS);
+        c.colliders.push({x:tx,z:tz,w:2.44,d:6.04,ry:yawS,anchor:true,y:y+.6});
+        const[sx,sz]=pt(2.9,-E*1.6);c.fx.push({type:'sign',x:sx,z:sz,ang:yawF,text:(def.name||'').toUpperCase()+' LUFTHAVN',sub:'kjør om bord i lasteflyet',w:2.1})}
+      {const[tx,tz]=pt(1.2,-E*12.5);c.cyl(tx,y,tz,.5,3,'#f2e8d0');c.box(tx,y+3,tz,1.4,.75,1.4,'#1a262d',yawS);c.box(tx,y+3.75,tz,1.6,.12,1.6,'#d9432f',yawS);c.colliders.push({x:tx,z:tz,r:.55,anchor:true,y:y+.6})}
+      const sock=pt(1.4,-E*(L/2-3));c.cyl(sock[0],y,sock[1],.04,1.7,'#e9e6df');c.colliders.push({x:sock[0],z:sock[1],r:.08});
+      // the road from inland comes onto the pad behind the plane
+      const acc=pt(A.F0-.6,A.sA),in1=pt(3,A.sA),road=[...(o.road||[]),acc,in1];
+      if(road.length>1)c.road(road,{hw:1.3,blend:2,surf:o.roadSurf??S.GRAVEL,skip:S.ASPHALT});
+      // the last stretch is a causeway: where the sea lies between the island and the fill, the road is built up to the fill's height
+      if(road.length>2){const a=road[road.length-3],b=acc;for(const q of polyPts([a,b],.4))cellsIn(q.x-3.4,q.z-3.4,q.x+3.4,q.z+3.4,(k,px,pz)=>{const d=Math.hypot(px-q.x,pz-q.z);if(d>3.4)return;const f=d<=1.7?1:1-(d-1.7)/1.7,nh=y-.02-(1-f*f*(3-2*f))*2.2;if(nh>TH[k]){TH[k]=nh;if(d<1.5&&TS[k]!==S.ROCK)TS[k]=o.roadSurf??S.GRAVEL}})}
+      cellsIn(bx0-1,bz0-1,bx1+1,bz1+1,(k,px,pz)=>{const aw=A.w(px,pz);if(aw>0)TH[k]+=(y-TH[k])*aw});   // the road's levelling must not dent the fill
+      // the cargo plane: on the runway, its nose towards the far end and its ramp down on the pad
+      const pc=pt(R.fc,A.sC),cg=c.cargoPlane(pc[0],pc[1],Math.atan2(-E*A.px,-E*A.pz),y);
+      {const[sx,sz]=pt(1.6,E*(L/2-6.6));c.fx.push({type:'sign',x:sx,z:sz,ang:yawF,text:'LASTEFLY',sub:'kjør opp rampa'})}
+      const P=q=>({x:q[0],z:q[1]}),mid=pt(R.fc-.4,A.sA+E*.4);
+      c.airportDef={x:pc[0],z:pc[1],y,sock:{x:sock[0],z:sock[1]},cargo:cg,generic:true,
+        from:P(road[0]),route:[...road.slice(1).map(P),P(mid),cg.foot,{x:cg.x,z:cg.z}]};return c.airportDef},
     // a marina where you can borrow a motorboat (see README: «Marinaen og båtløpet»): a pad by the shore with a boathouse, a fuel pump,
     // a plank pier on piles and boats moored beside it. Park on the blue square to be asked. o.at=[x,z] on the beach; o.dir (degrees) points
     // out to sea (default: away from the island's centre), o.out is the way inland. The rental boat, life rings and flag are drawn by js/boat.js.
@@ -525,6 +580,7 @@ function genLevel(def){
   G.waterAt=(x,z)=>{let w=-1e9;if(def.water!=null&&(!def.waterBand||def.waterBand(x,z)))w=def.water;for(const p of c.pools){if((x-p.x)*(x-p.x)+(z-p.z)*(z-p.z)<p.r*p.r&&p.level>w)w=p.level}return w};
   if(def.village)c.village(def.village);
   if(def.marina)c.marina(def.marina);
+  if(def.airport)c.airport(def.airport);
   def.build(c);
   if(c.pistes.length&&!c._pisteDressed)c.dressPistes();G.pistes=c.pistes;
   if(!c._done)c.finish();

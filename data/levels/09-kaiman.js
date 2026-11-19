@@ -74,7 +74,7 @@ LEVELS.push(
   waterBand:(x,z)=>Math.hypot(x,z)>isl(x,z)-6||rivD(x,z)<.6||dDel(x,z)<DELTA_R+2||rH(x,z)<HILL_R-1,
   ambience:'jungle',
   biome:(x,z)=>{const R=Math.hypot(x,z);return{jungle:inJungle(x,z)?1:.4,swamp:Math.max(smt((MUDF_R+4-dMud(x,z))/6),smt((DELTA_R+3-dDel(x,z))/5),smt((1.5-rivD(x,z))/3)*.6),beach:smt((R-(isl(x,z)-10))/5),snow:0,desert:0}},
-  path:[[6,-31.5],[8,-29],[6,-27],[4,-29],[6,-31.5]], challenges:CH, roads:ROADS, village:{at:VIL,out:90},
+  path:[[6,-31.5],[8,-29],[6,-27],[4,-29],[6,-31.5]], challenges:CH, roads:ROADS, airport:{at:[-35,35],dir:135,len:38,end:1,road:[[-26,26]]}, village:{at:VIL,out:90},
   animals:{parrots:12,circling:4,toucans:9,monkeys:12,butterflies:60,crabs:8,crabsAt:[-5,-42],liana:[12.6,-3.5],
     caimans:[{at:[-9,-3],r:4,n:3},{at:[-27,1],r:4,n:2},{at:[-38.5,-5],r:4,n:2},{at:[19,-7],r:4,n:2},{at:[26,-21],r:5,n:2},{at:[-21,6],r:3,n:1}],
     capybaras:[{at:[-32,-7.5],r:3.5,n:4},{at:[-13,-6.5],r:2.5,n:3},{at:[18,2],r:3,n:3}],jaguar:[[-35,13],[-23,24]],

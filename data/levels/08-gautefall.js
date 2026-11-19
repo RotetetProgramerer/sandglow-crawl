@@ -64,7 +64,7 @@ LEVELS.push(
   water:.3, waterCol:'#2c6a86', waterOpacity:.86, beachSurf:S.GRAVEL,
   snow:true, precip:(x,z)=>.35+.65*smt((14-rC(x,z))/8), wind:true, ambience:'jungle',
   biome:(x,z)=>{const R=Math.hypot(x,z);return{snow:.35+.65*smt((22-rC(x,z))/10),beach:smt((R-(isl(x,z)-9))/5),jungle:0,swamp:0,desert:0}},
-  path:[[2.5,-25],[4,-23],[2.5,-21],[1,-23],[2.5,-25]], challenges:CH, roads:ROADS, village:{at:VIL,snow:true},
+  path:[[2.5,-25],[4,-23],[2.5,-21],[1,-23],[2.5,-25]], challenges:CH, roads:ROADS, airport:{at:[-38,0],dir:180,end:1,road:[[-30,-12]],ground:'snow'}, village:{at:VIL,snow:true},
   pistes:PISTES, skiAt:[LIFT_A[0],LIFT_A[1]-1.7], lift:{from:LIFT_A,to:LIFT_B},
   mapLabels:[[0,7,'Toppen'],[0,-24.5,'Parkering'],[-25,-12,'Isvannet'],[26,-11,'Granskogen'],[0,33,'Nordkysten'],[17,-37,'Kaia'],[-16,8,'Big Jumps'],[13,-2,'Familiebakken'],[-11,-4,'Slalåmbakken'],[-3,21,'Utforløypa']],
   animals:{eagle:C,deer:[{at:[22,-14],r:6,n:3},{at:[-20,20],r:7,n:3}],rabbits:[{at:[-12,-24],r:6,n:4},{at:[24,8],r:5,n:3}],gulls:{at:[16,-38],n:6}},

@@ -65,7 +65,7 @@ LEVELS.push(
   waterBand:(x,z)=>Math.hypot(x,z)>isl(x,z)-4||dSw(x,z)<SW_R+3||lineD(STREAM,x,z)<2.8||Math.hypot(x-TARN[0],z-TARN[1])<3.2,
   snow:true, precip:(x,z)=>Math.max(smt((12.5-rM(x,z))/5),GLACIER(x,z)), wind:true, ambience:'jungle',
   biome:(x,z)=>{const r=rM(x,z);return{snow:smt((15-r)/5),jungle:inJungle(x,z)?1:0,swamp:smt((SW_R+4-dSw(x,z))/6),beach:smt((Math.hypot(x,z)-(isl(x,z)-12))/5),desert:inDesert(x,z)?1:0}},
-  path:[[0,-10],[4,-7],[0,-3],[-4,-7],[0,-10]], challenges:CH, roads:ROADS, basePos:BASE, garageAt:[BASE[0],BASE[1]-.2], village:{at:[29.1,24.4],out:165},
+  path:[[0,-10],[4,-7],[0,-3],[-4,-7],[0,-10]], challenges:CH, roads:ROADS, basePos:BASE, garageAt:[BASE[0],BASE[1]-.2], airport:{at:[33.5,-33.5],dir:315,len:38,end:1,road:[[24,-24]]}, village:{at:[29.1,24.4],out:165},
   marina:{at:[-36.5,30.5]},   // Captain Theis' marina: parker på den blå ruta, så kan du låne en motorbåt (js/boat.js)
   mapLabels:[[-30,-2,'Jungelen'],[-24,-30,'Sumpen'],[8,-45,'Stranden'],[36,-14,'Canyonen'],[-4,24,'Snøfjellet'],[0,-6,'Basen'],[33,12,'Oasen'],[31,30,'Landsbyen'],[-1,46,'Isbreen'],[-41,37,'Marinaen']],
   animals:{parrots:14,circling:3,monkeys:9,butterflies:40,crabs:10,crabsAt:[-4,-41],eagle:M,bear:[polM(19,150),polM(21,120)],gulls:{at:[12,-41],n:7},

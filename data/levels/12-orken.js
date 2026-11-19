@@ -69,7 +69,7 @@ LEVELS.push(
   ambience:'jungle', wind:true,
   biome:(x,z)=>{const R=Math.hypot(x,z),dO=Math.hypot(x-OAS[0],z-OAS[1]);return{jungle:.12+.6*smt((10-dO)/5),swamp:.5*smt((7-dO)/3),beach:smt((R-(isl(x,z)-9))/5),snow:0,desert:1-smt((10-dO)/5)}},
   path:[[VROAD[0]+1,VROAD[1]+2.5],[VROAD[0]+2.5,VROAD[1]+4],[VROAD[0]+4,VROAD[1]+2.5],[VROAD[0]+2.5,VROAD[1]+1],[VROAD[0]+1,VROAD[1]+2.5]],
-  challenges:CH, roads:ROADS, village:{at:VIL,dir:VA/DEG,desert:true},
+  challenges:CH, roads:ROADS, airport:{at:[40.5,0],dir:0,end:1,road:[[30,18]],ground:'sand'}, village:{at:VIL,dir:VA/DEG,desert:true},
   cavePath:[[-6.2,-11.4],...SLOT],                                    // bare for testen: inn kløfta til grotteåpningen
   get mapLabels(){const L=[[OAS[0],OAS[1]+5.5,'Oasen'],[CAMP[0],CAMP[1]+3,'Beduinleiren'],[13,-8,'Dynehavet'],[BIGD[0],BIGD[1]+6,'Kjempedynen'],[MAS[0],MAS[1]+10,'Sandsteinsfjellet'],
       [RUIN[0],RUIN[1]-4.5,'Ruinbyen'],[VIL[0]+3,VIL[1]-1,'Kaia']];

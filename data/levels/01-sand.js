@@ -1,6 +1,6 @@
 // Bane: se README for hva feltene betyr. Rekkefølgen i menyen følger rekkefølgen i index.html.
 LEVELS.push(
-{ id:'sand', name:'Bykkevika', diff:1, seed:11, gates:10, size:120, coast:42, village:{at:[-26.2,26.2]}, animals:{lizards:[{at:[8,8],r:12,n:6}],gulls:{at:[2,-37],n:5},crabs:6,crabsAt:[10,37]},
+{ id:'sand', name:'Bykkevika', diff:1, seed:11, gates:10, size:120, coast:42, airport:{at:[41,0],dir:0,end:-1,road:[[30,-17]]}, village:{at:[-26.2,26.2]}, animals:{lizards:[{at:[8,8],r:12,n:6}],gulls:{at:[2,-37],n:5},crabs:6,crabsAt:[10,37]},
   desc:'Lyse klitter, en oase, et sandhopp og en vannpytt. Fin bane for å lære lavgiret.',
   sky:['#4f95d6','#d9ecf7'], fog:0xd3e5ee, fogNear:28, fogFar:88, sun:0xfff2da, sunI:1.1, hemi:[0xd6ebff,0xd0bf9c,.62], sunDir:[-16,28,14], rockCol:'#cbc4b4', waterCol:'#4fb0b6',
   path:[[-27,-27],[-16,-22],[-8,-26],[2,-20],[6,-10],[-2,-2],[-12,4],[-14,15],[-6,24],[8,24],[18,15],[22,4],[27,-6],[24,-18],[28,-27]],
