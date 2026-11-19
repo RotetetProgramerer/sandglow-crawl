@@ -57,7 +57,7 @@ LEVELS.push(
   ambience:'jungle', wind:true,
   biome:(x,z)=>{const R=Math.hypot(x,z),dJ=Math.hypot(x-JUN[0],z-JUN[1]),dL=Math.hypot(x-LAG[0],z-LAG[1]);return{jungle:.25+.75*smt((15-dJ)/6),swamp:.6*smt((7-dL)/3),beach:smt((R-(isl(x,z)-9))/5),snow:0,desert:0}},
   path:[[-5,-18],[-6.5,-16.5],[-8,-18],[-6.5,-19.5],[-5,-18]],
-  challenges:CH, roads:ROADS, airport:{at:[-31,-25],dir:225,len:40,end:1,road:[[-22,-21]]}, village:{at:VIL,dir:VA/DEG},
+  challenges:CH, roads:ROADS, airport:{at:[-31,-25],dir:225,len:40,end:1,road:[[-18.4,-25.5]]}, village:{at:VIL,dir:VA/DEG},
   mapLabels:[[VIL[0]+3,VIL[1]+1,'Kaia'],[KRO[0]+2.5,KRO[1]-3,'Skumkroa'],[JUN[0]+3,JUN[1]+8,'Apejungelen'],[MAS[0],MAS[1]+10.5,'Kanonfortet'],[SK[0],SK[1]-6.5,'Hodeskalleklippen'],
     [VRAK[0]-4.5,VRAK[1]+2,'Skipsvraket'],[KRYSS[0]-3,KRYSS[1]-3,'Skattestranda'],[SVERD[0]-2,SVERD[1]+3.2,'Sverdmesteren']],
   animals:{parrots:12,circling:5,monkeys:10,butterflies:40,crabs:9,crabsAt:[VRAK[0]-4,VRAK[1]+1],gulls:{at:[VIL[0]+2,VIL[1]+3],n:6}},

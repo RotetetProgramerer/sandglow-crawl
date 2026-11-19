@@ -4,6 +4,7 @@
 //   land: fyllingen, rwy: rullebanen (nord–sør), start: der flyet står klart (sørenden, nesa mot nord)
 // En flytur har ringer [x, høyde, z] som flys gjennom i rekkefølge. Den siste ringen er mål.
 //   par: [tre stjerner, to stjerner] i sekunder
+// Flyplassene til de andre øyene, og lasteflyet som flyr bilen mellom dem, står i banefilene (airport:{…}), js/planesim.js og js/cargo.js.
 // Test: node tools/test-flights.js
 const AIRPORT={island:'trinnvik',land:{x0:120,x1:196,z0:-144,z1:126},rwy:{x:166,w:30,z0:-134,z1:116},start:{dz:104},
   hangar:[133,-22],tower:[138,70],terminal:[130,31],sock:[186,90]};

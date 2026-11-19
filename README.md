@@ -26,6 +26,7 @@ js/planesim.js        Flyfysikken: avgang, flyging, landing, krasj og ringene (i
 js/grottesim.js       Fysikken i Diamantgrotten: bilen sett fra siden, diamanter, bensin og sjekkpunkter (ingen DOM, testes uten nettleser).
 js/gpsroute.js        GPS-en: finner en vei bilen kan kjøre mellom to steder på øya (ingen DOM, testes uten nettleser).
 js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen ute på havet, HUD, lyd, og båtene og flyene til de andre i rommet.
+js/cargo.js           Lasteflyet som flyr bilen mellom øyene: modellen, spørsmålet i lasterommet, flyturen, landingen og flyplassene på havet.
 js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
@@ -43,7 +44,7 @@ data/boats.js         Havet og båtløpene fra marinaen.                    ← 
 data/flights.js       Flyplassen på havet og flyturene med ringer.        ← legg til nye flyturer her
 tools/test-levels.js  Autopilot som tester alle baner uten nettleser.
 tools/test-boats.js   Autopilot som kjører alle båtløpene uten nettleser.
-tools/test-flights.js Autopilot som flyr alle flyturene og lander på rullebanen, uten nettleser.
+tools/test-flights.js Autopilot som flyr alle flyturene, og lasteflyet mellom alle øyene, uten nettleser.
 tools/test-props.js   Finner pynt som svever over bakken uten noe under seg (node tools/test-props.js [bane]).
 tools/test-grotte.js  Autopilot som kjører Diamantgrotten med alle bilene i Lett og Ekte modus, uten nettleser.
 tools/test-gps.js     Lager GPS-ruter til alle stedene på hver øy og lar en autopilot kjøre dem, uten nettleser.
@@ -404,7 +405,7 @@ Muttere: 5 per bøye, 3 per turbotønne, 20 for å fortøye, 15 hvis du aldri bl
 
 ## Flyplassen og flyturene
 
-Øst på Trinnvik ligger Trinnvik lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør med kantlys, terminal, tårn, hangar og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved flyet, så kommer spørsmålet «Vil du fly?». JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
+Øst på Trinnvik ligger Trinnvik lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør med kantlys, terminal, tårn, hangar og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved småflyet, så kommer spørsmålet «Vil du fly?». (Lasteflyet som flyr bilen til de andre øyene står sør på rullebanen, se neste avsnitt.) JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
 
 | Tur | Vanskelighet | Ringer |
 |---|---|---|
@@ -428,6 +429,37 @@ Muttere: 5 per ring, 20 for å komme i mål, 15 uten krasj, 60 første gang og 2
 **Banefelt:** Flyplassen bygges i `build(c)` i `data/levels/07-trinnvik.js`, som setter `c.airportDef` (den blå ruta, flyet, vindposen og veien dit). `landExtra(x,z)` på banen (0–1) sier hvor det er fylt ut land utenfor kysten, så sjøen ikke tar det. Testen kjører flyplassveien inn på den blå ruta.
 
 **Havet og turene (`data/flights.js`):** `AIRPORT` er flyplassen sett fra sjøen, målt fra midten av Trinnvik. En tur har `rings:[[x,høyde,z],…]` (nord er −z), `par:[tre stjerner, to stjerner]`. Kjør `node tools/test-flights.js` etter endringer. Den sjekker at ringene og etappene holder høyde over øyene, lar en autopilot fly hver tur, og lander på rullebanen.
+
+## Lasteflyet: fly bilen mellom øyene
+
+Hver øy har en flyplass på en fylling ut i sjøen: rullebane med kantlys, terminal, tårn, vindpose og en vei fra øya. Ytterst på rullebanen står et stort lastefly med fire motorer og hekkrampa nede. Kjør opp rampa og inn i lasterommet, så kommer spørsmålet «Hvor vil du fly?» med alle de andre øyene. Turen er gratis.
+
+Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme tastene som småflyet. Tre gule porter og en lyssøyle viser innflygingen til øya du valgte, og kompasset og teksten øverst sier hvor langt det er og om du er for høyt eller for lavt. Land på rullebanen og la flyet stoppe (det bremser selv), så lastes øya, og bilen står i lasterommet med nesa mot rampa. Kjør ut.
+
+- **Lander du på en annen øy,** kommer du dit i stedet. Skilsø har ingen flyplass.
+- **Krasj:** du mister ikke bilen. Flyet settes i lufta der innflygingen begynner, rett mot rullebanen.
+- **Hopp over:** Enter under flyturen, eller «Hopp over flyturen» i pausemenyen (Esc), setter deg rett på øya du valgte. «Avbryt» lar deg bli der du var.
+- **Taket** på flyet blir gjennomsiktig mens bilen er på rampa eller i lasterommet, så du ser hvor du kjører.
+- **GPS:** «Flyplassen» er et sted på alle øyene. Trykker du på en øy det ikke går ferge rett til, viser GPS-en vei til flyplassen i stedet.
+- **Kjør sammen:** de andre i rommet ser lasteflyet ditt over havet, og listen i lasterommet viser hvilken øy vennene er på.
+- **Snøskuteren** blir på Svalbard: du lander med bilen.
+
+**Banefelt:** `airport:{at:[x,z], dir, len, end, road:[[x,z],…], ground}` på banen.
+
+| Felt | Betyr |
+|---|---|
+| `at` | Midt på fyllingens kant mot land, på stranda. |
+| `dir` | Grader, peker ut mot havet (0 = +x, 90 = +z). Standard er rett ut fra øyas midtpunkt. |
+| `len` | Hvor lang fyllingen er langs kysten. Standard 46. Den er 13 dyp. |
+| `end` | 1 eller −1: hvilken ende av rullebanen lasteflyet står i. Flyet tar av mot den andre enden. |
+| `road` | Veien dit fra øya. Det siste stykket bygges opp som en molo der det er sjø mellom øya og fyllingen. |
+| `ground` | `'grass'` (standard), `'sand'` eller `'snow'`. |
+
+Fyllingen legges i `genLevel` (`airFrame` i `js/core.js`), og `c.airport` bygger resten før `build(c)`, som landsbyen. `c.cargoPlane(x,z,yaw,y)` lager selve flyet: rampa og gulvet er kjørbare dekk, veggene og skottet foran stopper bilen. Målene står i `CARGO` øverst i samme fil. Trinnvik har sin egen flyplass i banefila og kaller `c.cargoPlane` selv. Modellen tegnes av `cgMesh` i `js/cargo.js`.
+
+**På havet:** `seaAirports()` i `js/planesim.js` legger en rullebane ved hver øy på samme side som øyas egen flyplass, og `PCARGO` er tallene for lasteflyet (tyngre, lengre rullestrekning, slakere svinger enn småflyet). `cargoFinal` velger enden med lengst fri innflyging.
+
+**Test:** `node tools/test-levels.js` kjører veien til flyplassen, opp rampa og inn i lasterommet, og ut igjen, på alle øyene (radene `LASTEFLY`). `node tools/test-flights.js last` sjekker at inn- og utflygingen til hver flyplass er fri for andre øyer, og lar en autopilot fly lasteflyet mellom alle 156 øypar med en ordentlig landingsrunde. Kjør begge når du har flyttet en flyplass. `node tools/test-flights.js last sand v` flyr bare fra én øy og viser hendelsene.
 
 ## Planter og dyr (`data/vegetasjon.js`, `data/dyr.js`)
 
