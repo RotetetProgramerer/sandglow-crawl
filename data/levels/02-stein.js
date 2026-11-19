@@ -1,6 +1,6 @@
 // Bane: se README for hva feltene betyr. Rekkefølgen i menyen følger rekkefølgen i index.html.
 LEVELS.push(
-{ id:'stein', name:'Spornes', diff:3, seed:27, gates:10, size:120, coast:42, airport:{at:[-41,0],dir:180,end:-1,road:[[-28,14]]}, village:{at:[26.2,-26.2]}, animals:{lizards:[{at:[0,0],r:14,n:6}],gulls:{at:[0,37],n:5}},
+{ id:'stein', name:'Spornes', diff:3, seed:27, gates:10, size:120, coast:42, airport:{at:[40.5,6],dir:0,end:-1,road:[[30,-10]]}, village:{at:[26.2,-26.2]}, animals:{lizards:[{at:[0,0],r:14,n:6}],gulls:{at:[0,37],n:5}},
   desc:'Tett med stein, en steintrapp og en trang passasje. Her trengs presisjon.',
   sky:['#6f9ec6','#e6e2d6'], fog:0xd6d6cf, fogNear:24, fogFar:82, sun:0xfff0d8, sunI:1.05, hemi:[0xdfe9f2,0x6c6458,.6], sunDir:[20,26,10], rockCol:'#958f84', waterCol:'#5a7a80',
   path:[[-26,-26],[-14,-27],[-4,-20],[-10,-10],[-20,-4],[-22,8],[-12,14],[0,10],[8,0],[18,-6],[26,2],[22,14],[12,22],[24,27]],

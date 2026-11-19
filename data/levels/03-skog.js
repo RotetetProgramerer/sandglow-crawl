@@ -1,6 +1,6 @@
 // Bane: se README for hva feltene betyr. Rekkefølgen i menyen følger rekkefølgen i index.html.
 LEVELS.push(
-{ id:'skog', name:'Froland', diff:2, seed:53, gates:10, size:120, coast:42, airport:{at:[0,41],dir:90,end:1,road:[[-12,30]]}, village:{at:[18.5,-32]},
+{ id:'skog', name:'Froland', diff:2, seed:53, gates:10, size:120, coast:42, airport:{at:[41,-17],dir:0,len:40,end:1,road:[[28,-6]]}, village:{at:[18.5,-32]},
   desc:'Regn, stokker, to gjørmehull og en bekk du må vade over. Trestammene er enorme i denne skalaen.',
   sky:['#7d94a3','#c9c6b4'], fog:0xa9b39c, fogNear:14, fogFar:58, sun:0xe8e0cc, sunI:.7, hemi:[0xb9c8c4,0x3e4428,.7], sunDir:[18,22,-10], rockCol:'#7d8270', water:.02, waterCol:'#3f5a4a', rain:true, clouds:false, animals:{deer:[{at:[-16,-12],r:7,n:3}],rabbits:[{at:[14,10],r:6,n:4}],fish:[{at:[0,6],r:5,n:2}]},
   path:[[-27,-24],[-18,-26],[-8,-20],[-6,-10],[-16,-4],[-20,6],[-12,14],[-2,10],[6,2],[14,-6],[24,-4],[26,8],[18,18],[6,24],[-4,27]],
