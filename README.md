@@ -20,6 +20,8 @@ js/skier.js           Fysikken for skiløperen i Gautefall: carving, skrens, hoc
 js/ski.js             Skianlegget i spillet: stolheisen, skiløperen (modell og stillinger), turen opp og ned, kamera, mellomtider, spøkelset og lyd.
 js/skiresort.js       Livet i skianlegget: kordfløyel og is på løypene, gamle skispor, startgrind, nett, målområder med publikum
                       og tidtavle, løypekartet, snøkanoner, andre skiløpere og folk i stolheisen.
+js/walker.js          Til fots: sjåføren går ut av bilen (E), går, løper og hopper rundt og setter seg inn igjen. Mannen og stillingene hans,
+                      døra som svinger opp, hva han kan gå på og rundt, og kameraet til fots.
 js/boatsim.js         Fysikken for motorbåtløpet: båtene, bøyene, piratene og vulkanen (ingen DOM, testes uten nettleser).
 js/boat.js            Motorbåtløpet fra marinaen på Tromøya: havet, øyene, båtene, delt skjerm, HUD, lyd og løp mot andre i rommet.
 js/planesim.js        Flyfysikken: avgang, flyging, landing, krasj og ringene (ingen DOM, testes uten nettleser).
@@ -629,6 +631,20 @@ Nye dyr i `animals` (se `js/animals.js`):
 
 Testen: `node tools/test-levels.js kaiman` kjører landsbytesten og alle fem løypene i begge gir.
 
+## Gå ut av bilen (til fots)
+
+Trykk **E** (eller knappen med den gående mannen, eller høyre skulderknapp på en spillkontroll) når bilen står stille. Da åpner sjåføren døra, stiger ut og lukker den etter seg. Etterpå styrer du ham med de samme tastene og knappene som bilen: venstre og høyre snur ham, gass går og løper, revers rygger, og mellomrom (hoppknappen på mobil) hopper. Trykk **E** igjen når han står ved bilen, så setter han seg inn og du kjører videre. Alt ligger i `js/walker.js`.
+
+- **Bilen** blir stående der du parkerte. Motorlyden blir svakere jo lenger unna han går, og en pil over hodet hans peker tilbake til bilen når han er mer enn noen meter unna. På minikartet og øykartet er han en lys prikk.
+- **Hva han kan:** Han følger bakken, går rundt trær, steiner, hus og sin egen bil, og kan vasse i grunt vann. Han kommer ikke opp bratte vegger, ut i dypt vann eller ut i lava. Faller han utfor en kant, lander han bare.
+- **Hva han ikke kan:** Han plukker ikke opp kasser eller gullmuttere og starter ikke løyper. Det gjør du med bilen. Dyrene bryr seg heller ikke om ham.
+- **Tilbake i bilen av seg selv:** Alt som flytter bilen eller avslutter kjøringen (en løype som starter, fergen, vinsj tilbake, verkstedet, menyen, ny bil, ny øy) setter ham rett bak rattet igjen. Derfor trenger ikke resten av spillet å vite at han var ute.
+- **Kameraene** virker til fots også (C): følgekameraet ligger nærmere bak ham enn bak bilen, bakkekameraet står på stativet sitt og følger ham, og førerkameraet ser gjennom øynene hans.
+- **Døra:** Bilene er tegnet uten dører som kan åpnes. `js/walker.js` lager derfor en dør i det han går ut eller inn: en plate over siden av bilen som svinger opp, og en mørk flate bak som ser ut som åpningen inn i kupeen. `buildBody` i `js/carmodel.js` forteller hvor døra er (`userData.door`). Monstertrucken, sportsbilen og trophy trucken har ingen slik dør, så der klatrer han rett ut. Er det ikke plass på førersiden (en vegg, dypt vann, et stup), går han ut på den andre siden.
+- **Sjåføren i setet** (hode, caps og skjorte, eller hele føreren på snøskuteren) er merket med `userData.driver` i `js/carmodel.js` og skjules mens han er ute. På snøskuteren går han i skuterdress og hjelm.
+- **Justere:** Farten (`2.5` i `walkMove`), hopphøyden (`W.vy=2.9`), hvor bratt han kommer opp (`1.35` i `walkOk`) og hvor dypt han vasser (`.42`) står som tall i `js/walker.js`. Størrelsen og proporsjonene hans står i `MAN` øverst.
+- **En ny biltype:** Biler med `style` `'box'`, `'glass'`, `'step'` eller `'pickup'` får dør og sjåfør av seg selv. Lager du en helt ny tegnefunksjon, legger du til hvor føreren sitter i `walkSeat` i `js/walker.js`.
+
 ## Kjør sammen (flerspiller)
 
 `js/net.js` lar opptil fire spillere kjøre sammen i skjærgården. Én lager et rom og får en kode som `KRABBE-42`, de andre skriver inn koden. Hver spiller kjører sin egen bil med den vanlige fysikken. Bare bilens posisjon, rotasjon, hjul, styring og lys sendes, 15 ganger i sekundet, og de andre bilene tegnes 0,12 sekunder bak slik at de glir jevnt. Bilene kolliderer ikke, og muttere, løyper og gullmuttere er personlige.
@@ -638,6 +654,7 @@ Testen: `node tools/test-levels.js kaiman` kjører landsbytesten og alle fem lø
 - **Mellom øyene:** Du ser bare biler på samme øy. Øykartet og minikartet viser vennene som prikker i deres farge, og skjærgårdskartet viser hvilken øy de er på. I pausemenyen kan du ta fergen rett til øya der en venn er (5 muttere). Når en venn reiser fra eller kommer til øya di, seiler fergen med dem.
 - **Båtløp:** Den som står i båtmenyen ved marinaen, kan invitere rommet. De andre får spørsmålet der de kjører, og blir med i lobbyen. Lederen velger løp og starter for alle. Alle styrer sin egen båt og ser de andres, og resultatlista fylles ut etter hvert som båtene fortøyer. Piratene skyter bare på båten på sin egen skjerm.
 - **Båter og fly:** Alle som er ute på sjøen, sender hvor de er (meldingen `Bv`, 10 ganger i sekundet). Den som flyr, ser båtene til de andre, og den som kjører båt, ser flyene, med navneskilt over. Begge vises også på minikartet.
+- **Til fots:** Går en spiller ut av bilen (se «Gå ut av bilen»), følger posisjonen, retningen og farten til mannen med i den samme meldingen som bilen. De andre ser ham gå og løpe, og førersetet i bilen hans står tomt så lenge. Døra som svinger opp, tegnes bare hos den som går ut.
 - **Brudd:** En gjest som mister verten prøver å koble seg til igjen fem ganger. Forlater verten rommet, får gjestene beskjed og kjører videre alene. Det er ingen ny vert når verten går.
 
 Strenge nettverk, som enkelte skole- og jobbnett, kan blokkere direkte kobling mellom nettlesere. Da får man en melding om at koblingen ikke fikk kontakt.

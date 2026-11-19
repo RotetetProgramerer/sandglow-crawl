@@ -45,6 +45,7 @@
     <button class="ib" id="bMap" aria-label="Kart (K)" title="Kart (K)" hidden><svg viewBox="0 0 24 24"><path d="M3 6l6-2 6 2 6-2v14l-6 2-6-2-6 2z"/><path d="M9 4v14M15 6v14"/></svg></button>
     <button class="ib" id="bCam" aria-label="Bytt kamera (C)" title="Bytt kamera (C)"><svg viewBox="0 0 24 24"><path d="M3 8h4l2-3h6l2 3h4v11H3z"/><circle cx="12" cy="13" r="3.5"/></svg></button>
     <button class="ib" id="bLights" aria-pressed="false" aria-label="Lys av og på (L)" title="Lys (L)"><svg viewBox="0 0 24 24"><path d="M10 6c-4 0-6 3-6 6s2 6 6 6c2 0 3-2 3-6s-1-6-3-6z"/><path d="M15 8l6-1M15 12h6M15 16l6 1"/></svg></button>
+    <button class="ib" id="bWalk" aria-pressed="false" aria-label="Gå ut av bilen, og inn igjen (E)" title="Gå ut av bilen, og inn igjen (E)"><svg viewBox="0 0 24 24"><circle cx="13" cy="4.5" r="2"/><path d="M13.5 8.5l-3 4.5 3 3v5M11.5 11l-4 1.5M13.5 8.5l2.5 3.5 3 .5M10.5 15.5l-2.5 5.5"/></svg></button>
     <button class="ib" id="bWinch" aria-label="Vinsj (R)" title="Vinsj (R): hold for å sikte, slipp for å dra">Vinsj</button>
     <button class="ib" id="bPause" aria-label="Pause (Esc)" title="Pause (Esc)"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
   </div>
@@ -188,6 +189,7 @@
       <dt><kbd>+</kbd> / <kbd>−</kbd></dt><dd>Fartsgrense opp og ned</dd>
       <dt><kbd>L</kbd> <kbd>C</kbd> <kbd>R</kbd></dt><dd>Lys, kamera, vinsj tilbake</dd>
       <dt><kbd>Z</kbd> / <kbd>X</kbd></dt><dd>Zoom nærmere og lengre fra bilen</dd>
+      <dt><kbd>E</kbd></dt><dd>Gå ut av bilen når den står stille, og inn igjen når du står ved den</dd>
       <dt>Mus</dt><dd>Dra for å se rundt, rull eller klyp for zoom</dd>
       <dt>På ski</dt><dd>Gautefall: ← → sving (jevnt for carving), ↓ plog, ↓ og sving hockeystopp, ↑ stavtak og hockestilling, mellomrom hopp, C kamera</dd>
       <dt>Med båt</dt><dd>Marinaen på Tromøya: WASD eller piltastene. To spillere deler tastaturet.</dd>
@@ -309,6 +311,7 @@
     <h2>Slik spiller du</h2>
     <ul class="log">
       <li><b>Kjør fritt.</b> Hele øya er din. Pilen og minikartet viser nærmeste startstrek.</li>
+      <li><b>Gå ut av bilen:</b> stopp og trykk E (eller knappen med mannen). Styr ham som bilen, og trykk E ved bilen for å sette deg inn igjen.</li>
       <li><b>GPS:</b> åpne kartet (K) og trykk på et sted, for eksempel fergekaia. En blå pil viser veien dit.</li>
       <li><b>Start en løype</b> ved å kjøre inn mellom flaggene og svare JA. Du tjener muttere på porter, kasser og hopp.</li>
       <li><b>Bruk mutterne</b> i verkstedet på basen: dekk, fjæring, motor, lakk og en ny bil.</li>
@@ -487,6 +490,7 @@
 <script src="js/pirater.js"></script>
 <script src="js/ski.js"></script>
 <script src="js/skiresort.js"></script>
+<script src="js/walker.js"></script>
 <script src="js/boat.js"></script>
 <script src="js/plane.js"></script>
 <script src="js/cargo.js"></script>
