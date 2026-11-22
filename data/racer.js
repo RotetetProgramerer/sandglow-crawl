@@ -12,15 +12,15 @@
 // Banen må ikke krysse seg selv, og to deler av banen må ligge minst 2×(hw+runoff)+6 meter fra hverandre.
 // Sjekk alltid med:  node tools/test-race.js
 const RACE_TRACKS=[
- {id:'palme',name:'Palmeringen',diff:1,laps:3,hw:8,runoff:9,off:'grass',par:[116,126],
+ {id:'palme',name:'Palmeringen',diff:1,laps:3,hw:8,runoff:9,off:'grass',par:[110,118],
   desc:'Brede, lange svinger rundt palmelunden. Lær deg å sladde: slipp gassen litt inn i svingen, og gi på igjen ut.',
   look:{grass:'#5f9a3c',grass2:'#6caa44',sand:'#e6d29a',sea:'#2f8fc0',trees:'palm',stands:3},
   pts:[[-140,0],[0,0],[140,0],[215,-25],[245,-95],[215,-165],[140,-190],[60,-170],[10,-130],[-40,-110],[-110,-130],[-170,-170],[-235,-150],[-255,-80],[-220,-20]]},
- {id:'havn',name:'Havnesvingen',diff:2,laps:3,hw:7,runoff:7,scale:.82,off:'grass',par:[137,147],
+ {id:'havn',name:'Havnesvingen',diff:2,laps:3,hw:7,runoff:7,scale:.82,off:'grass',par:[127,136],
   desc:'En krapp hårnål ved moloen, en rask S-sving og en lang slakk sving tilbake til tribunene. Brems tidlig før hårnåla.',
   look:{grass:'#4f8f3a',grass2:'#5c9c40',sand:'#dcc890',sea:'#2a7fb2',trees:'palm',stands:2},
   pts:[[-100,0],[60,0],[160,0],[205,-30],[195,-85],[130,-100],[95,-140],[120,-190],[185,-205],[235,-245],[210,-295],[120,-300],[40,-265],[-20,-215],[-45,-155],[-90,-120],[-160,-140],[-210,-105],[-205,-45],[-160,-8]]},
- {id:'vulkan',name:'Vulkanslyngen',diff:3,laps:3,hw:6,runoff:6,scale:.68,off:'sand',par:[145,155],
+ {id:'vulkan',name:'Vulkanslyngen',diff:3,laps:3,hw:6,runoff:6,scale:.68,off:'sand',par:[132,142],
   desc:'Smal og svingete langs lavastrendene, med sandfeller overalt. To hårnåler og en lang venstre du kan sladde gjennom.',
   look:{grass:'#6a7a3a',grass2:'#7a8a44',sand:'#cfb27a',sea:'#24689a',trees:'palm',stands:2,dark:true},
   pts:[[-80,0],[80,0],[150,10],[182,50],[150,90],[90,80],[40,100],[30,160],[80,200],[160,190],[230,220],[250,290],[190,330],[90,320],[0,300],[-60,250],[-50,190],[-110,160],[-190,180],[-240,130],[-220,60],[-160,20]]},

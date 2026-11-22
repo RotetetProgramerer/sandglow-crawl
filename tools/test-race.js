@@ -36,5 +36,13 @@ for(const def of RACE_TRACKS){if(only&&def.id!==only)continue;
       cool-=1/120;if(hbT>0){hbT-=1/120;I.hb=1;I.brake=0;I.gas=0}else if(kmax>1/40&&car.u>17&&cool<=0){hbT=.22;cool=2.5}return I};
     for(let t=0;t<400&&!c.done;t+=1/60){for(const e of raceStep(R,human,1/60)){if(e.type==='boost')boosts++;if(e.type==='wall')walls++}if(c.drift>0)drifts++;if(Math.abs(c.beta)>1.4)spin++}
     const ok=c.done;if(!ok)fail++;console.log(def.id.padEnd(8),'SPILLER      ',ok?'OK  ':'FEIL','tid',fmt(c.finT),'beste runde',fmt(c.best),'sladd',(drifts/60).toFixed(1)+' s','turbo',boosts,'vegg',walls,'spinn',(spin/60).toFixed(1)+' s')}
+  // 4. a beginner on the keyboard: the wheel is only left, straight or right, full gas, never brakes, only lets go of the gas when far too fast.
+  //    Should get round without hitting the walls much (at most 3 a lap) and without too much time off the asphalt (under 25 %).
+  {const R=makeRace(T,[{name:'Nybegynner',human:true,col:'#fff',num:1}],def.laps);R.phase='race';let walls=0,off=0,tot=0;const c=R.cars[0];
+    const beginner=car=>{const i0=car.hint,sp=Math.hypot(car.vx,car.vy),k=(i0+Math.round((9+sp*.35)/TSTEP))%T.N,P=T.pts[k],ang=Math.atan2(Math.sin(Math.atan2(P.y-car.y,P.x-car.x)-car.a),Math.cos(Math.atan2(P.y-car.y,P.x-car.x)-car.a));
+      let vt=1e9;for(let j=0;j<12;j++)vt=Math.min(vt,T.vmax[(i0+j)%T.N]);const lift=car.u>vt*1.3;
+      return{gas:lift?0:1,brake:0,steer:ang>.06?1:ang<-.06?-1:0,hb:0}};
+    for(let t=0;t<500&&!c.done;t+=1/60){for(const e of raceStep(R,beginner,1/60))if(e.type==='wall')walls++;tot++;if(Math.abs(c.d)>T.hw+.5)off++}
+    const ok=c.done&&walls<=3*def.laps&&off/tot<.25;if(!ok)fail++;console.log(def.id.padEnd(8),'NYBEGYNNER   ',ok?'OK  ':'FEIL','tid',fmt(c.finT),'beste runde',fmt(c.best),'vegg',walls,'utenfor asfalten',Math.round(off/tot*100)+' %')}
 }
 if(fail){console.log('\n'+fail+' FEIL');process.exitCode=1}

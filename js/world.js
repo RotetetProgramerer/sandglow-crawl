@@ -38,7 +38,7 @@ function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aLis
   if(k==='skuter'){skuterAsk();return}   // Svalbard: hire a snowmobile, or hand it back
   if(k==='vault'){vaultAsk();return}   // Svalbard: Frøken Frø at the door of the seed vault (js/frohvelv.js)
   if(k==='cargo'){cargoAsk();return}   // every island: the cargo plane at the airport (js/cargo.js)
-  if(k==='race'){raceAsk();return}   // Racerøya: the race from above (js/race.js)
+  if(typeof k==='string'&&k.startsWith('race')){raceAsk(k);return}   // Racerøya: the race from above (js/race.js)
   if(k==='fly'){flyAsk(k);return}   // Trinnvik: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
   if(k==='ferry'){const here=LEVELS[state.levelIdx];$('aName').textContent='Fergen';$('aKind').textContent='Kaia på '+here.name;$('aDesc').textContent='Hvor vil du reise? Overfarten koster 5 muttere. Du har '+fmtN(prof.nuts)+'.';$('aBest').textContent='';$('aQ').textContent='';
     const dests=ROUTES.filter(r=>r.includes(here.id)).map(r=>r[0]===here.id?r[1]:r[0]).map(id=>LEVELS.find(l=>l.id===id)).filter(Boolean);
@@ -60,7 +60,7 @@ function answerAsk(yes){if(state.mode!=='ask')return;$('ask').hidden=true;const 
   if(typeof k==='string'&&k.startsWith('boat')){boatAnswer(k,yes);return}
   if(k==='cargo'){cargoAnswer(yes);return}
   if(k==='fly'){flyAnswer(k,yes);return}
-  if(k==='race'){raceAnswer(yes);return}
+  if(typeof k==='string'&&k.startsWith('race')){raceAnswer(k,yes);return}
   if(typeof k==='string'&&k.startsWith('pirat')){pirAnswer(k,yes);return}
   if(k==='vault'){vaultAnswer(yes);return}
   if(k==='skuter'){state.askCool='skuter';state.mode='play';if(yes){skuterSet(!onSkuter());toast(onSkuter()?'🛷 Snøskuteren er din. God tur, og pass deg for isbjørnen!':'Takk for turen! Bilen din står klar')}return}

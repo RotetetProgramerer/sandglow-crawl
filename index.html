@@ -469,8 +469,16 @@
     <div class="alist" id="rmTracks"></div>
     <div class="seg three" role="group" aria-label="Motstanderne"><button id="rmLv0" aria-pressed="false">Lett</button><button id="rmLv1" aria-pressed="true">Middels</button><button id="rmLv2" aria-pressed="false">Vanskelig</button></div>
     <p class="note" id="rmLvNote"></p>
-    <div class="seg" role="group" aria-label="Antall spillere"><button id="rm1" aria-pressed="true">1 spiller</button><button id="rm2" aria-pressed="false">2 spillere</button></div>
+    <div class="seg" role="group" aria-label="Antall spillere" id="rmSeg"><button id="rm1" aria-pressed="true">1 spiller</button><button id="rm2" aria-pressed="false">2 spillere</button></div>
     <p class="note" id="rmKeys"></p>
+    <div class="pnet" id="rmNet" hidden>
+      <h3>Kjør sammen · <span id="rmNetCode"></span></h3>
+      <p class="note" id="rmNetNote"></p>
+      <ul class="plist" id="rmNetList"></ul>
+      <div class="row"><button class="ghost" id="rmInvite">Inviter rommet</button><button class="ghost" id="rmJoin" hidden>Bli med</button><button class="ghost" id="rmDecline" hidden>Nei takk</button><button class="ghost" id="rmLeave" hidden>Forlat lobbyen</button></div>
+    </div>
+    <button class="ghost" id="rmCam">Kamera: nord opp</button>
+    <p class="note" id="rmWait" hidden>Lederen velger bane og starter løpet.</p>
     <button class="go" id="rmGo">Til start!</button>
     <button class="ghost" id="rmBack">Tilbake til bilen</button>
   </div>
@@ -478,15 +486,19 @@
 <section class="overlay dialog" id="racePause" hidden>
   <div class="sheet">
     <h2>Pause</h2>
+    <p class="note" id="rpNote"></p>
     <button class="go" id="rpResume">Fortsett</button>
     <div class="row"><button class="ghost" id="rpRestart">Start på nytt</button><button class="ghost" id="rpMenu">Velg bane</button></div>
     <div class="row"><button class="ghost" id="rpCar">Tilbake til bilen</button><button class="ghost" id="rpSound">Lyd: på</button></div>
+    <button class="ghost" id="rpCam">Kamera: nord opp</button>
     <ul class="log">
       <li><b>Styring:</b> ← → eller A D. <b>Gass:</b> ↑ eller W. <b>Brems og revers:</b> ↓ eller S.</li>
       <li><b>Håndbrekk:</b> SPACE eller SHIFT. Et kort rykk inn i svingen får baken til å skli ut.</li>
       <li><b>Sladd og turbo:</b> hold sladden, og når bilen retter seg opp, får du turbo. Lang sladd gir superturbo.</li>
       <li><b>To spillere:</b> spiller 1 W A S D og SPACE, spiller 2 piltastene og ENTER.</li>
-      <li><b>R</b> setter bilen tilbake på banen (spiller 2: BACKSPACE). <b>Z</b> og <b>X</b> zoomer.</li>
+      <li><b>R</b> setter bilen tilbake på banen (spiller 2: BACKSPACE). <b>Z</b> og <b>X</b> zoomer. <b>C</b> bytter kamera: nord opp eller følger bilen.</li>
+      <li><b>Kjør sammen:</b> er du i et rom, kan du invitere de andre fra racemenyen. Dere kan dulte hverandre, og løpet går videre mens du har pause.</li>
+      <li><b>Gule piler</b> står på yttersiden av de krappe svingene, og skiltene 100 og 50 viser hvor du bør bremse.</li>
       <li><b>Gress og sand</b> sakker bilen ned. Dekkveggene stopper deg.</li>
     </ul>
   </div>
@@ -614,6 +626,7 @@
 <script src="js/gruve7.js"></script>
 <script src="js/frohvelv.js"></script>
 <script src="js/race.js"></script>
+<script src="js/racenet.js"></script>
 <script src="js/net.js"></script>
 <script src="js/gps.js"></script>
 <script>startGame()</script>
