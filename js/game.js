@@ -473,11 +473,12 @@ function initAudio(){if(AC)return;try{AC=new(window.AudioContext||window.webkitA
   osc.connect(filt);osc2.connect(g2);g2.connect(filt);filt.connect(gain);gain.connect(AC.destination);osc.start();osc2.start()}catch(e){AC=null}}
 function updateAudio(){if(!AC||!car)return;const on=state.sound&&state.mode==='play';let wv=0,n=0;for(const w of car.wheels){wv+=Math.abs(w.contact&&w.slip<.3?w.vl:car.throttle*(car.low?1.7:5.6));n++}wv/=n;
   wv/=(car.speedScale||1);const f=55+wv*(car.low?240:62);const t=AC.currentTime;osc.frequency.setTargetAtTime(f,t,.05);osc2.frequency.setTargetAtTime(f*.5,t,.05);
-  gain.gain.setTargetAtTime(on?(.012+Math.abs(car.throttle)*.05+Math.min(wv,2)*.01)*(state.volCar/70):0,t,.06)}
+  const near=WALK.on?Math.max(.1,1-car.pos.distanceTo(WALK.pos)/9):1;   // the engine fades as the driver walks away from the car (js/walker.js)
+  gain.gain.setTargetAtTime(on?(.012+Math.abs(car.throttle)*.05+Math.min(wv,2)*.01)*(state.volCar/70)*near:0,t,.06)}
 
 /* ---------- level & car management ---------- */
 let LV=null,car=null;
-const focusPos=()=>SKI.on?SKI.s.pos:car.pos;   // what the camera follows: the car, or the skier in Gautefall
+const focusPos=()=>SKI.on?SKI.s.pos:WALK.on?WALK.pos:car.pos;   // what the camera follows: the car, the skier in Gautefall, or the driver on foot (js/walker.js)
 // two light sets blended by def.zone(x,z): 0 = def.alt (for example jungle), 1 = def (for example the volcano)
 const ZL={on:false,fogA:new THREE.Color(),fogB:new THREE.Color(),sunA:new THREE.Color(),sunB:new THREE.Color(),hA:[new THREE.Color(),new THREE.Color()],hB:[new THREE.Color(),new THREE.Color()],k:-1};
 function setupZone(def){ZL.on=!!(def.zone&&def.alt);if(!ZL.on)return;const a=def.alt;ZL.fogA.set(a.fog).convertSRGBToLinear();ZL.fogB.set(def.fog).convertSRGBToLinear();ZL.sunA.set(a.sun).convertSRGBToLinear();ZL.sunB.set(def.sun).convertSRGBToLinear();
@@ -548,11 +549,11 @@ $('partList').addEventListener('click',e=>{const b=e.target.closest('[data-buy]'
 $('carSale').addEventListener('click',e=>{const b=e.target.closest('[data-buycar]');if(!b)return;const c=CARS.find(x=>x.id===b.dataset.buycar);if(!c||prof.nuts<c.price)return;prof.nuts-=c.price;prof.cars.push(c.id);saveProf();setCar(CARS.indexOf(c));renderGarage();toast('Gratulerer med '+c.name+'!')});
 $('paintList').addEventListener('click',e=>{const b=e.target.closest('[data-paint]');if(b)pickPaint(+b.dataset.paint)});
 $('mGarage').onclick=toGarage;$('rGarage').onclick=toGarage;$('gBack').onclick=toMenu;$('gDrive').onclick=startRun;
-function pause(on){if(state.mode==='cave'){if(on)caveKeyDown('escape');return}if(state.mode==='mine'){if(on)mineKeyDown('escape');return}if(state.mode==='ski'){if(on)skiKeyDown('escape');return}if(state.mode==='boat'){if(on)boatKeyDown('escape');return}if(state.mode==='fly'){if(on)flyKeyDown('escape');return}if(state.mode!=='play'&&state.mode!=='pause')return;state.mode=on?'pause':'play';$('pause').hidden=!on;$('pAbort').hidden=!state.course;$('pMap').hidden=!state.world;$('pRestart').textContent=state.course?'Start løpet på nytt':state.world?'Tilbake til basen':'Start på nytt';if(on)$('pResume').focus();if(on&&typeof netPauseUI==='function')netPauseUI()}
+function pause(on){if(state.mode==='race'){if(on)raceKeyDown('escape');return}if(state.mode==='cave'){if(on)caveKeyDown('escape');return}if(state.mode==='mine'){if(on)mineKeyDown('escape');return}if(state.mode==='ski'){if(on)skiKeyDown('escape');return}if(state.mode==='boat'){if(on)boatKeyDown('escape');return}if(state.mode==='fly'){if(on)flyKeyDown('escape');return}if(state.mode!=='play'&&state.mode!=='pause')return;state.mode=on?'pause':'play';$('pause').hidden=!on;$('pAbort').hidden=!state.course;$('pMap').hidden=!state.world;$('pRestart').textContent=state.course?'Start løpet på nytt':state.world?'Tilbake til basen':'Start på nytt';if(on)$('pResume').focus();if(on&&typeof netPauseUI==='function')netPauseUI()}
 function addPenalty(n,why){state.penalty+=n;state.log.push(why);toast('+'+n+' '+why.split(':')[0],true)}
 // auto: the flip assist in easy mode puts the car back for free; everything else costs a winch penalty
 function winch(auto){
-  if(state.mode!=='play')return;const cp=state.checkpoint;placeCar(car,cp.x,cp.z,cp.h);
+  if(state.mode!=='play')return;walkEnd();const cp=state.checkpoint;placeCar(car,cp.x,cp.z,cp.h);   // walkEnd: a driver on foot is back behind the wheel (js/walker.js)
   if(auto&&car.assist){state.rescues++;toast('Veltehjelp: bilen er tilbake på hjulene')}
   else{const cost=car.tune.winch;addPenalty(cost,'Vinsj');state.winches++;state.winchPen+=cost}
   state.flipT=0;state.flood=0;state.deepWarn=false;state.air=0;$('hint').hidden=true;camSnap=true;
@@ -627,11 +628,14 @@ addEventListener('keydown',e=>{
   if(state.mode==='fly'){flyKeyDown(k);return}
   if(state.mode==='cave'){caveKeyDown(k);return}   // Diamantgrotten (js/grotte.js)
   if(state.mode==='mine'){mineKeyDown(k);return}   // Gruve 7 (js/gruve7.js)
+  if(state.mode==='race'){raceKeyDown(k);return}   // Racerøya (js/race.js)
   if(MAP.open&&(k==='escape'||k==='k')){openMap(false);return}
   if(k==='escape'||k==='p'){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ask')answerAsk(false)}
   if(state.mode==='ask'&&(k==='enter'||k==='j'))answerAsk(true);
   if(state.mode!=='play')return;
   if(k==='enter'&&state.offerK){acceptOffer();return}
+  if(k==='e'){walkToggle();return}   // out of the car and in again (js/walker.js)
+  if(WALK.on&&walkKeyDown(k))return;
   if(k==='k')openMap();
   if(k==='g'||k===' ')toggleGear();if(k==='l')setLights(!state.lights);if(k==='c')cycleCam();if(k==='r'){if(hasWinch())winchKey(true);else winch()}if(k==='m')setSound(!state.sound);
   if(k==='+'||k==='=')setSpeed(state.speed+10);if(k==='-'||k==='_')setSpeed(state.speed-10);
@@ -660,7 +664,7 @@ function setSound(on){state.sound=on;store.set('sound',on);$('pSound').textConte
 function setVol(which,v){v=Math.max(0,Math.min(100,Math.round(v)));state[which]=v;store.set(which,v);const ids=which==='volCar'?['volCar','pVolCar']:['volAmb','pVolAmb'];
   for(const id of ids){const el=$(id);if(el&&el.value!==undefined)el.value=v;const o=$(id+'Out');if(o)o.textContent=v+' %'}}
 for(const[id,w]of[['volCar','volCar'],['pVolCar','volCar'],['volAmb','volAmb'],['pVolAmb','volAmb']]){const el=$(id);if(el)el.addEventListener('input',e=>setVol(w,+e.target.value))}
-$('bGear').onclick=()=>{if(state.mode==='play')toggleGear()};$('bLights').onclick=()=>setLights(!state.lights);
+$('bGear').onclick=()=>{if(state.mode==='play'&&!WALK.on)toggleGear()};$('bWalk').onclick=()=>walkToggle();$('bLights').onclick=()=>setLights(!state.lights);
 $('bSlow').onclick=()=>setSpeed(state.speed-10);$('bFast').onclick=()=>setSpeed(state.speed+10);
 $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
@@ -697,12 +701,12 @@ function readInput(dt){
   if(gp){const ax=gp.axes[0]||0;if(Math.abs(ax)>.12)steer-=ax;const rt=gp.buttons[7]?gp.buttons[7].value:0,lt=gp.buttons[6]?gp.buttons[6].value:0;gas=Math.max(gas,rt);rev=Math.max(rev,lt);
     const ly=gp.axes[1]||0;if(ly<-.2)gas=Math.max(gas,-ly);if(ly>.2)rev=Math.max(rev,ly);
     const pr=i=>gp.buttons[i]&&gp.buttons[i].pressed&&!padPrev[i];
-    if(state.mode==='play'){if(pr(0))toggleGear();if(pr(1)){if(hasWinch())winchKey(true);else winch()}if(hasWinch()&&padPrev[1]&&!(gp.buttons[1]&&gp.buttons[1].pressed))winchKey(false);if(pr(3))cycleCam();if(pr(2))setLights(!state.lights)}
-    if(pr(9)){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ski')skiKeyDown('escape');else if(state.mode==='boat')boatKeyDown('escape');else if(state.mode==='fly')flyKeyDown('escape');else if(state.mode==='cave')caveKeyDown('escape');else if(state.mode==='mine')mineKeyDown('escape');else if(state.mode==='menu')startRun()}
+    if(state.mode==='play'){if(pr(5))walkToggle();if(!WALK.on){if(pr(0))toggleGear();if(pr(1)){if(hasWinch())winchKey(true);else winch()}if(hasWinch()&&padPrev[1]&&!(gp.buttons[1]&&gp.buttons[1].pressed))winchKey(false)}if(pr(3))cycleCam();if(pr(2))setLights(!state.lights)}
+    if(pr(9)){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ski')skiKeyDown('escape');else if(state.mode==='boat')boatKeyDown('escape');else if(state.mode==='fly')flyKeyDown('escape');else if(state.mode==='cave')caveKeyDown('escape');else if(state.mode==='race')raceKeyDown('escape');else if(state.mode==='mine')mineKeyDown('escape');else if(state.mode==='menu')startRun()}
     padPrev={};gp.buttons.forEach((b,i)=>padPrev[i]=b.pressed)}
   steer=Math.max(-1,Math.min(1,steer));
-  state.inp={gas,rev,steer,jump:keys.has(' ')||state.input.jump>0||!!(gp&&gp.buttons[0]&&gp.buttons[0].pressed)};   // the skier reads these (js/ski.js)
-  if(state.mode!=='play'){gas=0;rev=0;steer=0}
+  state.inp={gas,rev,steer,jump:keys.has(' ')||state.input.jump>0||!!(gp&&gp.buttons[0]&&gp.buttons[0].pressed)};   // the skier reads these (js/ski.js), and the driver on foot (js/walker.js)
+  if(state.mode!=='play'||WALK.on){gas=0;rev=0;steer=0}
   const thr=gas-rev;car.throttle+=Math.max(-dt*3,Math.min(dt*3,thr-car.throttle));
   car.steer+=Math.max(-dt*2.4,Math.min(dt*2.4,steer*.6-car.steer));
   if(state.mode==='play'&&!state.started&&Math.abs(thr)>0){state.started=true}
@@ -713,7 +717,8 @@ let camSnap=true,tripod=null;const camTarget=new V3(),camLook=new V3(),_c1=new V
 function updateCamera(dt){
   if(SKI.on){skiCamera(dt);return}
   const fwf=_c1.set(car.fw.x,0,car.fw.z);if(fwf.lengthSq()<1e-4)fwf.set(0,0,1);fwf.normalize();
-  if(state.mode==='menu'||state.mode==='garage'){const g=state.mode==='garage',a=performance.now()*(g?.0002:.00012)+.6,r=g?3.2:4.6;camTarget.set(car.pos.x+Math.sin(a)*r,0,car.pos.z+Math.cos(a)*r);camTarget.y=Math.max(car.pos.y+(g?.7:1.1),H(camTarget.x,camTarget.z)+.5);
+  if(WALK.on&&state.mode!=='menu'&&state.mode!=='garage'){if(walkCamera(dt))return}   // on foot (js/walker.js)
+  else if(state.mode==='menu'||state.mode==='garage'){const g=state.mode==='garage',a=performance.now()*(g?.0002:.00012)+.6,r=g?3.2:4.6;camTarget.set(car.pos.x+Math.sin(a)*r,0,car.pos.z+Math.cos(a)*r);camTarget.y=Math.max(car.pos.y+(g?.7:1.1),H(camTarget.x,camTarget.z)+.5);
     camLook.copy(car.pos).add(_c2.set(0,.2,0));camera.fov=g?34:40;}
   else if(state.camMode===0){
     const c=Math.cos(orbitYaw),s=Math.sin(orbitYaw),bx=-(fwf.x*c+fwf.z*s),bz=-(-fwf.x*s+fwf.z*c);
@@ -785,7 +790,7 @@ function frame(now){
   const dt=Math.min(.05,(now-last)/1000);last=now;
   if(!car||!LV){return}
   readInput(dt);if(toastT>0){toastT-=dt;if(toastT<=0){$('toast').classList.remove('on');$('boatToast').classList.remove('on');$('cvToast').classList.remove('on')}}
-  prevPos.copy(car.pos);
+  prevPos.copy(car.pos);walkStep(dt);
   if(state.mode!=='pause'&&state.mode!=='ask'&&state.mode!=='ferry'&&state.mode!=='ski'&&state.mode!=='boat'&&state.mode!=='fly'&&state.mode!=='cave'&&state.mode!=='mine'){acc+=dt;let n=0;while(acc>=FIXED&&n<20){stepCar(car,FIXED);acc-=FIXED;n++}if(n>=20)acc=0}
   if(state.mode==='count')updateCountdown(dt);if(state.mode==='ferry')updateFerry(dt);
   // physics blew up: put the car back at the last checkpoint (the start outside a run)
@@ -818,8 +823,9 @@ function frame(now){
   if(updateFly(dt)){if(typeof netTick==='function')netTick(dt);return}    // in the air (js/plane.js): the same sea, seen from the plane
   if(updateCave(dt)){if(typeof netTick==='function')netTick(dt);return}   // in Diamantgrotten (js/grotte.js): the cave seen from the side
   if(updateMine(dt)){if(typeof netTick==='function')netTick(dt);return}   // in Gruve 7 (js/gruve7.js): the mine wagon seen from behind
+  if(updateRace(dt)){if(typeof netTick==='function')netTick(dt);return}   // on Racerøya (js/race.js): the race seen from above
   updateMinimap();
-  updateLift(dt);syncVisuals(dt);updateSki(dt);if(typeof netTick==='function')netTick(dt);updateCamera(dt);updateAudio();updateAmbience(dt);
+  updateLift(dt);syncVisuals(dt);walkSync(dt);updateSki(dt);if(typeof netTick==='function')netTick(dt);updateCamera(dt);updateAudio();updateAmbience(dt);
   landShake*=Math.exp(-dt*9);const shk=(ERU.amp>.0005?ERU.amp:0)+boulderShake()+(landShake>.001?landShake:0),sx=(Math.random()-.5)*shk*2,sy=(Math.random()-.5)*shk*2,sz=(Math.random()-.5)*shk*2;if(shk)camera.position.add(_c1.set(sx,sy,sz));
   renderer.render(scene,camera);
   if(shk)camera.position.sub(_c1.set(sx,sy,sz));

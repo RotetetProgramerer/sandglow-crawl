@@ -29,10 +29,10 @@ for(const k in MTHEME){const t=MTHEME[k];t.rockC=col(t.rock);t.floorC=col(t.floo
 const M_HIT={ras:'Rett i steinraset!',vogn:'Rett i en kullvogn!',bukk:'Sporet var stengt!',vegg:'Sporet endte i veggen!',bjelke:'Au! Dukk under bjelken',istapper:'Istapper! Dukk',brudd:'Ned i sjakta!',hakke:'Truffet av en hakke!',felle:'Rett i en steinfelle!'};
 
 /* ---------- where things are: the centre line, the parts and the light ---------- */
-const _mo={},_mv=new THREE.Vector3(),_mv2=new THREE.Vector3();
-function mXYZ(s,lat,h,v){mineAt(MN.mine,s,_mo);return v.set(_mo.x+lat,_mo.y+h,-s)}
+const _g7o={},_g7v=new THREE.Vector3(),_g7v2=new THREE.Vector3();
+function mXYZ(s,lat,h,v){mineAt(MN.mine,s,_g7o);return v.set(_g7o.x+lat,_g7o.y+h,-s)}
 // put an object at s: it looks along the tunnel, so its own x is sideways, y up and -z further in
-function mPut(o,s,lat,h){mineAt(MN.mine,s,_mo);o.position.set(_mo.x+lat,_mo.y+h,-s);o.rotation.order='YXZ';o.rotation.y=-Math.atan(_mo.dx);o.rotation.x=Math.atan(_mo.dy);return o}
+function mPut(o,s,lat,h){mineAt(MN.mine,s,_g7o);o.position.set(_g7o.x+lat,_g7o.y+h,-s);o.rotation.order='YXZ';o.rotation.y=-Math.atan(_g7o.dx);o.rotation.x=Math.atan(_g7o.dy);return o}
 // a value of the part of the mine at s (rockC, floorC, amb, topC), blended over ten units at every border
 function mMix(m,s,key){const Z=m.zones,i=mineZone(m,s),a=MTHEME[Z[i].theme][key];let b=null,u=0;
   if(i>0&&s-Z[i].s<5){b=MTHEME[Z[i-1].theme][key];u=1-smt01((s-Z[i].s+5)/10)}else if(i<Z.length-1&&Z[i+1].s-s<5){b=MTHEME[Z[i+1].theme][key];u=smt01((s-Z[i+1].s+5)/10)}
@@ -61,9 +61,9 @@ function mSignTex(open){const c=document.createElement('canvas');c.width=c.heigh
   const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t}
 
 /* ---------- instances ---------- */
-const _mm4=new THREE.Matrix4(),_mq=new THREE.Quaternion(),_me=new THREE.Euler(0,0,0,'YXZ'),_mp=new THREE.Vector3(),_ms=new THREE.Vector3(),_mc=new THREE.Color();
-function mInst(im,k,s,lat,h,sx,sy,sz,c){mineAt(MN.mine,s,_mo);_mp.set(_mo.x+lat,_mo.y+h,-s);_me.set(Math.atan(_mo.dy),-Math.atan(_mo.dx),0);_mq.setFromEuler(_me);_ms.set(sx,sy,sz);_mm4.compose(_mp,_mq,_ms);im.setMatrixAt(k,_mm4);
-  if(c){_mc.setRGB(c[0],c[1],c[2]);im.setColorAt(k,_mc)}}
+const _g7m4=new THREE.Matrix4(),_g7q=new THREE.Quaternion(),_g7e=new THREE.Euler(0,0,0,'YXZ'),_g7p=new THREE.Vector3(),_g7s=new THREE.Vector3(),_g7c=new THREE.Color();
+function mInst(im,k,s,lat,h,sx,sy,sz,c){mineAt(MN.mine,s,_g7o);_g7p.set(_g7o.x+lat,_g7o.y+h,-s);_g7e.set(Math.atan(_g7o.dy),-Math.atan(_g7o.dx),0);_g7q.setFromEuler(_g7e);_g7s.set(sx,sy,sz);_g7m4.compose(_g7p,_g7q,_g7s);im.setMatrixAt(k,_g7m4);
+  if(c){_g7c.setRGB(c[0],c[1],c[2]);im.setColorAt(k,_g7c)}}
 function mGlow(g,hex,x,y,z,size,op=.8){const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:LIN(hex),transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false}));sp.position.set(x,y,z);sp.scale.set(size,size,1);g.add(sp);return sp}
 
 /* ---------- building the mine scene (once) ---------- */
@@ -80,7 +80,7 @@ function mBuild(){const m=MN.mine=makeMine(GRUVE7),sc=MN.scene=new THREE.Scene()
   const S=[];for(let s=-12;s<=m.len+46;s+=2)S.push(s);for(const g of gaps)S.push(g.s,g.s+.02,g.s+g.len-.02,g.s+g.len);S.sort((a,b)=>a-b);
   const rockTex=mRockTex();rockTex.encoding=THREE.sRGBEncoding;
   const rockMat=new THREE.MeshLambertMaterial({map:rockTex,vertexColors:true,side:THREE.DoubleSide}),flat=new THREE.MeshLambertMaterial({vertexColors:true,side:THREE.DoubleSide});
-  const P=(s,lat,h)=>{mXYZ(s,lat,h,_mv);return{x:_mv.x,y:_mv.y,z:_mv.z}},hk=s=>Math.round(s*.5);
+  const P=(s,lat,h)=>{mXYZ(s,lat,h,_g7v);return{x:_g7v.x,y:_g7v.y,z:_g7v.z}},hk=s=>Math.round(s*.5);
   // the floor: ballast, frost in the permafrost and snow where the daylight comes in; black at the bottom of the shafts
   {const F=[-M_TW-.3,-3,-2,-1,0,1,2,3,M_TW+.3],snow=col('#e8eef4');
     grp.add(new THREE.Mesh(cGrid(S.length,F.length,(i,j)=>P(S[i],F[j],inGap(S[i])?-8:(mHash(hk(S[i]),j)-.5)*.08),
@@ -102,7 +102,7 @@ function mBuild(){const m=MN.mine=makeMine(GRUVE7),sc=MN.scene=new THREE.Scene()
       mInst(im,i*3+2,s,0,h,M_TW*1.84,.3,.34,cMul(wood,mLit(m,s,0,h),k*.9))});im.frustumCulled=false;grp.add(im)}
   // the lamps on the walls: a small cage and a glow
   {const W=lamps.filter(l=>l.wall),im=new THREE.InstancedMesh(boxGeo,new THREE.MeshBasicMaterial(),W.length),pos=new Float32Array(W.length*3),cl=new Float32Array(W.length*3);
-    W.forEach((l,i)=>{const c=col(l.hex);mInst(im,i,l.s,l.lat,l.h,.22,.3,.22,c.map(v=>v*1.6));mXYZ(l.s,l.lat*.97,l.h,_mv);pos.set([_mv.x,_mv.y,_mv.z],i*3);cl.set(c.map(v=>v*.8),i*3)});im.frustumCulled=false;grp.add(im);
+    W.forEach((l,i)=>{const c=col(l.hex);mInst(im,i,l.s,l.lat,l.h,.22,.3,.22,c.map(v=>v*1.6));mXYZ(l.s,l.lat*.97,l.h,_g7v);pos.set([_g7v.x,_g7v.y,_g7v.z],i*3);cl.set(c.map(v=>v*.8),i*3)});im.frustumCulled=false;grp.add(im);
     const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(pos,3));g.setAttribute('color',new THREE.BufferAttribute(cl,3));
     const pt=new THREE.Points(g,new THREE.PointsMaterial({map:glowTex,size:3.4,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));pt.frustumCulled=false;grp.add(pt)}
   mObstacles(m,grp,rockTex);mItems(m,grp);
@@ -142,7 +142,7 @@ function mObstacles(m,grp,rockTex){const R=mulberry32(41),LW=MCFG.lane,dod=new T
     g.traverse(q=>{q.castShadow=false})}}
 // the coal and the lanterns at the checkpoints
 function mItems(m,grp){const n=m.coal.length,im=new THREE.InstancedMesh(new THREE.DodecahedronGeometry(.34,0),new THREE.MeshStandardMaterial({color:LIN('#26262c'),emissive:LIN('#ff9a3a'),emissiveIntensity:.05,metalness:.5,roughness:.25,flatShading:true}),n);
-  im.frustumCulled=false;grp.add(im);const pos=new Float32Array(n*3),cl=new Float32Array(n*3);m.coal.forEach((k,i)=>{mXYZ(k.s,k.lane*MCFG.lane,.62+k.h,_mv);k.px=_mv.x;k.py=_mv.y;k.pz=_mv.z;pos.set([_mv.x,_mv.y,_mv.z],i*3)});
+  im.frustumCulled=false;grp.add(im);const pos=new Float32Array(n*3),cl=new Float32Array(n*3);m.coal.forEach((k,i)=>{mXYZ(k.s,k.lane*MCFG.lane,.62+k.h,_g7v);k.px=_g7v.x;k.py=_g7v.y;k.pz=_g7v.z;pos.set([_g7v.x,_g7v.y,_g7v.z],i*3)});
   const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));pg.setAttribute('color',new THREE.BufferAttribute(cl,3));
   const glow=new THREE.Points(pg,new THREE.PointsMaterial({map:glowTex,size:2.6,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false}));glow.frustumCulled=false;grp.add(glow);
   MN.coalIM={im,glow};
@@ -207,7 +207,7 @@ function mineExit(top){if(MN.fade||!MN.on)return;$('fade').classList.add('on');
 
 /* ---------- a step of the race: physics and what happens ---------- */
 const M_ORD=['','1.','2.','3.','4.'];
-function mBurst(s,lat,h,n,a,b){mXYZ(s,lat,h,_mv);for(let i=0;i<n;i++)mPart(_mv.x,_mv.y,_mv.z,i%2?a:b,true)}
+function mBurst(s,lat,h,n,a,b){mXYZ(s,lat,h,_g7v);for(let i=0;i<n;i++)mPart(_g7v.x,_g7v.y,_g7v.z,i%2?a:b,true)}
 function mStep(dt){const R=MN.race,c=R.P,m=MN.mine,q=MN.q,inp={left:q.left,right:q.right,jump:q.jump,duck:q.duck,use:q.use,duckHold:MN.padHold||keys.has('arrowdown')||keys.has('s')};q.left=q.right=q.jump=q.duck=q.use=false;
   stepMineRace(R,inp,dt);const va=state.volAmb/70,touch=document.body.classList.contains('is-touch'),LW=MCFG.lane;
   for(const e of R.ev){const me=e.c===0,k=R.carts[e.c||0],near=Math.abs(k.s-c.s)<45;
@@ -288,7 +288,7 @@ function updateMine(dt){
   MN.shake*=Math.exp(-dt*6);
   mPose(dt);mCamera(dt);MN.hudT-=dt;if(MN.hudT<=0){MN.hudT=1/15;mHud()}mSndUpdate(dt);
   renderer.setScissorTest(false);renderer.setViewport(0,0,innerWidth,innerHeight);renderer.render(MN.scene,MN.cam);return true}
-const _fogA=new THREE.Color(0x070605),_fogB=new THREE.Color(0xe6eef6).convertSRGBToLinear();
+const _g7fogA=new THREE.Color(0x070605),_g7fogB=new THREE.Color(0xe6eef6).convertSRGBToLinear();
 function mPose(dt){const R=MN.race,c=R.P,m=MN.mine,tm=performance.now()*.001,LW=MCFG.lane,k=1-Math.exp(-dt*14),run=!MN.paused;
   R.carts.forEach((q,i)=>{const v=MN.carts[i],lat=q.x*LW,stun=q.stun>0&&!q.fall,bo=q.boost>0;
     mPut(v.g,q.s,lat,Math.max(-7,q.y));v.spin.rotation.y=stun?(1-q.stun/MCFG.spinT)*Math.PI*4:0;
@@ -302,7 +302,7 @@ function mPose(dt){const R=MN.race,c=R.P,m=MN.mine,tm=performance.now()*.001,LW=
     v.g.visible=!(q.inv>0&&q.stun<=0&&!bo&&Math.floor(tm*14)%2)&&(!i||q.s>c.s-3.4);   // it blinks while nothing can hit it; a rival right behind you would hide the track
     if(v.tag)v.tag.visible=q.s>c.s+2.5;
     v.shadow.visible=q.y>=0&&!q.fall&&v.g.visible;if(v.shadow.visible){mPut(v.shadow,q.s,lat,.21);v.shadow.rotation.x-=Math.PI/2;const z=1/(1+q.y*.5);v.shadow.scale.set(z,z,1);v.shadow.material.opacity=.55*z}
-    if(run&&bo&&q.y<=0&&Math.random()<dt*30){mXYZ(q.s-1.2,lat+(Math.random()<.5?-.55:.55),.25,_mv);mPart(_mv.x,_mv.y,_mv.z,'#ffb040',true)}});
+    if(run&&bo&&q.y<=0&&Math.random()<dt*30){mXYZ(q.s-1.2,lat+(Math.random()<.5?-.55:.55),.25,_g7v);mPart(_g7v.x,_g7v.y,_g7v.z,'#ffb040',true)}});
   // crates turn, pads run, traps lie and pickaxes fly
   MN.boxVis.forEach((b,i)=>{b.g.visible=R.boxT[i]<=0;if(b.g.visible){b.q.rotation.y=tm*1.6+i;b.q.rotation.x=.5;b.q.position.y=Math.sin(tm*2.2+i)*.1}});
   if(run)MN.padTex.offset.y-=dt*2.4;
@@ -310,14 +310,14 @@ function mPose(dt){const R=MN.race,c=R.P,m=MN.mine,tm=performance.now()*.001,LW=
   MN.shotVis.forEach((g,i)=>{const q=R.shots[i];g.visible=!!q;if(q){mPut(g,q.s,q.lane*LW,1.4);g.userData.t.rotation.x=-tm*22}});
   mXYZ(c.s+3.5,c.x*LW*.7,2.3,MN.lamp.position);
   // the dark gives way to the daylight on the last stretch
-  {const d=mDay(m,c.s+26);MN.scene.fog.color.copy(_fogA).lerp(_fogB,d);MN.scene.background.copy(MN.scene.fog.color);MN.scene.fog.near=16+d*30;MN.scene.fog.far=100+d*60}
+  {const d=mDay(m,c.s+26);MN.scene.fog.color.copy(_g7fogA).lerp(_g7fogB,d);MN.scene.background.copy(MN.scene.fog.color);MN.scene.fog.near=16+d*30;MN.scene.fog.far=100+d*60}
   mCoalPose(false);
   // sparks from the wheels now and then, more on the steep way down
-  if(run&&c.stun<=0&&c.y<=0&&c.v>8&&Math.random()<dt*(c.v>15?16:3)){mXYZ(c.s-1,c.x*LW+(Math.random()<.5?-.55:.55),.25,_mv);mPart(_mv.x,_mv.y,_mv.z,'#ffb040',true)}
+  if(run&&c.stun<=0&&c.y<=0&&c.v>8&&Math.random()<dt*(c.v>15?16:3)){mXYZ(c.s-1,c.x*LW+(Math.random()<.5?-.55:.55),.25,_g7v);mPart(_g7v.x,_g7v.y,_g7v.z,'#ffb040',true)}
   for(const p of MN.parts){if(p.life<=0)continue;p.life-=dt*1.8;p.v.y-=7*dt;p.s.position.addScaledVector(p.v,dt);p.s.material.opacity=Math.max(0,p.life);if(p.life<=0)p.s.visible=false}}
 // the coal turns, and its glow twinkles; taken lumps are scaled to nothing, and with the magnet the lumps ahead lean in towards the wagon
 function mCoalPose(all){const G=MN.coalIM,K=MN.mine.coal,c=MN.cart,tm=performance.now()*.001,C=G.glow.geometry.attributes.color,s0=c?c.s:0;
-  for(let i=0;i<K.length;i++){const k=K[i];if(!all&&(k.s<s0-8||k.s>s0+125))continue;const on=!(c&&c.taken[i]);_mp.set(k.px,k.py+Math.sin(tm*2.4+i)*.06,k.pz);_me.set(tm*1.3+i,tm*1.9+i*1.7,0);_mq.setFromEuler(_me);_ms.setScalar(on?1:0);_mm4.compose(_mp,_mq,_ms);G.im.setMatrixAt(i,_mm4);
+  for(let i=0;i<K.length;i++){const k=K[i];if(!all&&(k.s<s0-8||k.s>s0+125))continue;const on=!(c&&c.taken[i]);_g7p.set(k.px,k.py+Math.sin(tm*2.4+i)*.06,k.pz);_g7e.set(tm*1.3+i,tm*1.9+i*1.7,0);_g7q.setFromEuler(_g7e);_g7s.setScalar(on?1:0);_g7m4.compose(_g7p,_g7q,_g7s);G.im.setMatrixAt(i,_g7m4);
     const g=on?.75+.25*Math.sin(tm*4+i*1.3):0;C.setXYZ(i,g,g*.66,g*.24)}
   G.im.instanceMatrix.needsUpdate=true;C.needsUpdate=true}
 function mPart(x,y,z,hex,fast){const p=MN.parts.find(q=>q.life<=0)||MN.parts[Math.floor(Math.random()*MN.parts.length)];p.life=1;p.s.visible=true;p.s.material.color.set(LIN(hex));const sc=fast?.22:.32;p.s.scale.set(sc,sc,1);
@@ -326,7 +326,7 @@ function mPart(x,y,z,hex,fast){const p=MN.parts.find(q=>q.life<=0)||MN.parts[Mat
 function mCamera(dt){const c=MN.cart,cam=MN.cam,port=cam.aspect<1,bo=c.boost>0?1:0,tl=c.x*MCFG.lane*.82;MN.camB=(MN.camB||0)+(bo-(MN.camB||0))*(1-Math.exp(-dt*5));const back=(port?8.6:6.8)+MN.camB*1.1;
   if(MN.snap){MN.camLat=tl;MN.snap=false}else MN.camLat+=(tl-MN.camLat)*(1-Math.exp(-dt*8));
   const sh=MN.shake*.35,top=mTop(MN.mine,c.s-back),h=Math.min(top-.75,3+Math.max(0,c.y)*.3);
-  mXYZ(c.s-back,MN.camLat+(Math.random()-.5)*sh,h+(Math.random()-.5)*sh,cam.position);mXYZ(c.s+11,MN.camLat*1.05,1.2,_mv2);cam.lookAt(_mv2);
+  mXYZ(c.s-back,MN.camLat+(Math.random()-.5)*sh,h+(Math.random()-.5)*sh,cam.position);mXYZ(c.s+11,MN.camLat*1.05,1.2,_g7v2);cam.lookAt(_g7v2);
   const fov=(port?70:57)+Math.min(8,c.v*.45)+MN.camB*9;if(Math.abs(fov-cam.fov)>.05){cam.fov+=(fov-cam.fov)*(1-Math.exp(-dt*6));cam.updateProjectionMatrix()}}
 function mLayout(){if(!MN.cam)return;MN.cam.aspect=innerWidth/innerHeight;MN.cam.updateProjectionMatrix()}
 

@@ -66,6 +66,13 @@ function mineTest(def,lv){const D=lv.mineDef,P=def.minePath;if(!P)return;const r
     for(let i=0;i<240*40;i++){const w=pts[wp],dx=w.x-car.pos.x,dz=w.z-car.pos.z,d=Math.hypot(dx,dz);if(d<(wp===pts.length-1?r:1)){wp++;if(wp>=pts.length){t=i*dt;break}continue}
       const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);if(car.up.y<.2){flip=true;break}}
     const ok=wp>=pts.length&&!flip&&moved<.6;console.log(def.id.padEnd(14),'GRUVE 7 ',ok?'OK  ':'FEIL',what,ok?'tid '+t.toFixed(0)+'s':flip?'(velt)':moved>=.6?'(bilen sto ikke i ro, flyttet seg '+moved.toFixed(1)+')':'(stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+')')}}
+// Racerøya: from where the village road ends, along def.racePath and onto the blue square at the depot (lv.raceDef)
+function raceTest(def,lv){const P=def.racePath;if(!P)return;const A=lv.raceDef.ask,car=makeCar(TCAR);car.assist=false;car.low=true;const pts=P.slice(1).map(p=>({x:p[0],z:p[1]}));pts.push(A);
+  placeCar(car,P[0][0],P[0][1],Math.atan2(pts[0].x-P[0][0],pts[0].z-P[0][1]));for(let i=0;i<480;i++)stepCar(car,dt);let wp=0,t=0,fell=0;
+  for(let i=0;i<240*60;i++){const w=pts[wp],dx=w.x-car.pos.x,dz=w.z-car.pos.z;if(Math.hypot(dx,dz)<(wp===pts.length-1?.7:1.2)){wp++;if(wp>=pts.length){t=i*dt;break}continue}
+    const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);
+    if(car.depth>0)fell++;if(car.up.y<.2){console.log(def.id.padEnd(14),'RACE     FEIL: velt ved',car.pos.x.toFixed(1),car.pos.z.toFixed(1));process.exitCode=1;return}}
+  const ok=wp>=pts.length;console.log(def.id.padEnd(14),'RACE    ',ok?'OK  ':'FEIL','veien og inn på den blå ruta ved depotet'+(ok?' tid '+t.toFixed(0)+'s':' (stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+')'),'vann',fell);if(!ok)process.exitCode=1}
 // Kameløya: from outside the slot, along it and into the cave mouth (lv.caveDef), then back out again from where the cave puts you
 function caveTest(def,lv){const D=lv.caveDef,P=def.cavePath;if(!P)return;for(const back of[false,true]){const car=makeCar(TCAR);car.assist=false;car.low=true;
   let io=0;P.forEach((p,i)=>{if(Math.hypot(p[0]-D.out.x,p[1]-D.out.z)<Math.hypot(P[io][0]-D.out.x,P[io][1]-D.out.z))io=i});   // back out: the slot from where the cave puts you
@@ -129,6 +136,7 @@ for(const def of LEVELS){
   if(lv.airportDef&&lv.airportDef.cargo)cargoTest(def,lv);
   if(lv.caveDef)caveTest(def,lv);
   if(lv.mineDef)mineTest(def,lv);
+  if(lv.raceDef)raceTest(def,lv);
   for(const k of(lv.pistes||[]))skiTest(def,lv,k);
   if(def.world){for(const k of lv.courses)drive(def,lv,k,def.id+'/'+k.id);continue}   // an open world: every course on its own
   drive(def,lv,lv,def.id);

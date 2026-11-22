@@ -237,7 +237,7 @@ html{box-sizing:border-box}*,*::before,*::after{box-sizing:inherit}body{margin:0
 .ski-run .r b{color:var(--paper);font-size:1.12rem;letter-spacing:0;font-variant-numeric:tabular-nums}
 .ski-run .r b.pen{color:var(--signal)}
 #hud.ski .ski-run{display:block}
-#hud.ski .hud-run,#hud.ski .gauges,#hud.ski #bWinch,#hud.ski #bLights,#hud.ski #bMap,#hud.ski #bZoomIn,#hud.ski #bZoomOut{display:none}
+#hud.ski .hud-run,#hud.ski .gauges,#hud.ski #bWinch,#hud.ski #bLights,#hud.ski #bMap,#hud.ski #bZoomIn,#hud.ski #bZoomOut,#hud.ski #bWalk{display:none}
 .ski-help{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(22px + env(safe-area-inset-bottom,0px));background:var(--panel);color:var(--paper);padding:7px 14px;font-size:.98rem;text-align:center;max-width:calc(100% - 32px);pointer-events:none}
 .ski-help kbd{font-family:inherit;font-weight:700;color:#9fd2ff}
 body.is-touch .ski-help{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
@@ -246,6 +246,9 @@ body.is-touch .ski-help{bottom:calc(190px + env(safe-area-inset-bottom,0px))}
 .ski-split.ahead{color:#8bbb4a}.ski-split.behind{color:var(--signal)}
 .tb.sk{display:none}
 #hud.ski .tb.sk{display:grid}
+/* on foot (js/walker.js): the jump button, and no winch or gear */
+#hud.walk .tb.sk{display:grid}
+#hud.walk #bWinch,#hud.walk #bGear,#hud.walk .gauges .spd{display:none}
 .alist .pdot{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:7px;border:1px solid var(--paper);vertical-align:1px}
 .alist .nm small{font-family:var(--f-body,inherit);font-size:.78rem;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-left:4px}
 /* drive together */
@@ -381,3 +384,27 @@ body.is-touch #boatHud.two #bPauseB{bottom:auto;transform:none}
 body:not(.is-touch) .tb.pedal{opacity:.8;transform:scale(.8);transform-origin:bottom}
 body:not(.is-touch) .tb.pedal.on{transform:scale(.8) translateY(4px)}
 @media (max-width:620px){.cv-fuel{width:120px}.cv-dist b{font-size:1.2rem}.cv-zone{top:calc(124px + env(safe-area-inset-top,0px))}#cvDials{width:180px;height:68px;bottom:calc(16px + env(safe-area-inset-bottom,0px))}.cv-gems b{font-size:1.3rem}}
+
+/* ---------- Racerøya (js/race.js): the race from above on its own canvas; the HUD is drawn on the canvas, only the buttons are HTML ---------- */
+#raceHud{position:fixed;inset:0;z-index:10;pointer-events:none;background:#24689a}
+#rcCv{position:absolute;inset:0;width:100%;height:100%;display:block}
+#rcPauseB{position:absolute;pointer-events:auto;top:calc(12px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+#raceHud.two #rcPauseB{right:auto;left:50%;transform:translateX(-50%)}
+.rc-touch{display:none}
+body.is-touch .rc-touch{display:block}
+.rc-steer,.rc-pedals{position:absolute;bottom:calc(14px + env(safe-area-inset-bottom,0px));display:flex;gap:12px;align-items:flex-end;pointer-events:auto}
+.rc-steer{left:max(14px,env(safe-area-inset-left,0px))}
+.rc-pedals{right:max(14px,env(safe-area-inset-right,0px))}
+.rc-pedals .tb span{font-weight:700;font-size:.78rem;letter-spacing:.08em;color:var(--paper);line-height:1.05;text-align:center}
+.rc-pedals .tb.on span{color:var(--ink)}
+.rc-pedals .rc-hb{width:62px;height:62px;border-color:var(--signal)}
+#rcReset{position:absolute;pointer-events:auto;top:calc(64px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px))}
+@media (max-width:520px){.rc-touch .tb{width:58px;height:58px}.rc-touch .tb.big{width:68px;height:68px}.rc-pedals .rc-hb{width:52px;height:52px}.rc-steer,.rc-pedals{gap:8px}.rc-pedals .tb span{font-size:.7rem}}
+.seg.three{grid-template-columns:repeat(3,1fr)}
+.rr-table{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px;font-variant-numeric:tabular-nums}
+.rr-table li{display:grid;grid-template-columns:2em auto minmax(0,1fr) auto;align-items:center;gap:6px;padding:4px 10px;background:var(--ink-2);border:1px solid rgba(242,232,208,.1)}
+.rr-table li.me{border-color:var(--sand);background:#2A2318;box-shadow:inset 3px 0 0 var(--sand)}
+.rr-table b{color:var(--sand);font-family:var(--f-display);font-weight:400;font-size:1.15rem}
+.rr-table em{font-style:normal;color:var(--muted)}
+#raceMenu,#racePause,#raceResult{align-items:start}
+@supports (align-items:safe center){#raceMenu,#racePause,#raceResult{align-items:safe center}}

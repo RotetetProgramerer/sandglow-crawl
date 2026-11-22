@@ -96,6 +96,7 @@ function updateMinimap(){const cv=MAP.mini;if(!MAP.base||!car||$('hud').hidden||
   if(typeof netDots==='function')for(const d of netDots()){const[u,v]=toMini(d.x,d.z),dd=Math.hypot(u-R,v-R);if(dd<R-8)drawFriend(x,u,v,d.col,5);else{const a=Math.atan2(v-R,u-R);drawFriend(x,R+Math.cos(a)*(R-8),R+Math.sin(a)*(R-8),d.col,4)}}
   gpsDrawMini(x,toMini,R);
   drawCar(x,R,R,0,7);
+  if(WALK.on){let[u,v]=toMini(WALK.pos.x,WALK.pos.z);const d=Math.hypot(u-R,v-R);if(d>R-7){u=R+(u-R)/d*(R-7);v=R+(v-R)/d*(R-7)}x.fillStyle='#f2e8d0';x.strokeStyle='#14120E';x.lineWidth=1.5;x.beginPath();x.arc(u,v,3.2,0,6.283);x.fill();x.stroke()}   // the driver on foot (js/walker.js)
   // north
   {const a=-ang;const nu=R+Math.sin(a)*(R-12),nv=R-Math.cos(a)*(R-12);x.fillStyle='#f2e8d0';x.font='700 11px "Barlow Condensed",sans-serif';x.textAlign='center';x.textBaseline='middle';x.fillText('N',nu,nv)}
   x.strokeStyle='rgba(242,232,208,.5)';x.lineWidth=2;x.beginPath();x.arc(R,R,R-2,0,6.283);x.stroke()}
@@ -119,6 +120,7 @@ function drawBigMap(){if(!MAP.open)return;if(MAP.tab==='arch')return drawArchipe
   if(typeof netDots==='function')for(const d of netDots())drawFriend(x,mapX(d.x)*sc,mapY(d.z)*sc,d.col,7,d.name);
   gpsDrawBig(x,sc);
   drawCar(x,mapX(car.pos.x)*sc,mapY(car.pos.z)*sc,mapAng(car.fw),9);
+  if(WALK.on){x.fillStyle='#f2e8d0';x.strokeStyle='#14120E';x.lineWidth=1.5;x.beginPath();x.arc(mapX(WALK.pos.x)*sc,mapY(WALK.pos.z)*sc,4,0,6.283);x.fill();x.stroke()}   // the driver on foot (js/walker.js)
   // compass
   x.save();x.translate(sz-36,sz-36);x.fillStyle='rgba(233,220,185,.85)';x.beginPath();x.arc(0,0,24,0,6.283);x.fill();x.strokeStyle=MAPCOL.ink;x.lineWidth=1.5;x.stroke();x.fillStyle='#d9432f';x.beginPath();x.moveTo(0,-20);x.lineTo(5,0);x.lineTo(-5,0);x.closePath();x.fill();x.fillStyle=MAPCOL.ink;x.beginPath();x.moveTo(0,20);x.lineTo(5,0);x.lineTo(-5,0);x.closePath();x.fill();x.font='700 11px "Barlow Condensed",sans-serif';x.textAlign='center';x.fillText('N',0,-26);x.restore()}
 // a little ferry: hull and wheelhouse
