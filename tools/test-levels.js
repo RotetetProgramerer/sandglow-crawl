@@ -56,6 +56,16 @@ function airportTest(def,lv){const A=lv.airportDef,car=makeCar(TCAR);car.assist=
     const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);
     if(car.depth>0)fell++;if(car.up.y<.2){console.log(def.id.padEnd(14),'FLYPLASS FEIL: velt ved',car.pos.x.toFixed(1),car.pos.z.toFixed(1));return}}
   const ok=wp>=pts.length;console.log(def.id.padEnd(14),'FLYPLASS',ok?'OK  ':'FEIL','veien og inn på den blå ruta'+(ok?' tid '+t.toFixed(0)+'s':' (stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+')'),'vann',fell)}
+// Svalbard: from the end of the road to the mine entrance (lv.mineDef), back to the road from where the mine puts you out,
+// and from the day opening on the plateau over to the road across it
+function mineTest(def,lv){const D=lv.mineDef,P=def.minePath;if(!P)return;const road=(def.challenges.find(k=>k.id==='gruva')||{path:[P[0]]}).path,near=o=>road.reduce((a,p)=>Math.hypot(p[0]-o.x,p[1]-o.z)<Math.hypot(a[0]-o.x,a[1]-o.z)?p:a);
+  for(const[what,from,h,pts,r]of[['fra veien og inn i gruveinngangen',{x:P[0][0],z:P[0][1]},null,[...P.slice(1).map(p=>({x:p[0],z:p[1]})),D.mouth],D.r],
+      ['fra inngangen og tilbake til veien',D.out,D.out.h,[{x:P[0][0],z:P[0][1]}],1.2],['fra dagåpningen og bort til Gruveveien',D.top,D.top.h,[(p=>({x:p[0],z:p[1]}))(near(D.top))],1.2]]){
+    const car=makeCar(TCAR);car.assist=false;car.low=true;placeCar(car,from.x,from.z,h===null?Math.atan2(pts[0].x-from.x,pts[0].z-from.z):h);for(let i=0;i<480;i++)stepCar(car,dt);
+    const moved=Math.hypot(car.pos.x-from.x,car.pos.z-from.z);let wp=0,t=0,flip=false;
+    for(let i=0;i<240*40;i++){const w=pts[wp],dx=w.x-car.pos.x,dz=w.z-car.pos.z,d=Math.hypot(dx,dz);if(d<(wp===pts.length-1?r:1)){wp++;if(wp>=pts.length){t=i*dt;break}continue}
+      const fw=car.fw,lf=car.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);car.steer=Math.max(-.6,Math.min(.6,ang*1.5));car.throttle=1;stepCar(car,dt);if(car.up.y<.2){flip=true;break}}
+    const ok=wp>=pts.length&&!flip&&moved<.6;console.log(def.id.padEnd(14),'GRUVE 7 ',ok?'OK  ':'FEIL',what,ok?'tid '+t.toFixed(0)+'s':flip?'(velt)':moved>=.6?'(bilen sto ikke i ro, flyttet seg '+moved.toFixed(1)+')':'(stoppet ved '+car.pos.x.toFixed(1)+','+car.pos.z.toFixed(1)+')')}}
 // Racerøya: from where the village road ends, along def.racePath and onto the blue square at the depot (lv.raceDef)
 function raceTest(def,lv){const P=def.racePath;if(!P)return;const A=lv.raceDef.ask,car=makeCar(TCAR);car.assist=false;car.low=true;const pts=P.slice(1).map(p=>({x:p[0],z:p[1]}));pts.push(A);
   placeCar(car,P[0][0],P[0][1],Math.atan2(pts[0].x-P[0][0],pts[0].z-P[0][1]));for(let i=0;i<480;i++)stepCar(car,dt);let wp=0,t=0,fell=0;
@@ -125,6 +135,7 @@ for(const def of LEVELS){
   if(lv.airportDef&&lv.airportDef.ask)airportTest(def,lv);
   if(lv.airportDef&&lv.airportDef.cargo)cargoTest(def,lv);
   if(lv.caveDef)caveTest(def,lv);
+  if(lv.mineDef)mineTest(def,lv);
   if(lv.raceDef)raceTest(def,lv);
   for(const k of(lv.pistes||[]))skiTest(def,lv,k);
   if(def.world){for(const k of lv.courses)drive(def,lv,k,def.id+'/'+k.id);continue}   // an open world: every course on its own

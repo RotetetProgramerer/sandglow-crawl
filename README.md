@@ -27,10 +27,12 @@ js/boat.js            Motorbåtløpet fra marinaen på Tromøya: havet, øyene, 
 js/planesim.js        Flyfysikken: avgang, flyging, landing, krasj og ringene (ingen DOM, testes uten nettleser).
 js/racesim.js         Fysikken i racene på Racerøya: bilene sett ovenfra, sladd og turbo, dult, dekkveggene og motstanderne (ingen DOM, testes uten nettleser).
 js/grottesim.js       Fysikken i Diamantgrotten: bilen sett fra siden, diamanter, bensin og sjekkpunkter (ingen DOM, testes uten nettleser).
+js/gruvesim.js        Kappløpet i Gruve 7: vognene på tre spor, hindringene, kullet, kassene, utstyret og rivalene (ingen DOM, testes uten nettleser).
 js/gpsroute.js        GPS-en: finner en vei bilen kan kjøre mellom to steder på øya (ingen DOM, testes uten nettleser).
 js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen ute på havet, HUD, lyd, og båtene og flyene til de andre i rommet.
 js/cargo.js           Lasteflyet som flyr bilen mellom øyene: modellen, spørsmålet i lasterommet, flyturen, landingen og flyplassene på havet.
 js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
+js/gruve7.js          Gruve 7 på Svalbard: gruvegangen sett bakfra, gruvearbeiderne i vognene, hindringene, HUD, lyd og musikk, inn og ut.
 js/race.js            Racene på Racerøya sett ovenfra: tegningen, kameraet, HUD-en, menyen, lyden, premiene, inn og ut.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
@@ -44,6 +46,7 @@ data/dyr.js           Dyr for de samme tre miljøene (står i ro).          ← 
 data/savanne.js       Savannens trær, termittuer, gress, elefanter og flodhester (står i ro).
 data/orken.js         Ørkenens kameler, beduiner, telt, brønn og tornebusker (står i ro).
 data/grotte.js        Diamantgrotten: bakken, taket, juv, broer, diamanter, bensinkanner og sjekkpunkter.  ← endre grotten her
+data/gruve7.js        Gruve 7: gangen, hindringene, kullet, kassene og fartsfeltene.              ← endre gruva her
 data/racer.js         Racerbanene på Racerøya, motstanderne og premiene.  ← legg til nye racerbaner her
 data/boats.js         Havet og båtløpene fra marinaen.                    ← legg til nye båtløp her
 data/flights.js       Flyplassen på havet og flyturene med ringer.        ← legg til nye flyturer her
@@ -52,6 +55,7 @@ tools/test-boats.js   Autopilot som kjører alle båtløpene uten nettleser.
 tools/test-flights.js Autopilot som flyr alle flyturene, og lasteflyet mellom alle øyene, uten nettleser.
 tools/test-props.js   Finner pynt som svever over bakken uten noe under seg (node tools/test-props.js [bane]).
 tools/test-grotte.js  Autopilot som kjører Diamantgrotten med alle bilene i Lett og Ekte modus, uten nettleser.
+tools/test-gruve7.js  Autopilot som kjører kappløpet i Gruve 7 i flere hastigheter, uten nettleser.
 tools/test-race.js    Sjekker racerbanene og lar motstanderne kjøre alle løpene på alle vanskelighetsgrader, uten nettleser.
 tools/test-gps.js     Lager GPS-ruter til alle stedene på hver øy og lar en autopilot kjøre dem, uten nettleser.
 manifest.json, sw.js  Gjør spillet til en PWA (installerbar, virker uten nett).
@@ -562,7 +566,7 @@ Hver bil skal vise `MÅL`, helst `velt 0` og `juv 0`, og `bensin` bør ikke gå 
 | Reindalen | Den brede dalen midt på øya, med reinsdyr. Veien går nordover til brefoten. |
 | Isbjørnbreen | Iskappen i nord: en slak snøbakke opp fra sør, blåis, bresprekker i øst, en nunatak, og en brefront som er et stup rett i havet. Isfjell flyter utenfor. |
 | Isfjorden | Vest: blank is. Seler ligger ved pustehullene, en skøyte har frosset fast, og en isbjørn vokter iskanten. |
-| Gruvefjellet | Øst: et platåfjell med gruveinngang og kullvogn i sørveggen, taubane med kibber ned til taubanesentralen ved sjøen, og satellittstasjonen med radarkupler på toppen. |
+| Gruvefjellet | Øst: et platåfjell med gruveinngang og kullvogn i sørveggen, taubane med kibber ned til taubanesentralen ved sjøen, og satellittstasjonen med radarkupler på toppen. Kjør inn i gruveinngangen for å kjøre om kapp i gruvevogn gjennom Gruve 7. Dagåpningen på platået er der du kommer ut. |
 | Frøhvelvet | En betongkile med lysende front som stikker ut av vestveggen på Gruvefjellet. |
 | Fangsthytta | Nordvest: tjæret hytte, fiskehjell, slede, sledehunder, og hvalross på stranda nedenfor. |
 
@@ -581,6 +585,44 @@ Hver bil skal vise `MÅL`, helst `velt 0` og `juv 0`, og `bensin` bør ikke gå 
 - **Flerspiller:** de andre i rommet ser deg på skuter.
 
 Koden ligger i `js/world.js` («the snowmobile hire»). Banen setter `c.skuterDef={ask:{x,z},park:{x,z,h}}` i `build(c)`: `ask` er den blå ruta, `park` er der bilen står imens. Fysikken er `belt` i `stepCar` (`js/core.js`).
+
+**Gruve 7** (`js/gruve7.js`, `js/gruvesim.js`, `data/gruve7.js`). Kjør helt inn til den mørke gruveinngangen i sørveggen på Gruvefjellet. Da blir du en gruvearbeider i en gruvevogn, og kjører om kapp mot Kull-Kari, Dynamitt-Dag og Gamle Olaf gjennom fjellet. Vognene ruller av seg selv på tre spor, og du ser din egen bakfra. Farten øker for hver del av gruva, og et løp tar omtrent ett minutt og tre kvarter.
+
+| Du gjør | Taster | Berøring | Til hva |
+|---|---|---|---|
+| Bytter spor | ← →, A D | Sveip til siden | Forbi steinras, parkerte kullvogner, stengte spor, spor som ender i veggen, og rivaler |
+| Hopper | ↑, W | Sveip opp | Over brudd i skinnene og steinfeller |
+| Dukker | ↓, S | Sveip ned | Under lave bjelker og istapper |
+| Bruker utstyret | Mellomrom, Enter, X | Trykk, eller knappen nede til høyre | Det du fant i en kasse |
+
+- **Krasj:** vogna snurrer rundt, mister farten og to kullklumper, og ruller videre. Faller du ned i en sjakt, settes vogna på skinnene igjen på den andre siden. Ingen blir satt tilbake, og ingen ryker ut.
+- **Kull er fart:** hver klump du har om bord (opptil 20), gjør vogna 0,4 % raskere. Hver klump du plukker, er også 3 muttere.
+- **Mer fart:** fartsfeltene (lysende piler), et sent hopp over et brudd («Perfekt hopp!»), dragsug rett bak en rival, og et hopp akkurat når nedtellingen sier «GÅ». Hopper du for tidlig, blir vogna stående et øyeblikk.
+- **Kassene** ligger på rekke over sporene og kommer tilbake etter fem sekunder. Lederen får mest steinfeller og skjold, den som ligger sist, mest turbo.
+
+| I kassen | Hva det gjør |
+|---|---|
+| Turbo | Stor fart i 2,6 sekunder, og vogna knuser alt den treffer. |
+| Hakke | Kastes framover på sporet ditt. Snurrer den første rivalen den når, eller knuser det som stenger sporet. |
+| Steinfelle | En steinhaug bak deg på sporet. Den som kjører på den, snurrer rundt. Feller kan hoppes over. |
+| Skjold | Tar ett treff for deg. |
+| Magnet | Drar til seg kull fra alle tre sporene i sju sekunder. |
+
+- **Rivalene** kjører med den samme fysikken som deg og styres av `minePilot`. De er litt tregere enn deg, bommer av og til på en hindring, bruker utstyr, og holder igjen når de leder, så du alltid kan ta dem igjen. Tallene deres står i `MRIVALS`.
+- **Premie:** 150, 80, 40 eller 10 muttere etter plassen, 50 til uten et eneste krasj, og 5 for hver tiende kullklump på rad. Etter løpet kommer du ut av dagåpningen oppe på platået.
+- **Lett modus** gjør rivalene 6 % saktere. Fartsgrensen fra menyen gjelder mellom 70 % og 115 %.
+- **Rekorden** er bestetiden, beste plass og flest kull i ett løp.
+- **Musikken** lages med WebAudio og går fortere for hver del av gruva.
+
+Gruva er delt i Stollen (her lærer du bevegelsene), Kullfløtsen (lavt tak og vogner som står igjen), Permafrosten (istapper og glatte skinner, så sporbyttene går tregere), Den gamle sjakta (bratt nedover og fort, med mange brudd) og Opp i dagen.
+
+**Endre gruva:** `data/gruve7.js`. En «penn» går innover, og hindringer, kull, kasser og fartsfelt settes der pennen står. Verktøyene står øverst i filen (`c.rett`, `c.sving`, `c.bakke`, `c.sone`, `c.ras`, `c.vogn`, `c.bukk`, `c.veksel`, `c.bjelke`, `c.istapper`, `c.brudd`, `c.kull`, `c.bue`, `c.kasse`, `c.fart`, `c.cp`, `c.mal`). Farten settes per del i `c.sone(navn, tema, fart)`, og alle tallene for hopp, krasj, fartsstøt og utstyr står i `MCFG` i `js/gruvesim.js`. Banen setter `c.mineDef={mouth,r,out,top}` i `build(c)`: `mouth` er inngangen, `out` er der du settes ut foran den, og `top` er dagåpningen.
+
+```
+node tools/test-gruve7.js
+```
+
+Testen lar en autopilot kjøre vogna di mot rivalene i flere hastigheter. Hver rad skal vise `MÅL`, og vogna uten sjåfør skal komme sist. Testen sjekker også at ingen hindring stenger alle tre sporene, at kull, kasser og fartsfelt ikke ligger inne i en hindring, og at det er minst et halvt sekund mellom to hindringer. `node tools/test-levels.js svalbard` kjører bilen til inngangen og bort fra de to stedene du kommer ut.
 
 **Dyrene** (`js/polardyr.js`). Banefeltet `animals` tar:
 

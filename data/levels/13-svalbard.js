@@ -19,6 +19,7 @@ const MT=[-22,2], MT_TOP=4.5;                                       // Gruvefjel
 const mtR=(x,z)=>{const a=Math.atan2(z-MT[1],x-MT[0]);return 8.6+.9*Math.sin(3*a+1.3)+.5*Math.sin(5*a+.4)};
 const RAMPS=[[[-7.5,-10.8],[-16.5,-2.9]],[[-11.2,18.1],[-17.9,8.2]]];   // gruveveien opp fra sør og ned mot nord (fra foten til platåkanten)
 const PORT=[-22,-7.1];                                              // gruveinngangen i sørveggen
+const SHAFT=[-24.9,5];                                              // dagåpningen på platået: der Gruve 7 kommer opp i dagen
 const SENTRAL=[-17.5,-30];                                          // taubanesentralen ved sjøen
 const VAULT=[-12.1,3];                                              // frøhvelvet i vestveggen
 const HUT=[28,15];                                                  // fangsthytta
@@ -69,6 +70,7 @@ LEVELS.push(
   biome:(x,z)=>{const R=Math.hypot(x,z);return{snow:.8+.2*glMask(x,z),beach:.6*smt((R-(isl(x,z)-9))/5),jungle:0,swamp:0,desert:0}},
   landExtra:(x,z)=>Math.max(glMask(x,z),smt((FJ_R+1.2-Math.hypot(x-FJ[0],z-FJ[1]))/.8)),   // breen og fjordisen går helt ut i havet
   path:[[VROAD[0]+1,VROAD[1]+2.5],[VROAD[0]+2.5,VROAD[1]+4],[VROAD[0]+4,VROAD[1]+2.5],[VROAD[0]+2.5,VROAD[1]+1],[VROAD[0]+1,VROAD[1]+2.5]],
+  minePath:[[-19.2,-10.2],[-20.6,-9.4]],                              // bare for testen: fra enden av veien og bort til gruveinngangen
   challenges:CH, roads:ROADS, airport:{at:[-38.5,-2],dir:180,end:-1,road:[[-29,15]],ground:'snow'}, village:{at:VIL,dir:VA/DEG,snow:true},
   mapLabels:[[VIL[0]+3.5,VIL[1]+1,'Kaia'],[RENT[0]+5,RENT[1]-2.5,'Skuterutleia'],[4,-4,'Reindalen'],[GL[0],GL[1]+3,'Isbjørnbreen'],[FJ[0],FJ[1]-1,'Isfjorden'],
     [MT[0],MT[1]+11.5,'Gruvefjellet'],[VAULT[0]+3.5,VAULT[1]+2.6,'Frøhvelvet'],[HUT[0]+1,HUT[1]+3.4,'Fangsthytta'],[SENTRAL[0]-1,SENTRAL[1]+3.5,'Taubanen']],
@@ -132,9 +134,15 @@ LEVELS.push(
     {const[px,pz]=PORT,y=H(px,pz-1.4),wood='#5a4330';c.block(px,pz-1.5,3.2);
       c.box(px,y,pz+.2,1.5,1.7,1.4,'#0e0e0e');for(const sd of[-1,1])c.box(px+sd*.82,y,pz-.5,.2,1.9,.22,wood);c.box(px,y+1.9,pz-.5,2.1,.22,.26,wood);c.box(px,y+2.1,pz-.4,2.3,.1,.6,'#eef2f6');
       for(const sd of[-1,1])c.box(px+sd*.3,y+.01,pz-2.4,.05,.04,3.6,'#3a3a3a');for(let i=0;i<6;i++)c.box(px,y,pz-.9-i*.6,.9,.03,.12,wood);     // skinnene
-      c.box(px,y+.12,pz-2.6,.62,.42,.9,'#4a4e54');c.box(px,y+.5,pz-2.6,.5,.12,.76,'#141414');for(const dz of[-.3,.3])c.cyl(px,y+.11,pz-2.6+dz,.11,.7,'#222',{rz:Math.PI/2});c.colliders.push({x:px,z:pz-2.6,r:.55});
+      c.box(px,y+.12,pz-3.7,.62,.42,.9,'#4a4e54');c.box(px,y+.5,pz-3.7,.5,.12,.76,'#141414');for(const dz of[-.3,.3])c.cyl(px,y+.11,pz-3.7+dz,.11,.7,'#222',{rz:Math.PI/2});c.colliders.push({x:px,z:pz-3.7,r:.55});
       c.colliders.push({x:px,z:pz+.2,w:2,d:1.6,ry:0,anchor:true,y:y+.8});
       c.fx.push({type:'sign',x:px+2.6,z:pz-1.6,ang:Math.PI,text:'GRUVE 7',sub:'kull siden 1916'});
+      // Gruve 7 (js/gruve7.js, data/gruve7.js): kjør helt inn til den mørke åpningen (mouth, innenfor r), så settes bilen på en gruvevogn.
+      // out er der du kommer ut igjen foran inngangen, top er dagåpningen oppe på platået, der du kommer ut etter hele turen
+      {const[tx,tz]=SHAFT,ty=H(tx+1.6,tz);c.block(tx+.8,tz,2.6);
+        c.box(tx,ty,tz,1.4,1.7,1.5,'#0e0e0e');for(const sd of[-1,1])c.box(tx+.5,ty,tz+sd*.86,.22,1.9,.2,wood);c.box(tx+.5,ty+1.9,tz,.26,.22,2.1,wood);c.box(tx+.3,ty+2.1,tz,1.3,.1,2.3,'#eef2f6');
+        c.colliders.push({x:tx-.1,z:tz,w:1.5,d:1.9,ry:0,anchor:true,y:ty+.8});c.fx.push({type:'sign',x:tx+1.2,z:tz-2.3,ang:0,text:'DAGÅPNINGEN',sub:'Gruve 7'});
+        c.mineDef={mouth:{x:px,z:pz-1.6},r:1,out:{x:px+2.4,z:pz-4.2,h:2.4},top:{x:tx+2.6,z:tz,h:2.2}}}
       // taubanen: bukker av tømmer, wire og kibber med kull, fra gruva til sentralen
       const Y=y+3.7,A=[px+.4,pz-1.9],B=SENTRAL,L=Math.hypot(B[0]-A[0],B[1]-A[1]),ux=(B[0]-A[0])/L,uz=(B[1]-A[1])/L,ang=Math.atan2(-uz,ux);
       for(const d of[4.6,9.8,15]){const x=A[0]+ux*d,z=A[1]+uz*d,g=H(x,z);for(const sd of[-1,1]){const lx=x-uz*sd*.5,lz=z+ux*sd*.5;c.cyl(lx,g-.1,lz,.07,Y-g+.1,wood);c.colliders.push({x:lx,z:lz,r:.12,anchor:true,y:g+.5})}

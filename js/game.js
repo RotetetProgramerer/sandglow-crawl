@@ -549,7 +549,7 @@ $('partList').addEventListener('click',e=>{const b=e.target.closest('[data-buy]'
 $('carSale').addEventListener('click',e=>{const b=e.target.closest('[data-buycar]');if(!b)return;const c=CARS.find(x=>x.id===b.dataset.buycar);if(!c||prof.nuts<c.price)return;prof.nuts-=c.price;prof.cars.push(c.id);saveProf();setCar(CARS.indexOf(c));renderGarage();toast('Gratulerer med '+c.name+'!')});
 $('paintList').addEventListener('click',e=>{const b=e.target.closest('[data-paint]');if(b)pickPaint(+b.dataset.paint)});
 $('mGarage').onclick=toGarage;$('rGarage').onclick=toGarage;$('gBack').onclick=toMenu;$('gDrive').onclick=startRun;
-function pause(on){if(state.mode==='race'){if(on)raceKeyDown('escape');return}if(state.mode==='cave'){if(on)caveKeyDown('escape');return}if(state.mode==='ski'){if(on)skiKeyDown('escape');return}if(state.mode==='boat'){if(on)boatKeyDown('escape');return}if(state.mode==='fly'){if(on)flyKeyDown('escape');return}if(state.mode!=='play'&&state.mode!=='pause')return;state.mode=on?'pause':'play';$('pause').hidden=!on;$('pAbort').hidden=!state.course;$('pMap').hidden=!state.world;$('pRestart').textContent=state.course?'Start løpet på nytt':state.world?'Tilbake til basen':'Start på nytt';if(on)$('pResume').focus();if(on&&typeof netPauseUI==='function')netPauseUI()}
+function pause(on){if(state.mode==='race'){if(on)raceKeyDown('escape');return}if(state.mode==='cave'){if(on)caveKeyDown('escape');return}if(state.mode==='mine'){if(on)mineKeyDown('escape');return}if(state.mode==='ski'){if(on)skiKeyDown('escape');return}if(state.mode==='boat'){if(on)boatKeyDown('escape');return}if(state.mode==='fly'){if(on)flyKeyDown('escape');return}if(state.mode!=='play'&&state.mode!=='pause')return;state.mode=on?'pause':'play';$('pause').hidden=!on;$('pAbort').hidden=!state.course;$('pMap').hidden=!state.world;$('pRestart').textContent=state.course?'Start løpet på nytt':state.world?'Tilbake til basen':'Start på nytt';if(on)$('pResume').focus();if(on&&typeof netPauseUI==='function')netPauseUI()}
 function addPenalty(n,why){state.penalty+=n;state.log.push(why);toast('+'+n+' '+why.split(':')[0],true)}
 // auto: the flip assist in easy mode puts the car back for free; everything else costs a winch penalty
 function winch(auto){
@@ -627,6 +627,7 @@ addEventListener('keydown',e=>{
   if(state.mode==='boat'){boatKeyDown(k);return}
   if(state.mode==='fly'){flyKeyDown(k);return}
   if(state.mode==='cave'){caveKeyDown(k);return}   // Diamantgrotten (js/grotte.js)
+  if(state.mode==='mine'){mineKeyDown(k);return}   // Gruve 7 (js/gruve7.js)
   if(state.mode==='race'){raceKeyDown(k);return}   // Racerøya (js/race.js)
   if(MAP.open&&(k==='escape'||k==='k')){openMap(false);return}
   if(k==='escape'||k==='p'){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ask')answerAsk(false)}
@@ -669,7 +670,7 @@ $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
 $('gfxHi').onclick=()=>setGfx('hi');$('gfxLo').onclick=()=>setGfx('lo');$('bCam').onclick=()=>{if(state.mode==='ski')skiKeyDown('c');else cycleCam()};$('bWinch').addEventListener('pointerdown',e=>{if(hasWinch()){e.preventDefault();winchKey(true)}});$('bWinch').addEventListener('pointerup',()=>{if(hasWinch())winchKey(false)});$('bWinch').onclick=()=>{if(!hasWinch())winch()};$('pFetch').onclick=()=>{pause(false);winch()};$('bPause').onclick=()=>pause(true);
 $('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);
-$('rRetry').onclick=()=>{if(!skiResultBtn('retry')&&!boatResultBtn('retry')&&!flyResultBtn('retry')&&!caveResultBtn('retry'))startRun()};$('rMenu').onclick=()=>{if(!skiResultBtn('car')&&!boatResultBtn('car')&&!flyResultBtn('car')&&!caveResultBtn('car'))toMenu()};$('rNext').onclick=()=>{if(skiResultBtn('next')||boatResultBtn('next')||flyResultBtn('next')||caveResultBtn('next'))return;if(state.world){endCourse();showHud();state.mode='play';return}loadLevel((state.levelIdx+1)%LEVELS.length);startRun()};
+$('rRetry').onclick=()=>{if(!skiResultBtn('retry')&&!boatResultBtn('retry')&&!flyResultBtn('retry')&&!caveResultBtn('retry')&&!mineResultBtn('retry'))startRun()};$('rMenu').onclick=()=>{if(!skiResultBtn('car')&&!boatResultBtn('car')&&!flyResultBtn('car')&&!caveResultBtn('car')&&!mineResultBtn('car'))toMenu()};$('rNext').onclick=()=>{if(skiResultBtn('next')||boatResultBtn('next')||flyResultBtn('next')||caveResultBtn('next')||mineResultBtn('next'))return;if(state.world){endCourse();showHud();state.mode='play';return}loadLevel((state.levelIdx+1)%LEVELS.length);startRun()};
 $('bMap').onclick=()=>openMap();$('mTabIsland').onclick=()=>setMapTab('island');$('mTabArch').onclick=()=>setMapTab('arch');$('mClose').onclick=()=>openMap(false);$('pMap').onclick=()=>{$('pause').hidden=true;openMap(true)};
 $('mTow').onclick=()=>{if(prof.nuts<20){toast('Du trenger 20 muttere',true);return}prof.nuts-=20;saveProf();if(state.course)endCourse();openMap(false);const lvl=LEVELS[state.levelIdx];if(lvl.basePos)resetToStart();else if(LV.ferry){const f=LV.ferry;placeCar(car,f.pad.x,f.pad.z,Math.atan2(-f.dx,-f.dz));camSnap=true}else resetToStart();state.checkpoint={x:car.pos.x,z:car.pos.z,h:Math.atan2(car.fw.x,car.fw.z)};toast(lvl.basePos?'Tauet hjem til basen · −20 ⚙':'Tauet til kaia · −20 ⚙')};
 $('oGo').onclick=()=>acceptOffer();$('aYes').onclick=()=>answerAsk(true);$('aNo').onclick=()=>answerAsk(false);$('aList').addEventListener('click',e=>{const b=e.target.closest('[data-dest]');if(b)answerAsk({dest:b.dataset.dest});const sb=e.target.closest('[data-ski]');if(sb)answerAsk({ski:sb.dataset.ski})});$('pAbort').onclick=()=>{pause(false);endCourse();toast('Løpet avbrutt')};
@@ -701,7 +702,7 @@ function readInput(dt){
     const ly=gp.axes[1]||0;if(ly<-.2)gas=Math.max(gas,-ly);if(ly>.2)rev=Math.max(rev,ly);
     const pr=i=>gp.buttons[i]&&gp.buttons[i].pressed&&!padPrev[i];
     if(state.mode==='play'){if(pr(5))walkToggle();if(!WALK.on){if(pr(0))toggleGear();if(pr(1)){if(hasWinch())winchKey(true);else winch()}if(hasWinch()&&padPrev[1]&&!(gp.buttons[1]&&gp.buttons[1].pressed))winchKey(false)}if(pr(3))cycleCam();if(pr(2))setLights(!state.lights)}
-    if(pr(9)){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ski')skiKeyDown('escape');else if(state.mode==='boat')boatKeyDown('escape');else if(state.mode==='fly')flyKeyDown('escape');else if(state.mode==='cave')caveKeyDown('escape');else if(state.mode==='race')raceKeyDown('escape');else if(state.mode==='menu')startRun()}
+    if(pr(9)){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ski')skiKeyDown('escape');else if(state.mode==='boat')boatKeyDown('escape');else if(state.mode==='fly')flyKeyDown('escape');else if(state.mode==='cave')caveKeyDown('escape');else if(state.mode==='race')raceKeyDown('escape');else if(state.mode==='mine')mineKeyDown('escape');else if(state.mode==='menu')startRun()}
     padPrev={};gp.buttons.forEach((b,i)=>padPrev[i]=b.pressed)}
   steer=Math.max(-1,Math.min(1,steer));
   state.inp={gas,rev,steer,jump:keys.has(' ')||state.input.jump>0||!!(gp&&gp.buttons[0]&&gp.buttons[0].pressed)};   // the skier reads these (js/ski.js), and the driver on foot (js/walker.js)
@@ -790,7 +791,7 @@ function frame(now){
   if(!car||!LV){return}
   readInput(dt);if(toastT>0){toastT-=dt;if(toastT<=0){$('toast').classList.remove('on');$('boatToast').classList.remove('on');$('cvToast').classList.remove('on')}}
   prevPos.copy(car.pos);walkStep(dt);
-  if(state.mode!=='pause'&&state.mode!=='ask'&&state.mode!=='ferry'&&state.mode!=='ski'&&state.mode!=='boat'&&state.mode!=='fly'&&state.mode!=='cave'){acc+=dt;let n=0;while(acc>=FIXED&&n<20){stepCar(car,FIXED);acc-=FIXED;n++}if(n>=20)acc=0}
+  if(state.mode!=='pause'&&state.mode!=='ask'&&state.mode!=='ferry'&&state.mode!=='ski'&&state.mode!=='boat'&&state.mode!=='fly'&&state.mode!=='cave'&&state.mode!=='mine'){acc+=dt;let n=0;while(acc>=FIXED&&n<20){stepCar(car,FIXED);acc-=FIXED;n++}if(n>=20)acc=0}
   if(state.mode==='count')updateCountdown(dt);if(state.mode==='ferry')updateFerry(dt);
   // physics blew up: put the car back at the last checkpoint (the start outside a run)
   if(!isFinite(car.pos.x)||!isFinite(car.q.w)){car.q.set(0,0,0,1);const cp=state.mode==='play'&&state.checkpoint;if(cp)placeCar(car,cp.x,cp.z,cp.h);else resetToStart();camSnap=true}
@@ -821,6 +822,7 @@ function frame(now){
   if(updateBoat(dt)){if(typeof netTick==='function')netTick(dt);return}   // out at sea (js/boat.js): the boat race is drawn instead of the island
   if(updateFly(dt)){if(typeof netTick==='function')netTick(dt);return}    // in the air (js/plane.js): the same sea, seen from the plane
   if(updateCave(dt)){if(typeof netTick==='function')netTick(dt);return}   // in Diamantgrotten (js/grotte.js): the cave seen from the side
+  if(updateMine(dt)){if(typeof netTick==='function')netTick(dt);return}   // in Gruve 7 (js/gruve7.js): the mine wagon seen from behind
   if(updateRace(dt)){if(typeof netTick==='function')netTick(dt);return}   // on Racerøya (js/race.js): the race seen from above
   updateMinimap();
   updateLift(dt);syncVisuals(dt);walkSync(dt);updateSki(dt);if(typeof netTick==='function')netTick(dt);updateCamera(dt);updateAudio();updateAmbience(dt);
