@@ -36,6 +36,7 @@ function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aLis
   if(typeof k==='string'&&k.startsWith('boat')){boatAsk(k);return}
   if(typeof k==='string'&&k.startsWith('pirat')){pirAsk(k);return}   // Piratøya: the old pirates at Skumkroa and the war of words (js/pirater.js)
   if(k==='skuter'){skuterAsk();return}   // Svalbard: hire a snowmobile, or hand it back
+  if(k==='vault'){vaultAsk();return}   // Svalbard: Frøken Frø at the door of the seed vault (js/frohvelv.js)
   if(k==='cargo'){cargoAsk();return}   // every island: the cargo plane at the airport (js/cargo.js)
   if(typeof k==='string'&&k.startsWith('race')){raceAsk(k);return}   // Racerøya: the race from above (js/race.js)
   if(k==='fly'){flyAsk(k);return}   // Trinnvik: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
@@ -61,6 +62,7 @@ function answerAsk(yes){if(state.mode!=='ask')return;$('ask').hidden=true;const 
   if(k==='fly'){flyAnswer(k,yes);return}
   if(typeof k==='string'&&k.startsWith('race')){raceAnswer(k,yes);return}
   if(typeof k==='string'&&k.startsWith('pirat')){pirAnswer(k,yes);return}
+  if(k==='vault'){vaultAnswer(yes);return}
   if(k==='skuter'){state.askCool='skuter';state.mode='play';if(yes){skuterSet(!onSkuter());toast(onSkuter()?'🛷 Snøskuteren er din. God tur, og pass deg for isbjørnen!':'Takk for turen! Bilen din står klar')}return}
   if(k==='garage'){state.askCool='garage';if(yes){state.mode='play';toGarage()}else{state.mode='play';toast('Kjør videre når du vil')}return}
   if(k==='ferry'){state.askCool='ferry';state.mode='play';if(yes&&yes.dest)startFerry(yes.dest);return}
@@ -101,6 +103,7 @@ function updateWorld(dt){
     const cd=LV.caveDef;if(cd){const d=Math.hypot(cd.mouth.x-car.pos.x,cd.mouth.z-car.pos.z);if(d<cd.r&&state.askCool!=='cave'){caveEnter();return}if(d>cd.r+3&&state.askCool==='cave')state.askCool=null}   // Kameløya: drive into the cave mouth and the view turns to the side (js/grotte.js)
     const md=LV.mineDef;if(md){const d=Math.hypot(md.mouth.x-car.pos.x,md.mouth.z-car.pos.z);if(d<md.r&&state.askCool!=='mine'){mineEnter();return}if(d>md.r+3&&state.askCool==='mine')state.askCool=null}   // Svalbard: drive into the mine entrance and the car is put on a mine wagon (js/gruve7.js)
     const sk=LV.skuterDef;if(sk){const d=Math.hypot(sk.ask.x-car.pos.x,sk.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='skuter'){openAsk('skuter');return}if(d>3.5&&state.askCool==='skuter')state.askCool=null}   // Svalbard: the blue square at the snowmobile hire
+    if(typeof vaultWorld==='function'&&vaultWorld())return;   // Svalbard: stop on the blue square by the door of the seed vault (js/frohvelv.js)
     if(typeof pirWorld==='function'&&pirWorld())return;   // Piratøya: stop by the table at Skumkroa or by the sword master
     const ga=LEVELS[state.levelIdx].garageAt;if(ga){const d=Math.hypot(ga[0]-car.pos.x,ga[1]-car.pos.z);if(d<2.4&&state.askCool!=='garage'){openAsk('garage');return}if(d>4.5&&state.askCool==='garage')state.askCool=null}}
   else{setOffer(null);const ng=LV.gates[state.next];if(ng&&Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)>30){endCourse();toast('For langt fra løypa: løpet er avbrutt',true)}}

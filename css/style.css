@@ -408,3 +408,156 @@ body.is-touch .rc-touch{display:block}
 .rr-table em{font-style:normal;color:var(--muted)}
 #raceMenu,#racePause,#raceResult{align-items:start}
 @supports (align-items:safe center){#raceMenu,#racePause,#raceResult{align-items:safe center}}
+
+/* ---------- FRØHVELVET (js/frohvelv.js): Frøken Frø's little game for the youngest. Big pictures, big buttons, short words ---------- */
+#vault{position:fixed;inset:0;z-index:14;display:flex;flex-direction:column;color:#1d1a14;touch-action:manipulation;
+  font-family:system-ui,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  background:radial-gradient(ellipse at 50% 120%,rgba(88,224,216,.28),transparent 60%),repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 2px,transparent 2px 120px),linear-gradient(#26343f,#141d25 70%)}
+#vault[hidden]{display:none}
+#vault button{font-family:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent}
+#vault button:focus-visible{outline:4px solid #58e0d8;outline-offset:3px}
+.vt-top{display:flex;align-items:center;gap:14px;padding:10px 16px;color:var(--paper);flex-wrap:wrap}
+.vt-title{display:flex;flex-direction:column;line-height:1.05;min-width:0;flex:1}
+.vt-title b{font-family:var(--f-display);font-weight:400;font-size:1.6rem;color:#8ff0e8;letter-spacing:.03em}
+.vt-title span{font-size:.95rem;color:#c9d8e0}
+.vt-dots{display:flex;gap:8px}
+.vt-dots i,.vt-rounds i{width:18px;height:18px;border-radius:50%;background:rgba(255,255,255,.15);border:2px solid rgba(255,255,255,.35)}
+.vt-dots i.now,.vt-rounds i.now{background:#f2c230;border-color:#f2c230;box-shadow:0 0 0 4px rgba(242,194,48,.25)}
+.vt-dots i.ok,.vt-rounds i.ok{background:#6ac04a;border-color:#6ac04a}
+.vt-tools{display:flex;gap:8px}
+.vt-tbtn{background:rgba(255,255,255,.1);border:2px solid rgba(255,255,255,.25);border-radius:999px;padding:8px 14px;font-size:1rem;font-weight:600;color:var(--paper)!important}
+.vt-tbtn:hover{background:rgba(255,255,255,.18)}
+.vt-tbtn.novoice{opacity:.6;text-decoration:line-through}
+.vt-main{flex:1;min-height:0;display:grid;grid-template-columns:minmax(220px,30%) 1fr;gap:16px;padding:4px 16px 16px}
+.vt-host{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;min-height:0}
+.vt-fia{width:min(100%,230px);flex:0 0 auto}
+.vt-fia svg{display:block;width:100%;height:auto;filter:drop-shadow(0 8px 14px rgba(0,0,0,.35))}
+.vt-fia .vt-mouth{display:none}
+.vt-fia.talk .vt-mouth{display:block;transform-box:fill-box;transform-origin:center;animation:vtTalk .18s infinite alternate}
+.vt-fia.talk .vt-smile{display:none}
+.vt-fia .vt-eyes{transform-box:fill-box;transform-origin:center;animation:vtBlink 4.2s infinite}
+@keyframes vtTalk{from{transform:scaleY(.35)}to{transform:scaleY(1)}}
+@keyframes vtBlink{0%,94%,100%{transform:scaleY(1)}97%{transform:scaleY(.1)}}
+.vt-bubble{position:relative;background:#fbf6e9;border-radius:22px;padding:12px 52px 14px 18px;box-shadow:0 8px 20px rgba(0,0,0,.3);width:100%;max-width:360px}
+.vt-bubble::before{content:"";position:absolute;left:50%;top:-14px;margin-left:-14px;border:14px solid transparent;border-top:0;border-bottom-color:#fbf6e9}
+.vt-bubble small{display:block;font-weight:800;color:#3f8a2a;font-size:.85rem;letter-spacing:.04em;text-transform:uppercase}
+.vt-bubble p{margin:2px 0 0;font-size:1.35rem;line-height:1.3;font-weight:600}
+.vt-bubble.pop{animation:vtPop .35s ease-out}
+@keyframes vtPop{0%{transform:scale(.94)}60%{transform:scale(1.03)}100%{transform:scale(1)}}
+.vt-again{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:50%;border:0;background:#e8f4ee;font-size:1.2rem;line-height:1}
+.vt-again:hover{background:#cfeadc}
+.vt-stage{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;min-height:0;overflow:auto;padding:8px;
+  background:rgba(255,255,255,.06);border:2px solid rgba(143,240,232,.18);border-radius:28px}
+.vt-big{border:0;border-radius:999px;padding:16px 34px;font-size:1.6rem;font-weight:800;box-shadow:0 6px 0 rgba(0,0,0,.3);transition:transform .1s}
+.vt-big:active{transform:translateY(3px);box-shadow:0 3px 0 rgba(0,0,0,.3)}
+.vt-go{background:#f2c230;color:#1d1a14!important}
+.vt-ghost{background:rgba(255,255,255,.14);color:var(--paper)!important;box-shadow:none}
+.vt-more{animation:vtPulse 1.4s ease-in-out infinite}
+@keyframes vtPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+.vt-emoji{font-size:58px;line-height:1;display:block;font-family:"Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif}
+.shake{animation:vtShake .45s}
+@keyframes vtShake{0%,100%{transform:translateX(0)}20%{transform:translateX(-10px) rotate(-3deg)}40%{transform:translateX(9px) rotate(3deg)}60%{transform:translateX(-6px)}80%{transform:translateX(4px)}}
+/* the start: the door of the vault */
+.vt-intro{display:flex;flex-direction:column;align-items:center;gap:24px}
+.vt-vaultdoor{width:190px;height:150px;background:linear-gradient(#b9bec2,#8d9398);clip-path:polygon(0 18%,100% 0,100% 100%,0 100%);position:relative;border-radius:6px;box-shadow:inset 0 -10px 0 rgba(0,0,0,.15)}
+.vt-vaultdoor::before{content:"";position:absolute;left:12%;right:12%;top:22%;height:12px;background:#58e0d8;box-shadow:0 0 18px #58e0d8}
+.vt-vaultdoor span{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);width:62px;height:76px;background:#5d646c;border-radius:6px 6px 0 0;display:flex;align-items:center;justify-content:center;font-size:2.4rem;color:#bfeffc}
+/* 1. the pot */
+.vt-grow{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap;width:100%}
+.vt-potbox{position:relative;width:min(300px,70vw)}
+.vt-pot{display:block;width:100%;height:auto;overflow:visible}
+.vt-pot .vg-soil,.vt-pot .vg-seed,.vt-pot .vg-rain,.vt-pot .vg-sun{opacity:0;transition:opacity .5s,fill .8s}
+.vt-pot .vg-p1,.vt-pot .vg-p2,.vt-pot .vg-p3{transform-box:view-box;transform-origin:110px 168px;transform:scale(0);transition:transform .8s cubic-bezier(.3,1.6,.5,1)}
+.vt-pot .vg-p3{transform-origin:110px 106px}
+.planted .vg-seed{opacity:1}
+.stage1 .vg-seed,.stage2 .vg-seed,.stage3 .vg-seed{opacity:0}
+.stage1 .vg-p1{transform:scale(1)}
+.stage2 .vg-p2,.stage3 .vg-p2,.stage3 .vg-p3{transform:scale(1)}
+.got-jord .vg-soil{opacity:1}
+.got-vann .vg-soil{fill:#3e2a16}
+.got-vann .vg-rain{opacity:1}
+.got-vann .vg-rain path{animation:vtRain 1.1s ease-in 3 both}
+@keyframes vtRain{from{transform:translateY(-20px);opacity:0}30%{opacity:1}to{transform:translateY(80px);opacity:0}}
+.got-sol .vg-sun{opacity:1}
+.got-sol .vg-rays{transform-box:fill-box;transform-origin:center;animation:vtSpin 8s linear infinite}
+@keyframes vtSpin{to{transform:rotate(360deg)}}
+.bloom .vg-plant{transform-box:view-box;transform-origin:110px 168px;animation:vtSway 2.6s ease-in-out infinite}
+@keyframes vtSway{0%,100%{transform:rotate(-3deg)}50%{transform:rotate(3deg)}}
+.vt-seedbtn{position:absolute;left:50%;top:18%;transform:translateX(-50%);border:0;background:#fbf6e9;border-radius:50%;width:130px;height:130px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;box-shadow:0 0 0 0 rgba(242,194,48,.7);animation:vtRing 1.5s infinite}
+.vt-seedbtn svg{width:58px;height:58px}
+.vt-seedbtn small{font-weight:800;font-size:.95rem}
+@keyframes vtRing{0%{box-shadow:0 0 0 0 rgba(242,194,48,.75)}100%{box-shadow:0 0 0 26px rgba(242,194,48,0)}}
+.vt-items{display:grid;grid-template-columns:repeat(3,auto);gap:12px}
+.vt-items[hidden]{display:none}
+.vt-item,.vt-opt{position:relative;background:#fbf6e9;border:4px solid transparent;border-radius:24px;padding:10px 10px 8px;min-width:112px;min-height:112px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;box-shadow:0 6px 0 rgba(0,0,0,.28);transition:transform .12s,opacity .3s}
+.vt-item:hover:not(:disabled),.vt-opt:hover:not(:disabled){transform:translateY(-3px)}
+.vt-item svg,.vt-opt svg{width:64px;height:64px}
+.vt-item b,.vt-opt b{font-size:1.2rem;font-weight:800}
+.vt-item.used{border-color:#6ac04a;background:#e6f6dc;cursor:default}
+.vt-item.used::after,.vt-opt.right::after{content:"✓";position:absolute;right:-10px;top:-10px;width:34px;height:34px;border-radius:50%;background:#3f8a2a;color:#fff;font-weight:900;font-size:1.2rem;display:flex;align-items:center;justify-content:center}
+.vt-item:disabled:not(.used){opacity:.45}
+/* 2 and 4. pick the right picture */
+.vt-pick{display:flex;flex-direction:column;align-items:center;gap:18px;width:100%}
+.vt-bigseed{background:#fbf6e9;border-radius:28px;padding:12px 22px;display:flex;flex-direction:column;align-items:center;gap:4px;box-shadow:0 0 0 6px rgba(242,194,48,.5)}
+.vt-bigseed svg{width:104px;height:104px}
+.vt-bigseed b{font-size:1.3rem}
+.vt-q{color:var(--paper);font-size:1.6rem;font-weight:800;text-align:center;max-width:560px}
+.vt-opts{display:grid;grid-template-columns:repeat(3,minmax(0,190px));gap:14px;width:100%;justify-content:center}
+.vt-opt{min-height:150px}
+.vt-opt .vt-emoji{font-size:70px}
+.vt-opt b{text-align:center;line-height:1.15}
+.vt-opt.off{opacity:.3}
+.vt-opt.right{border-color:#6ac04a;background:#e6f6dc;transform:scale(1.07)}
+.vt-opt:disabled{cursor:default}
+.vt-rounds{display:flex;gap:10px}
+/* 3. the belt and the two doors */
+.vt-sort{display:flex;flex-direction:column;align-items:center;gap:16px;width:100%;max-width:620px;transition:background 1s;border-radius:24px;padding:8px}
+.vt-sort.cold{background:linear-gradient(rgba(191,239,252,.25),rgba(191,239,252,.05))}
+.vt-belt{position:relative;width:100%;height:170px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.vt-rollers{position:absolute;left:0;right:0;bottom:6px;height:24px;border-radius:12px;background:repeating-linear-gradient(90deg,#5d646c 0 26px,#3e444a 26px 30px);animation:vtBelt 1.2s linear infinite}
+@keyframes vtBelt{to{background-position:30px 0}}
+.vt-thing{position:relative;z-index:1;background:#fbf6e9;border-radius:22px;padding:10px 18px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;margin-bottom:22px;box-shadow:0 6px 0 rgba(0,0,0,.25)}
+.vt-thing svg{width:84px;height:96px}
+.vt-thing .vt-emoji{font-size:84px}
+.vt-thing b{font-size:1.25rem}
+.vt-thing.arrive{animation:vtArrive .55s cubic-bezier(.2,1.2,.4,1)}
+.vt-thing.go-in{animation:vtIn .6s ease-in forwards}
+.vt-thing.go-out{animation:vtOut .6s ease-in forwards}
+.vt-thing.gone{visibility:hidden}
+@keyframes vtArrive{from{transform:translateX(-120%)}to{transform:none}}
+@keyframes vtIn{to{transform:translate(-90px,160px) scale(.2);opacity:0}}
+@keyframes vtOut{to{transform:translateX(140%);opacity:0}}
+.vt-doors{display:grid;grid-template-columns:1fr 1fr;gap:16px;width:100%}
+.vt-door{border:0;border-radius:24px;padding:14px;min-height:110px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-size:1.5rem;font-weight:900;box-shadow:0 6px 0 rgba(0,0,0,.3)}
+.vt-door.yes{background:#bfeffc}
+.vt-door.no{background:#ffd2c4}
+.vt-door:disabled{opacity:.45;cursor:default}
+.vt-door-ic{font-size:2.6rem;line-height:1}
+.vt-shelf{display:flex;align-items:center;gap:6px;min-height:58px;color:var(--paper);font-weight:700;font-size:1.05rem}
+.vt-bag svg{width:44px;height:50px;display:block;animation:vtArrive .4s}
+/* the end */
+.vt-end{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;color:var(--paper)}
+.vt-badge svg{width:150px;height:150px;animation:vtBadge 1s cubic-bezier(.2,1.4,.4,1)}
+@keyframes vtBadge{from{transform:scale(0) rotate(-200deg)}to{transform:none}}
+.vt-end h3{font-family:var(--f-display);font-weight:400;font-size:2.6rem;color:#f2c230;margin:0}
+.vt-prize{font-size:1.3rem;font-weight:800;margin:0;color:#c8f0b0}
+.vt-endrow{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+/* small and tall screens: Frøken Frø beside the bubble, above the stage */
+@media (max-width:760px),(max-aspect-ratio:1/1){
+  .vt-main{grid-template-columns:1fr;grid-template-rows:auto 1fr;gap:10px;padding:0 12px 12px}
+  .vt-host{flex-direction:row;align-items:center;justify-content:flex-start}
+  .vt-fia{width:96px}
+  .vt-bubble{max-width:none;flex:1}
+  .vt-bubble::before{left:-14px;top:50%;margin:-14px 0 0;border:14px solid transparent;border-left:0;border-right-color:#fbf6e9}
+  .vt-bubble p{font-size:1.15rem}
+  .vt-title b{font-size:1.3rem}
+  .vt-item,.vt-opt{min-width:92px;min-height:96px;border-radius:20px}
+  .vt-item svg,.vt-opt svg{width:50px;height:50px}
+  .vt-emoji{font-size:46px}.vt-opt .vt-emoji{font-size:54px}
+  .vt-item b,.vt-opt b{font-size:1rem}
+  .vt-potbox{width:min(230px,60vw)}
+  .vt-big{font-size:1.3rem;padding:14px 26px}
+  .vt-q{font-size:1.25rem}
+  .vt-opts{gap:10px}
+}
+@media (prefers-reduced-motion:reduce){#vault *{animation:none!important;transition:none!important}}

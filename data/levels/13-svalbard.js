@@ -159,7 +159,9 @@ LEVELS.push(
     {const[vx,vz]=VAULT,y=H(vx+2.2,vz)-.1;c.block(vx+1,vz,3);
       c.box(vx,y,vz,3.2,2.5,1.15,'#a9adb0');c.box(vx+1.61,y+1.15,vz,.03,1.3,1,'#58e0d8');c.box(vx+1.62,y,vz,.03,1.1,.62,'#6a7078');c.box(vx+.4,y+2.5,vz,2.4,.04,.9,'#58e0d8');
       c.colliders.push({x:vx,z:vz,w:3.24,d:1.2,ry:0,anchor:true,y:y+.8});
-      c.fx.push({type:'sign',x:vx+3.2,z:vz+1.9,ang:Math.PI/2,text:'FRØHVELVET',sub:'frø fra hele verden'})}
+      c.fx.push({type:'sign',x:vx+3.2,z:vz+1.9,ang:Math.PI/2,text:'FRØHVELVET',sub:'frø fra hele verden'});
+      // Frøken Frø og læringsspillet (js/frohvelv.js, data/frohvelv.js): still deg på den blå ruta foran døra
+      const ax=vx+2.5,az=vz+.3;c.box(ax,H(ax,az)+.004,az,1.3,.012,1.3,'#2f6fd6');c.vaultDef={ask:{x:ax,z:az},r:.95}}
     // --- fangsthytta: tjæret hytte, fiskehjell, slede, en hvelvet robåt og sledehundene (js/polardyr.js) ---
     {const[hx,hz]=HUT,y=H(hx,hz);c.flat(hx,hz-.6,3.6,y,2.6);c.block(hx,hz-.6,4.6);
       c.box(hx,y,hz,2.3,1.1,1.6,'#3e3028');c.box(hx,y+1.1,hz,2.6,.16,1.9,'#eef2f6');c.box(hx+.4,y,hz-.81,.42,.74,.03,'#7a2a22');c.box(hx-.55,y+.48,hz-.81,.36,.3,.03,'#ffe3a0');

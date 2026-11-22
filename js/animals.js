@@ -357,7 +357,7 @@ function buildAnimals(lv,def){clearAnimals();const A=def.animals;if(!A){if(typeo
   if(typeof buildPolar==='function')buildPolar(lv,def,R);
   if(typeof buildPirates==='function')buildPirates(lv,def)}     // the pirates, the skull, the ships and the cannons on Piratøya (js/pirater.js)
 //       // polar bears, reindeer, seals, walruses and sled dogs (js/polardyr.js)
-function updateAnimals(dt){if(!car)return;const tm=performance.now()*.001;if(typeof updatePirates==='function')updatePirates(dt,tm);updateParrots(dt,tm);updateMonkeys(dt,tm);updateButterflies(dt,tm);updateCrabs(dt,tm);updateEagle(dt,tm);updateBear(dt,tm);updateGulls(dt,tm);updateGrazers(dt,tm);updateFish(dt,tm);updateLizards(dt,tm);
+function updateAnimals(dt){if(!car)return;const tm=performance.now()*.001;if(typeof updatePirates==='function')updatePirates(dt,tm);if(typeof vaultSprout==='function')vaultSprout(tm);updateParrots(dt,tm);updateMonkeys(dt,tm);updateButterflies(dt,tm);updateCrabs(dt,tm);updateEagle(dt,tm);updateBear(dt,tm);updateGulls(dt,tm);updateGrazers(dt,tm);updateFish(dt,tm);updateLizards(dt,tm);
   updateCaimans(dt,tm);updateJaguar(dt,tm);updateFrogs(dt,tm);updateEgrets(dt,tm);updateSnakes(dt,tm);if(typeof updateSavanna==='function')updateSavanna(dt,tm);if(typeof updateDesert==='function')updateDesert(dt,tm);if(typeof updatePolar==='function')updatePolar(dt,tm)}
 
 /* ---------- the rolling boulder ---------- */

@@ -33,6 +33,8 @@ js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen u
 js/cargo.js           Lasteflyet som flyr bilen mellom øyene: modellen, spørsmålet i lasterommet, flyturen, landingen og flyplassene på havet.
 js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
 js/gruve7.js          Gruve 7 på Svalbard: gruvegangen sett bakfra, gruvearbeiderne i vognene, hindringene, HUD, lyd og musikk, inn og ut.
+js/frohvelv.js        Frøhvelvet på Svalbard: læringsspillet med Frøken Frø for de minste, opplesingen, inn og ut, og spira på bilen.
+js/frohvelvsim.js     Reglene i frøhvelvspillet: riktige og feil svar, hint og stasjonene (ingen DOM, testes uten nettleser).
 js/race.js            Racene på Racerøya sett ovenfra: tegningen, kameraet, HUD-en, menyen, lyden, premiene, inn og ut.
 js/racenet.js         Kjør sammen på Racerøya: invitasjon, lobby, felles start, bilene til de andre og dult mellom spillerne.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
@@ -48,6 +50,7 @@ data/savanne.js       Savannens trær, termittuer, gress, elefanter og flodheste
 data/orken.js         Ørkenens kameler, beduiner, telt, brønn og tornebusker (står i ro).
 data/grotte.js        Diamantgrotten: bakken, taket, juv, broer, diamanter, bensinkanner og sjekkpunkter.  ← endre grotten her
 data/gruve7.js        Gruve 7: gangen, hindringene, kullet, kassene og fartsfeltene.              ← endre gruva her
+data/frohvelv.js      Frøhvelvet: alt Frøken Frø sier, og oppgavene på de fire stasjonene.   ← endre spørsmålene her
 data/racer.js         Racerbanene på Racerøya, motstanderne og premiene.  ← legg til nye racerbaner her
 data/boats.js         Havet og båtløpene fra marinaen.                    ← legg til nye båtløp her
 data/flights.js       Flyplassen på havet og flyturene med ringer.        ← legg til nye flyturer her
@@ -58,6 +61,7 @@ tools/test-props.js   Finner pynt som svever over bakken uten noe under seg (nod
 tools/test-grotte.js  Autopilot som kjører Diamantgrotten med alle bilene i Lett og Ekte modus, uten nettleser.
 tools/test-gruve7.js  Autopilot som kjører kappløpet i Gruve 7 i flere hastigheter, uten nettleser.
 tools/test-race.js    Sjekker racerbanene og lar motstanderne kjøre alle løpene på alle vanskelighetsgrader, uten nettleser.
+tools/test-frohvelv.js Sjekker frøhvelvspillet: riktige svar, bilder, korte setninger, og at alle stasjonene kan fullføres.
 tools/test-gps.js     Lager GPS-ruter til alle stedene på hver øy og lar en autopilot kjøre dem, uten nettleser.
 manifest.json, sw.js  Gjør spillet til en PWA (installerbar, virker uten nett).
 icons/                Appikoner.
@@ -568,7 +572,7 @@ Hver bil skal vise `MÅL`, helst `velt 0` og `juv 0`, og `bensin` bør ikke gå 
 | Isbjørnbreen | Iskappen i nord: en slak snøbakke opp fra sør, blåis, bresprekker i øst, en nunatak, og en brefront som er et stup rett i havet. Isfjell flyter utenfor. |
 | Isfjorden | Vest: blank is. Seler ligger ved pustehullene, en skøyte har frosset fast, og en isbjørn vokter iskanten. |
 | Gruvefjellet | Øst: et platåfjell med gruveinngang og kullvogn i sørveggen, taubane med kibber ned til taubanesentralen ved sjøen, og satellittstasjonen med radarkupler på toppen. Kjør inn i gruveinngangen for å kjøre om kapp i gruvevogn gjennom Gruve 7. Dagåpningen på platået er der du kommer ut. |
-| Frøhvelvet | En betongkile med lysende front som stikker ut av vestveggen på Gruvefjellet. |
+| Frøhvelvet | En betongkile med lysende front som stikker ut av vestveggen på Gruvefjellet. Still deg på den blå ruta foran døra (med bilen eller til fots) for å gå inn og hjelpe Frøken Frø. |
 | Fangsthytta | Nordvest: tjæret hytte, fiskehjell, slede, sledehunder, og hvalross på stranda nedenfor. |
 
 | Løype | Vanskelighet | Kjøretøy | Hva |
@@ -640,6 +644,30 @@ Binna med unge, fjellrevene og snøuglene står i ro og kommer fra `data/dyr.js`
 **Terrenget:** `glH` er breen (bredden på kanten styrer om det er snøbakke eller isvegg), `mesa` er Gruvefjellet med de to veiene i `RAMPS`, og `landExtra` lar breen og fjordisen gå helt ut i havet. Hoppene i Breløpet lages av `jump` i `build(c)`.
 
 Testen: `node tools/test-levels.js svalbard`. Skuterløypene kjøres med skuteren. Dyrene er ikke med i testen.
+
+### Frøhvelvet og Frøken Frø
+
+Et lite læringsspill om frø og planter, laget slik at en førsteklassing klarer det alene. Still deg på den blå ruta foran døra i frøhvelvet og svar JA. Inne møter du Frøken Frø, som passer på frøene og trenger hjelp på fire stasjoner:
+
+| Stasjon | Hva barnet gjør | Hva barnet lærer |
+|---|---|---|
+| 1. Hva trenger frøet? | Trykker på frøet for å plante det, og gir det jord, vann og sol. Sokk og godteri hjelper ikke. Planten vokser for hvert riktige valg til den blir en solsikke. | Et frø trenger jord, vann og lys. |
+| 2. Hva blir frøet til? | Ser et eplefrø, et maiskorn og et solsikkefrø, og velger riktig plante blant tre bilder. | Alt vi spiser fra planter, begynner som et lite frø. |
+| 3. Inn i hvelvet | Tingene kommer på et rullebånd. Frøposene skal inn i det kalde rommet, bamsen, ballen og skoen skal ikke. | Frøene holder seg i mange år når det er kaldt. |
+| 4. Hvorfor tar vi vare på frø? | Velger blant tre bildesvar. | Hvelvet er en reserve, så vi alltid kan dyrke mat. |
+
+- **Ingen kan tape.** Det er ingen klokke. Feil svar gir et hint, og det feile bildet blir grått, så barnet til slutt finner det riktige.
+- **Opplesing.** Frøken Frø leser alt høyt med nettleserens talesyntese og en norsk stemme. Knappen «Les høyt» slår det av og på, 🔊 i snakkeboblen (eller R) leser linjen igjen. Har maskinen stemmer, men ingen norsk stemme, er hun stille, for en engelsk stemme kan ikke lese norsk. Da står det i knappen.
+- **Tastatur.** 1–5 velger knapp, Enter trykker på den markerte, Esc går ut.
+- **Premien.** Første gang blir du frøvokter: 50 muttere og en liten spire i en potte bakerst på taket (`vaultSprout` i `js/frohvelv.js`), på alle øyene. Etterpå kan du spille igjen så mye du vil. Lagres i `prof.frohvelv`.
+
+Alt Frøken Frø sier og alle oppgavene står i `data/frohvelv.js`. Hold setningene korte, for de leses høyt. Bildene er emoji eller tegninger i `VICON` og `SEED_SVG` i `js/frohvelv.js`. Kjør testen etter endringer:
+
+```
+node tools/test-frohvelv.js
+```
+
+Den sjekker at hver runde har nøyaktig ett riktig svar, at bildene finnes, at ingen setning er over 16 ord, og lar en perfekt og en uheldig spiller gå gjennom alle stasjonene. `node tools/test-frohvelv.js v` viser hele samtalen.
 
 ## Kaimanøya: jungeløya
 
