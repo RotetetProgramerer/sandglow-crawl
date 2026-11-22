@@ -14,5 +14,6 @@ const ISLANDS=[
   {id:'orken', pos:[.64,.30]},
   {id:'svalbard', pos:[.74,.10]},
   {id:'pirat', pos:[.30,.74]},
+  {id:'racer', pos:[.67,.70]},
 ];
-const ROUTES=[['verden','sand'],['verden','stein'],['verden','skog'],['verden','elv'],['verden','vulkan'],['sand','skog'],['stein','elv'],['elv','vulkan'],['sand','stein'],['verden','trinnvik'],['sand','trinnvik'],['stein','trinnvik'],['verden','gautefall'],['elv','gautefall'],['stein','gautefall'],['verden','savanne'],['savanne','skog'],['savanne','sand'],['verden','kaiman'],['skog','kaiman'],['kaiman','vulkan'],['verden','orken'],['orken','elv'],['orken','vulkan'],['verden','svalbard'],['svalbard','vulkan'],['svalbard','elv'],['verden','pirat'],['pirat','sand'],['pirat','trinnvik'],['pirat','savanne']];
+const ROUTES=[['verden','sand'],['verden','stein'],['verden','skog'],['verden','elv'],['verden','vulkan'],['sand','skog'],['stein','elv'],['elv','vulkan'],['sand','stein'],['verden','trinnvik'],['sand','trinnvik'],['stein','trinnvik'],['verden','gautefall'],['elv','gautefall'],['stein','gautefall'],['verden','savanne'],['savanne','skog'],['savanne','sand'],['verden','kaiman'],['skog','kaiman'],['kaiman','vulkan'],['verden','orken'],['orken','elv'],['orken','vulkan'],['verden','svalbard'],['svalbard','vulkan'],['svalbard','elv'],['verden','pirat'],['pirat','sand'],['pirat','trinnvik'],['pirat','savanne'],['verden','racer'],['racer','trinnvik'],['racer','stein'],['racer','gautefall']];
