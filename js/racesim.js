@@ -13,23 +13,23 @@
 const TSTEP=2, RSTEP=1/120, RG=9.81;
 const RCFG={
   len:4.4, wid:2.0, lf:1.3, lr:1.3, k2:1.9,           // size, axle distances from the centre, yaw inertia / mass
-  mu:1.5,                                             // tyre grip on asphalt (in g)
+  mu:1.85,                                            // tyre grip on asphalt (in g)
   peak:.1,                                            // slip angle (rad) where the tyre grips the most
-  acc:9.2, vtop:46, brake:16, rev:6, vrev:11,         // engine, top speed (m/s), brakes, reverse
+  acc:9.2, vtop:42, brake:16, rev:6, vrev:11,         // engine, top speed (m/s), brakes, reverse
   roll:.6, aero:.0004,                                // rolling resistance and air
   hbGrip:.32, hbBrake:5,                              // the handbrake: rear grip and braking
   steer:.62, steerRate:3.6, steerK:1.35,               // full lock (rad) at low speed, how fast the wheel turns, how far past the grip the wheel turns at speed
   boostAcc:1.65, boostTop:1.16,                       // the mini-turbo: more power and a higher top speed
   driftMin:.2,                                        // body slip angle (rad) that counts as a drift
-  rearMu:1.1, pow:.45, drop:.15,                                  // the rear's extra grip (so the car is steady at full lock), how much the throttle steals from it, and how much it loses once it slides
-  stab:7, stabFrom:.5, wmax:3.1,                      // arcade help: the car straightens itself up when the slide passes stabFrom (rad), and never turns faster than wmax (rad/s)
+  rearMu:1.1, pow:.3, drop:.15,                       // the rear's extra grip (so the car is steady at full lock), how much the throttle steals from it, and how much it loses once it slides
+  stab:9, stabFrom:.42, wmax:2.8,                      // arcade help: the car straightens itself up when the slide passes stabFrom (rad), and never turns faster than wmax (rad/s)
 };
 // the surfaces next to the asphalt: grip and how hard they slow the car
 const RSURF={
   road:{mu:1,drag:0},
   curb:{mu:.94,drag:.3},
-  grass:{mu:.55,drag:3.2},
-  sand:{mu:.45,drag:6.5},
+  grass:{mu:.72,drag:2.0},
+  sand:{mu:.62,drag:3.6},
 };
 const rsmt=(a,b,x)=>{const t=Math.max(0,Math.min(1,(x-a)/(b-a)));return t*t*(3-2*t)};
 const rwrap=a=>Math.atan2(Math.sin(a),Math.cos(a));
@@ -64,7 +64,7 @@ function raceLine(T){const P=T.pts,N=T.N,lim=T.hw-1.9,o=new Float32Array(N);
     const mx=(ax+bx)/2-p.x,my=(ay+by)/2-p.y,t=mx*p.nx+my*p.ny;o[i]=Math.max(-lim,Math.min(lim,o[i]+(t-o[i])*.6))}}
   T.off_=o;T.line=P.map((p,i)=>({x:p.x+p.nx*o[i],y:p.y+p.ny*o[i]}))}
 // how fast the line can be taken at every point: from the curvature, then braking back from every slow corner
-function raceSpeeds(T){const P=T.line,N=T.N,v=new Float32Array(N),aLat=RCFG.mu*RG*.86,aBrk=10.5;
+function raceSpeeds(T){const P=T.line,N=T.N,v=new Float32Array(N),aLat=RCFG.mu*RG*.97,aBrk=12;
   for(let i=0;i<N;i++){const a=P[(i-3+N)%N],b=P[i],c=P[(i+3)%N],ab=Math.hypot(b.x-a.x,b.y-a.y),bc=Math.hypot(c.x-b.x,c.y-b.y),ca=Math.hypot(a.x-c.x,a.y-c.y),
       cr=Math.abs((b.x-a.x)*(c.y-a.y)-(b.y-a.y)*(c.x-a.x)),k=ab*bc*ca>1e-6?2*cr/(ab*bc*ca):0;
     v[i]=Math.min(RCFG.vtop,k>1e-5?Math.sqrt(aLat/k):RCFG.vtop)}
@@ -154,19 +154,22 @@ function rWalls(c,T){const K=RCFG,ca=Math.cos(c.a),sa=Math.sin(c.a),r=1.0;
     const sgn=q.d>0?-1:1,nx=q.p.nx*sgn,ny=q.p.ny*sgn;c.x+=nx*pen;c.y+=ny*pen;
     // the impulse at the contact point
     const rx=px-c.x-nx*r,ry=py-c.y-ny*r,vpx=c.vx-c.w*ry,vpy=c.vy+c.w*rx,vn=vpx*nx+vpy*ny;if(vn>=0)continue;
-    const rn=rx*ny-ry*nx,e=.28,j=-(1+e)*vn/(1+rn*rn/K.k2);c.vx+=j*nx;c.vy+=j*ny;c.w+=rn*j/K.k2;
+    const rn=rx*ny-ry*nx,e=.12,j=-(1+e)*vn/(1+rn*rn/K.k2);c.vx+=j*nx;c.vy+=j*ny;c.w+=rn*j/K.k2;
     // scraping along the wall: friction against the sliding
-    const tx=-ny,ty=nx,vt=(c.vx-c.w*ry)*tx+(c.vy+c.w*rx)*ty,jt=Math.max(-Math.abs(j)*.35,Math.min(Math.abs(j)*.35,-vt*.5)),rt=rx*ty-ry*tx;c.vx+=jt*tx;c.vy+=jt*ty;c.w+=rt*jt/K.k2;
+    const tx=-ny,ty=nx,vt=(c.vx-c.w*ry)*tx+(c.vy+c.w*rx)*ty,jt=Math.max(-Math.abs(j)*.12,Math.min(Math.abs(j)*.12,-vt*.5)),rt=rx*ty-ry*tx;c.vx+=jt*tx;c.vy+=jt*ty;c.w+=rt*jt/K.k2;
+    // wall help: a car scraping the wall nose-first is turned back along the track, so it slides off instead of sticking
+    {const da=rwrap(Math.atan2(q.p.ty,q.p.tx)-c.a);if(Math.abs(da)<1.3)c.w+=da*.6}
     if(-vn>2.5&&c.wallT<=0){c.wallT=.25;c.ev.push({type:'wall',v:-vn,x:px+nx*-r,y:py+ny*-r})}c.charge=0}}
-// the cars bump into each other: two circles each (front and back half), a bouncy impulse that also turns them
+// the cars bump into each other: two circles each (front and back half), a bouncy impulse that also turns them.
+// A car with .remote (another player online, or a rival driven by the leader) is moved by the network: only the local car is pushed
 function raceCollide(cars){const K=RCFG,r=1.08,o=1.12;
-  for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){const A=cars[i],B=cars[j];if(Math.abs(A.x-B.x)>6||Math.abs(A.y-B.y)>6)continue;
+  for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){const A=cars[i],B=cars[j];if(A.remote&&B.remote||A.gone||B.gone||Math.abs(A.x-B.x)>6||Math.abs(A.y-B.y)>6)continue;
     for(const oa of[o,-o])for(const ob of[o,-o]){const ax=A.x+Math.cos(A.a)*oa,ay=A.y+Math.sin(A.a)*oa,bx=B.x+Math.cos(B.a)*ob,by=B.y+Math.sin(B.a)*ob,dx=ax-bx,dy=ay-by,dd=Math.hypot(dx,dy);
-      if(dd>=2*r||dd<1e-6)continue;const nx=dx/dd,ny=dy/dd,pen=2*r-dd;A.x+=nx*pen/2;A.y+=ny*pen/2;B.x-=nx*pen/2;B.y-=ny*pen/2;
+      if(dd>=2*r||dd<1e-6)continue;const nx=dx/dd,ny=dy/dd,pen=2*r-dd,ka=A.remote?0:B.remote?1:.5,kb=B.remote?0:A.remote?1:.5;A.x+=nx*pen*ka;A.y+=ny*pen*ka;B.x-=nx*pen*kb;B.y-=ny*pen*kb;
       const cx=(ax+bx)/2,cy=(ay+by)/2,rax=cx-A.x,ray=cy-A.y,rbx=cx-B.x,rby=cy-B.y,
         vax=A.vx-A.w*ray,vay=A.vy+A.w*rax,vbx=B.vx-B.w*rby,vby=B.vy+B.w*rbx,vn=(vax-vbx)*nx+(vay-vby)*ny;if(vn>=0)continue;
       const ran=rax*ny-ray*nx,rbn=rbx*ny-rby*nx,e=.45,jn=-(1+e)*vn/(2+ran*ran/K.k2+rbn*rbn/K.k2);
-      A.vx+=jn*nx;A.vy+=jn*ny;A.w+=ran*jn/K.k2;B.vx-=jn*nx;B.vy-=jn*ny;B.w-=rbn*jn/K.k2;
+      if(!A.remote){A.vx+=jn*nx;A.vy+=jn*ny;A.w+=ran*jn/K.k2}if(!B.remote){B.vx-=jn*nx;B.vy-=jn*ny;B.w-=rbn*jn/K.k2}
       if(-vn>1.5&&(A.bumpT<=0||B.bumpT<=0)){A.bumpT=B.bumpT=.2;const ev={type:'bump',v:-vn,x:cx,y:cy};A.ev.push(Object.assign({other:B},ev));B.ev.push(Object.assign({other:A},ev))}}}}
 
 /* ---------- the rivals ---------- */
@@ -202,19 +205,21 @@ function makeRace(T,entrants,laps){const grid=raceGrid(T,entrants.length);
 function raceStep(R,humanInput,dt){const ev=[];R.acc+=dt;let n=0;
   while(R.acc>=RSTEP&&n<30){R.acc-=RSTEP;n++;const go=R.phase==='race';if(go)R.t+=RSTEP;
     for(const c of R.cars){let inp;
-      if(!go)inp={gas:0,brake:1,steer:0,hb:0};
+      if(c.gone)continue;
+      if(c.remote){if(R.remoteStep)R.remoteStep(c,RSTEP);continue}   // moved by the network (js/race.js)
+      if(!go){c.vx=c.vy=c.w=0;c.thr=humanInput&&c.human?(humanInput(c).gas||0):0;continue}   // on the grid: the cars stand still until the lights go out
       else if(c.done&&c.human)inp={gas:0,brake:.4,steer:0,hb:0};
       else if(c.human)inp=humanInput(c);
       else{inp=aiInput(c,R.T,R.cars,RSTEP);if(c.done)inp.gas*=.6}
       stepRaceCar(c,inp,R.T,RSTEP)}
     raceCollide(R.cars);
     for(const c of R.cars){for(const e of c.ev){e.car=c;ev.push(e)}c.ev.length=0;
-      if(!go)continue;c.lapT+=RSTEP;
+      if(!go||c.remote||c.gone)continue;c.lapT+=RSTEP;
       // a new lap: the progress passes the next whole lap
       const lp=Math.floor(c.prog/R.T.L);if(lp>c.lap&&!c.done){if(c.lap>=1||c.lapT>5){c.laps.push(c.lapT);const nb=c.best==null||c.lapT<c.best;if(nb)c.best=c.lapT;ev.push({type:'lap',car:c,lap:lp,t:c.lapT,best:nb})}
         c.lap=lp;c.lapT=0;if(lp>=R.laps){c.done=true;c.finT=R.t;R.finished.push(c);ev.push({type:'finish',car:c,place:R.finished.length,t:R.t})}}}
     // the order: finished cars first (in the order they finished), then by progress
-    R.order=R.cars.slice().sort((a,b)=>a.done&&b.done?a.finT-b.finT:a.done?-1:b.done?1:b.prog-a.prog)}
+    R.order=R.cars.filter(c=>!c.gone).sort((a,b)=>a.done&&b.done?a.finT-b.finT:a.done?-1:b.done?1:b.prog-a.prog)}
   if(n>=30)R.acc=0;return ev}
 // the time a car still racing would have finished in: its average speed so far over what is left
 function raceEstimate(R,c){if(c.done)return c.finT;const left=R.laps*R.T.L-c.prog,avg=Math.max(5,c.prog/Math.max(1,R.t));return R.t+left/avg}

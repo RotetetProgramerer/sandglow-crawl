@@ -32,6 +32,7 @@ js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen u
 js/cargo.js           Lasteflyet som flyr bilen mellom øyene: modellen, spørsmålet i lasterommet, flyturen, landingen og flyplassene på havet.
 js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
 js/race.js            Racene på Racerøya sett ovenfra: tegningen, kameraet, HUD-en, menyen, lyden, premiene, inn og ut.
+js/racenet.js         Kjør sammen på Racerøya: invitasjon, lobby, felles start, bilene til de andre og dult mellom spillerne.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
 js/props/             Enkeltelementer: trær, palmer, gran … én fil per element. ← finpuss elementer her
@@ -734,11 +735,16 @@ Kjør inn på den blå ruta foran depotet, så kommer spørsmålet «Vil du kjø
 | SPACE eller SHIFT | Håndbrekk: et kort rykk inn i svingen får baken til å skli ut |
 | R | Tilbake på banen (spiller 2: BACKSPACE) |
 | Z og X | Zoom |
+| C | Kamera: nord opp (standard) eller følger bilen |
 | ESC eller P | Pause |
 
 **To spillere** deler tastaturet og skjermen: spiller 1 kjører i bilens lakk med W A S D og SPACE, spiller 2 i blått med piltastene og ENTER. På mobil er det knapper for styring, gass, brems og håndbrekk.
 
 **Sladd og turbo:** når bilen sklir sidelengs i fart, lades turboen (måleren ved farten). Når bilen retter seg opp igjen, får du turbo, og lang sladd gir superturbo. Gass i en krapp sving eller et kort rykk i håndbrekket starter en sladd. Bilen retter seg litt opp av seg selv, så den spinner ikke rundt med mindre du holder håndbrekket lenge.
+
+**Grep og hjelp:** bilen har godt veigrep, rattet vris mindre i stor fart, og bilen retter seg opp av seg selv når den sklir. Treffer du dekkveggen nesen først, blir bilen dreid tilbake langs banen. Gule piler står på yttersiden av de krappe svingene, og skiltene 100 og 50 viser hvor du bør bremse. Testen har en «nybegynner» som bare styrer av og på og aldri bremser: den skal komme rundt uten mange treff i veggen.
+
+**Kjør sammen på nett** (`js/racenet.js`): er du i et rom (se «Kjør sammen»), trykk «Inviter rommet» i racemenyen. De andre får spørsmålet «Vil du bli med?» der de er, og kommer rett til lobbyen. Lederen velger bane og motstandere og starter løpet for alle, og alle får de fem lysene samtidig. Hver spiller kjører sin egen bil på sin egen skjerm, lederen kjører motstanderne, og ledige plasser fylles med motstandere (6 biler til sammen). Spillerne kan dulte hverandre: hver skjerm skyver sin egen bil, så med treg forbindelse kan et dult se litt annerledes ut på de to skjermene. Løpet går videre mens du har pause. Forsvinner lederen, kjører hver skjerm motstanderne selv videre. Mutterne, stjernene og rekordene er personlige.
 
 **Dult:** bilene er to sirkler hver og spretter av hverandre og av dekkveggene. Gress og sand ved siden av asfalten sakker bilen ned.
 
