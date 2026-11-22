@@ -24,6 +24,7 @@ function gpsPlaces(def,lv,o={}){const P=[],has=new Set();
   {const A=lv.airportDef;if(A&&A.ask)add('air','Flyplassen',A.ask.x,A.ask.z,2,'air');   // Trinnvik: the blue square by the small plane
     if(A&&A.cargo)add('cargo',A.ask?'Lasteflyet':'Flyplassen',A.cargo.foot.x,A.cargo.foot.z,1.6,A.ask?'cargo':'air')}   // every island: the foot of the cargo plane's ramp
   if(def.skiAt&&lv.liftDef)add('ski','Skiheisen',def.skiAt[0],def.skiAt[1],2,'ski');
+  if(lv.raceDef)add('race','Racerbanen',lv.raceDef.ask.x,lv.raceDef.ask.z,2,'race');
   if(lv.skuterDef)add('skuter','Skuterutleia',lv.skuterDef.ask.x,lv.skuterDef.ask.z,2,'skuter');
   if(lv.caveDef&&o.cave)add('cave','Diamantgrotten',lv.caveDef.mouth.x,lv.caveDef.mouth.z,lv.caveDef.r+1,'cave');
   for(const k of lv.courses||[])add('k:'+k.id,k.name,k.start.p.x,k.start.p.z,3.6,'course',{k});

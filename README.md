@@ -25,11 +25,13 @@ js/walker.js          Til fots: sjåføren går ut av bilen (E), går, løper og
 js/boatsim.js         Fysikken for motorbåtløpet: båtene, bøyene, piratene og vulkanen (ingen DOM, testes uten nettleser).
 js/boat.js            Motorbåtløpet fra marinaen på Tromøya: havet, øyene, båtene, delt skjerm, HUD, lyd og løp mot andre i rommet.
 js/planesim.js        Flyfysikken: avgang, flyging, landing, krasj og ringene (ingen DOM, testes uten nettleser).
+js/racesim.js         Fysikken i racene på Racerøya: bilene sett ovenfra, sladd og turbo, dult, dekkveggene og motstanderne (ingen DOM, testes uten nettleser).
 js/grottesim.js       Fysikken i Diamantgrotten: bilen sett fra siden, diamanter, bensin og sjekkpunkter (ingen DOM, testes uten nettleser).
 js/gpsroute.js        GPS-en: finner en vei bilen kan kjøre mellom to steder på øya (ingen DOM, testes uten nettleser).
 js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen ute på havet, HUD, lyd, og båtene og flyene til de andre i rommet.
 js/cargo.js           Lasteflyet som flyr bilen mellom øyene: modellen, spørsmålet i lasterommet, flyturen, landingen og flyplassene på havet.
 js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
+js/race.js            Racene på Racerøya sett ovenfra: tegningen, kameraet, HUD-en, menyen, lyden, premiene, inn og ut.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
 js/props/             Enkeltelementer: trær, palmer, gran … én fil per element. ← finpuss elementer her
@@ -42,6 +44,7 @@ data/dyr.js           Dyr for de samme tre miljøene (står i ro).          ← 
 data/savanne.js       Savannens trær, termittuer, gress, elefanter og flodhester (står i ro).
 data/orken.js         Ørkenens kameler, beduiner, telt, brønn og tornebusker (står i ro).
 data/grotte.js        Diamantgrotten: bakken, taket, juv, broer, diamanter, bensinkanner og sjekkpunkter.  ← endre grotten her
+data/racer.js         Racerbanene på Racerøya, motstanderne og premiene.  ← legg til nye racerbaner her
 data/boats.js         Havet og båtløpene fra marinaen.                    ← legg til nye båtløp her
 data/flights.js       Flyplassen på havet og flyturene med ringer.        ← legg til nye flyturer her
 tools/test-levels.js  Autopilot som tester alle baner uten nettleser.
@@ -49,6 +52,7 @@ tools/test-boats.js   Autopilot som kjører alle båtløpene uten nettleser.
 tools/test-flights.js Autopilot som flyr alle flyturene, og lasteflyet mellom alle øyene, uten nettleser.
 tools/test-props.js   Finner pynt som svever over bakken uten noe under seg (node tools/test-props.js [bane]).
 tools/test-grotte.js  Autopilot som kjører Diamantgrotten med alle bilene i Lett og Ekte modus, uten nettleser.
+tools/test-race.js    Sjekker racerbanene og lar motstanderne kjøre alle løpene på alle vanskelighetsgrader, uten nettleser.
 tools/test-gps.js     Lager GPS-ruter til alle stedene på hver øy og lar en autopilot kjøre dem, uten nettleser.
 manifest.json, sw.js  Gjør spillet til en PWA (installerbar, virker uten nett).
 icons/                Appikoner.
@@ -715,3 +719,45 @@ Når alle tre er klart, kjører du tilbake til Skumkroa. Da blir du sjørøverka
 **Endre øya:** Banen setter `c.piratDef` i `build(c)`: `skull` (hodeskallen og punktet inni der spøkelset kommer), `cannons`, `dig` (krysset), `inn` (bordet) og `duel` (sverdmesteren) med hvor nær du må være, `wreck`, `ship`, `ghost:{r,speed}`, `lights` (lykter), `folk` (sjørøverne: `hat`, `coat`, `sit`, `patch`, `peg`, `beard`, `sword`, `mug`, `scope`, `parrot`, `wave`) og `patrol` (runden til den som går på stranda). Fornærmelsene og svarene står i `PIR_DUEL` og `PIR_WRONG` i `js/pirater.js`: legg til en linje for en ny fornærmelse.
 
 Testen: `node tools/test-levels.js pirat`. Sjørøverne og prøvene er ikke med i testen, de finnes bare i nettleseren.
+
+## Racerøya: racerbanen og racet sett ovenfra
+
+`data/levels/15-racer.js` er øya med racerbanen: en asfaltert runde midt på øya med tribune, depot og startportal, palmer og hvite strender. Fergen går fra Tromøya, Trinnvik, Spornes og Gautefall. Banerunden (en vanlig løype med porter rundt asfalten) og Palmestranda er løypene på øya.
+
+Kjør inn på den blå ruta foran depotet, så kommer spørsmålet «Vil du kjøre race?». JA: bilen blir stående, og bildet skifter til racet sett rett ovenfra (2D, tegnet på et eget lerret).
+
+| Taster | |
+|---|---|
+| ← → eller A D | Styr |
+| ↑ eller W | Gass |
+| ↓ eller S | Brems og revers |
+| SPACE eller SHIFT | Håndbrekk: et kort rykk inn i svingen får baken til å skli ut |
+| R | Tilbake på banen (spiller 2: BACKSPACE) |
+| Z og X | Zoom |
+| ESC eller P | Pause |
+
+**To spillere** deler tastaturet og skjermen: spiller 1 kjører i bilens lakk med W A S D og SPACE, spiller 2 i blått med piltastene og ENTER. På mobil er det knapper for styring, gass, brems og håndbrekk.
+
+**Sladd og turbo:** når bilen sklir sidelengs i fart, lades turboen (måleren ved farten). Når bilen retter seg opp igjen, får du turbo, og lang sladd gir superturbo. Gass i en krapp sving eller et kort rykk i håndbrekket starter en sladd. Bilen retter seg litt opp av seg selv, så den spinner ikke rundt med mindre du holder håndbrekket lenge.
+
+**Dult:** bilene er to sirkler hver og spretter av hverandre og av dekkveggene. Gress og sand ved siden av asfalten sakker bilen ned.
+
+**Løpet:** fem røde lys tennes ett og ett, og når de slukker, går det. Tre runder mot fem andre (fire når dere er to). Du starter bakerst. Premien for plass 1–6 er 30, 20, 12, 6, 3 og 3 muttere, ganget med 1 (Lett), 1,5 (Middels) eller 2 (Vanskelig). Første seier på en bane gir 50 muttere ekstra. Tre stjerner: vinn på under den første tiden i `par`; to stjerner: blant de to første på under den andre. Beste tid og beste runde lagres i `best['racer/<bane>']`.
+
+| Bane | Vanskelighet | Kort fortalt |
+|---|---|---|
+| Palmeringen | Lett | Brede, lange svinger rundt palmelunden |
+| Havnesvingen | Middels | En krapp hårnål, en rask S-sving og en lang slakk sving |
+| Vulkanslyngen | Vanskelig | Smal og svingete, sandfeller og en vulkan midt på |
+
+**Endre eller lage racerbaner:** `data/racer.js`. En bane er en lukket kurve gjennom punktene i `pts` (meter, x mot høyre og y nedover på skjermen), med halv bredde `hw`, sikkerhetssone `runoff` ut til dekkveggen, underlag utenfor (`off`: `grass` eller `sand`), `scale`, `laps`, `par` og farger i `look`. Tribunene, depotet, startportalen, reklameskiltene, dekkstablene, palmene, båtene og fyret settes ut automatisk. Motstanderne følger en idealrute som regnes ut fra banen, og bremser for svingene. Banen må ikke komme nærmere seg selv enn 2 × (`hw` + `runoff`) + 6 meter. Kjør alltid:
+
+```
+node tools/test-race.js
+```
+
+Alle rader skal vise OK. Testen sjekker avstanden, lar seks motstandere kjøre løpet på alle tre vanskelighetsgradene og lar en «spiller» sladde med håndbrekket rundt banen.
+
+**Fysikken** (`js/racesim.js`, `RCFG` øverst): bilen er en sykkelmodell med dekk som sklir. Viktige tall: `mu` (veigrep), `acc` og `vtop` (motor og toppfart), `hbGrip` (hvor mye bakhjulene slipper med håndbrekket), `pow` (hvor mye gassen tar av grepet bak), `stab` og `wmax` (hvor mye bilen retter seg opp selv, og hvor fort den kan snurre), `steerK` (hvor mye rattet kan vris i fart). Kjør `node tools/test-race.js` etter endringer.
+
+**Øya:** den blå ruta er `c.raceDef={ask:{x,z}}` i `build(c)`. `racePath` er bare for testen (`node tools/test-levels.js racer` kjører fra landsbyveien inn på ruta).

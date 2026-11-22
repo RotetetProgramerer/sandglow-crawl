@@ -146,6 +146,17 @@
   <button class="tb pedal gas" data-t="gas" aria-label="Gass (→ eller W)"><i></i><i></i><i></i><span>GASS</span></button>
 </div>
 
+<!-- RACERØYA (js/race.js): the race seen from above, drawn on its own canvas -->
+<div id="raceHud" hidden>
+  <canvas id="rcCv" aria-label="Racerbanen sett ovenfra"></canvas>
+  <button class="ib" id="rcPauseB" aria-label="Pause (Esc)" title="Pause (Esc)"><svg viewBox="0 0 24 24"><path d="M8 5v14M16 5v14"/></svg></button>
+  <div class="rc-touch">
+    <div class="rc-steer"><button class="tb" data-t="left" aria-label="Styr til venstre"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></svg></button><button class="tb" data-t="right" aria-label="Styr til høyre"><svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></svg></button></div>
+    <div class="rc-pedals"><button class="tb rc-hb" data-t="hb" aria-label="Håndbrekk"><span>HÅND-<br>BREKK</span></button><button class="tb" data-t="rev" aria-label="Brems"><span>BREMS</span></button><button class="tb big" data-t="gas" aria-label="Gass"><span>GASS</span></button></div>
+    <button class="ib" id="rcReset" aria-label="Tilbake på banen">R</button>
+  </div>
+</div>
+
 <!-- MENU -->
 <canvas id="spray" aria-hidden="true"></canvas>
 <section class="overlay menu" id="menu">
@@ -395,6 +406,50 @@
   </div>
 </section>
 
+<!-- THE RACE MENU, THE PAUSE AND THE RESULT ON RACERØYA (js/race.js) -->
+<section class="overlay dialog" id="raceMenu" hidden>
+  <div class="sheet mp boat">
+    <p class="eyebrow">Racerøya</p>
+    <h2>Racerløpet</h2>
+    <p class="note">Tre runder mot de andre. Sladd gjennom svingene: jo lenger du sladder, desto mer turbo får du når bilen retter seg opp. Dult gjerne de andre, men pass deg for dekkveggene.</p>
+    <div class="alist" id="rmTracks"></div>
+    <div class="seg three" role="group" aria-label="Motstanderne"><button id="rmLv0" aria-pressed="false">Lett</button><button id="rmLv1" aria-pressed="true">Middels</button><button id="rmLv2" aria-pressed="false">Vanskelig</button></div>
+    <p class="note" id="rmLvNote"></p>
+    <div class="seg" role="group" aria-label="Antall spillere"><button id="rm1" aria-pressed="true">1 spiller</button><button id="rm2" aria-pressed="false">2 spillere</button></div>
+    <p class="note" id="rmKeys"></p>
+    <button class="go" id="rmGo">Til start!</button>
+    <button class="ghost" id="rmBack">Tilbake til bilen</button>
+  </div>
+</section>
+<section class="overlay dialog" id="racePause" hidden>
+  <div class="sheet">
+    <h2>Pause</h2>
+    <button class="go" id="rpResume">Fortsett</button>
+    <div class="row"><button class="ghost" id="rpRestart">Start på nytt</button><button class="ghost" id="rpMenu">Velg bane</button></div>
+    <div class="row"><button class="ghost" id="rpCar">Tilbake til bilen</button><button class="ghost" id="rpSound">Lyd: på</button></div>
+    <ul class="log">
+      <li><b>Styring:</b> ← → eller A D. <b>Gass:</b> ↑ eller W. <b>Brems og revers:</b> ↓ eller S.</li>
+      <li><b>Håndbrekk:</b> SPACE eller SHIFT. Et kort rykk inn i svingen får baken til å skli ut.</li>
+      <li><b>Sladd og turbo:</b> hold sladden, og når bilen retter seg opp, får du turbo. Lang sladd gir superturbo.</li>
+      <li><b>To spillere:</b> spiller 1 W A S D og SPACE, spiller 2 piltastene og ENTER.</li>
+      <li><b>R</b> setter bilen tilbake på banen (spiller 2: BACKSPACE). <b>Z</b> og <b>X</b> zoomer.</li>
+      <li><b>Gress og sand</b> sakker bilen ned. Dekkveggene stopper deg.</li>
+    </ul>
+  </div>
+</section>
+<section class="overlay dialog" id="raceResult" hidden>
+  <div class="sheet mp">
+    <p class="eyebrow" id="rrLevel">Racerøya</p>
+    <h2 id="rrTitle">Du vant!</h2>
+    <div class="stars" id="rrStars"></div>
+    <ol class="rr-table" id="rrTable"></ol>
+    <ul class="log" id="rrLog"></ul>
+    <div class="earn">⚙ <b id="rrNuts">+0</b><small id="rrNutsNote"></small></div>
+    <button class="go" id="rrAgain">Kjør igjen</button>
+    <div class="row"><button class="ghost" id="rrMenu">Velg bane</button><button class="ghost" id="rrCar">Tilbake til bilen</button></div>
+  </div>
+</section>
+
 <!-- THE BOAT MENU AND THE PAUSE AT SEA (js/boat.js) -->
 <section class="overlay dialog" id="boatMenu" hidden>
   <div class="sheet mp boat">
@@ -450,6 +505,7 @@
 <script src="js/boatsim.js"></script>
 <script src="js/planesim.js"></script>
 <script src="js/grottesim.js"></script>
+<script src="js/racesim.js"></script>
 <script src="js/gpsroute.js"></script>
 <script src="js/animals.js"></script>
 <script src="js/savannedyr.js"></script>
@@ -465,6 +521,7 @@
 <script src="data/boats.js"></script>
 <script src="data/flights.js"></script>
 <script src="data/grotte.js"></script>
+<script src="data/racer.js"></script>
 <script src="data/vegetasjon.js"></script>
 <script src="data/dyr.js"></script>
 <script src="data/savanne.js"></script>
@@ -482,6 +539,7 @@
 <script src="data/levels/12-orken.js"></script>
 <script src="data/levels/13-svalbard.js"></script>
 <script src="data/levels/14-pirat.js"></script>
+<script src="data/levels/15-racer.js"></script>
 
 <!-- Spillet -->
 <script src="js/game.js"></script>
@@ -495,6 +553,7 @@
 <script src="js/plane.js"></script>
 <script src="js/cargo.js"></script>
 <script src="js/grotte.js"></script>
+<script src="js/race.js"></script>
 <script src="js/net.js"></script>
 <script src="js/gps.js"></script>
 <script>startGame()</script>
