@@ -147,6 +147,20 @@
   <div class="cv-notice" id="mnNotice" aria-live="polite"></div>
 </div>
 
+<!-- FRØHVELVET (js/frohvelv.js): Frøken Frø's little game about seeds and plants on Svalbard. The stations are drawn into #vtStage -->
+<div id="vault" hidden>
+  <div class="vt-top">
+    <div class="vt-title"><b>Frøhvelvet</b><span id="vtStep"></span></div>
+    <div class="vt-dots" id="vtDots" aria-hidden="true"></div>
+    <div class="vt-tools"><button class="vt-tbtn" id="vtRead" aria-pressed="true">🔊 Les høyt: på</button><button class="vt-tbtn" id="vtOut">Gå ut ✕</button></div>
+  </div>
+  <div class="vt-main">
+    <div class="vt-host"><div class="vt-fia" id="vtFia"></div>
+      <div class="vt-bubble" id="vtBubble"><small>Frøken Frø</small><p id="vtSay" aria-live="polite"></p><button class="vt-again" id="vtAgain" aria-label="Hør igjen (R)" title="Hør igjen (R)">🔊</button></div></div>
+    <div class="vt-stage" id="vtStage"></div>
+  </div>
+</div>
+
 <!-- DIAMANTGROTTEN (js/grotte.js): the secret cave on Kameløya, seen from the side -->
 <div id="caveHud" hidden>
   <div class="cv-top">
@@ -350,6 +364,7 @@
       <li><b>Rundflyging</b> fra flyplassen øst på Trinnvik: parker på den blå ruta ved småflyet.</li>
       <li><b>Pass deg for dyrene på Løveøya.</b> Løver, geparder og krokodiller angriper hvis du kommer for nær.</li>
       <li><b>Kjør inn i Gruve 7 på Svalbard,</b> og kjør om kapp i gruvevogn mot tre gruvearbeidere. Vinneren får 150 muttere.</li>
+      <li><b>Besøk frøhvelvet på Svalbard,</b> still deg på den blå ruta ved døra, og hjelp Frøken Frø å passe på frøene.</li>
       <li><b>Hopp på sanddynene på Kameløya,</b> og let etter den hemmelige grotten. Der inne er hver diamant verdt 10 muttere.</li>
       <li><b>Sitter du fast?</b> Lavt gir (G), vinsj (R) eller «Hent bilen» i pausemenyen (Esc).</li>
     </ul>
@@ -545,6 +560,7 @@
 <script src="js/planesim.js"></script>
 <script src="js/grottesim.js"></script>
 <script src="js/gruvesim.js"></script>
+<script src="js/frohvelvsim.js"></script>
 <script src="js/racesim.js"></script>
 <script src="js/gpsroute.js"></script>
 <script src="js/animals.js"></script>
@@ -562,6 +578,7 @@
 <script src="data/flights.js"></script>
 <script src="data/grotte.js"></script>
 <script src="data/gruve7.js"></script>
+<script src="data/frohvelv.js"></script>
 <script src="data/racer.js"></script>
 <script src="data/vegetasjon.js"></script>
 <script src="data/dyr.js"></script>
@@ -595,6 +612,7 @@
 <script src="js/cargo.js"></script>
 <script src="js/grotte.js"></script>
 <script src="js/gruve7.js"></script>
+<script src="js/frohvelv.js"></script>
 <script src="js/race.js"></script>
 <script src="js/net.js"></script>
 <script src="js/gps.js"></script>

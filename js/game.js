@@ -629,6 +629,7 @@ addEventListener('keydown',e=>{
   if(state.mode==='cave'){caveKeyDown(k);return}   // Diamantgrotten (js/grotte.js)
   if(state.mode==='mine'){mineKeyDown(k);return}   // Gruve 7 (js/gruve7.js)
   if(state.mode==='race'){raceKeyDown(k);return}   // Racerøya (js/race.js)
+  if(state.mode==='vault'){vaultKeyDown(k);return}   // Frøhvelvet (js/frohvelv.js)
   if(MAP.open&&(k==='escape'||k==='k')){openMap(false);return}
   if(k==='escape'||k==='p'){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ask')answerAsk(false)}
   if(state.mode==='ask'&&(k==='enter'||k==='j'))answerAsk(true);
@@ -791,7 +792,7 @@ function frame(now){
   if(!car||!LV){return}
   readInput(dt);if(toastT>0){toastT-=dt;if(toastT<=0){$('toast').classList.remove('on');$('boatToast').classList.remove('on');$('cvToast').classList.remove('on')}}
   prevPos.copy(car.pos);walkStep(dt);
-  if(state.mode!=='pause'&&state.mode!=='ask'&&state.mode!=='ferry'&&state.mode!=='ski'&&state.mode!=='boat'&&state.mode!=='fly'&&state.mode!=='cave'&&state.mode!=='mine'){acc+=dt;let n=0;while(acc>=FIXED&&n<20){stepCar(car,FIXED);acc-=FIXED;n++}if(n>=20)acc=0}
+  if(state.mode!=='pause'&&state.mode!=='ask'&&state.mode!=='ferry'&&state.mode!=='ski'&&state.mode!=='boat'&&state.mode!=='fly'&&state.mode!=='cave'&&state.mode!=='mine'&&state.mode!=='vault'){acc+=dt;let n=0;while(acc>=FIXED&&n<20){stepCar(car,FIXED);acc-=FIXED;n++}if(n>=20)acc=0}
   if(state.mode==='count')updateCountdown(dt);if(state.mode==='ferry')updateFerry(dt);
   // physics blew up: put the car back at the last checkpoint (the start outside a run)
   if(!isFinite(car.pos.x)||!isFinite(car.q.w)){car.q.set(0,0,0,1);const cp=state.mode==='play'&&state.checkpoint;if(cp)placeCar(car,cp.x,cp.z,cp.h);else resetToStart();camSnap=true}
@@ -824,6 +825,7 @@ function frame(now){
   if(updateCave(dt)){if(typeof netTick==='function')netTick(dt);return}   // in Diamantgrotten (js/grotte.js): the cave seen from the side
   if(updateMine(dt)){if(typeof netTick==='function')netTick(dt);return}   // in Gruve 7 (js/gruve7.js): the mine wagon seen from behind
   if(updateRace(dt)){if(typeof netTick==='function')netTick(dt);return}   // on Racerøya (js/race.js): the race seen from above
+  if(updateVault(dt)){if(typeof netTick==='function')netTick(dt);return}  // in Frøhvelvet (js/frohvelv.js): Frøken Frø's little game covers the island
   updateMinimap();
   updateLift(dt);syncVisuals(dt);walkSync(dt);updateSki(dt);if(typeof netTick==='function')netTick(dt);updateCamera(dt);updateAudio();updateAmbience(dt);
   landShake*=Math.exp(-dt*9);const shk=(ERU.amp>.0005?ERU.amp:0)+boulderShake()+(landShake>.001?landShake:0),sx=(Math.random()-.5)*shk*2,sy=(Math.random()-.5)*shk*2,sz=(Math.random()-.5)*shk*2;if(shk)camera.position.add(_c1.set(sx,sy,sz));

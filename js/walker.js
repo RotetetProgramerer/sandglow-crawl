@@ -179,7 +179,7 @@ function walkMove(dt){const W=WALK,I=state.inp||{gas:0,rev:0,steer:0,jump:false}
 // every frame, before the car is stepped
 function walkStep(dt){const W=WALK;if(!W.on)return;W.sayT-=dt;
   const m=state.mode;
-  if((m!=='play'&&m!=='pause'&&m!=='ask')||SKI.on||W.lv!==LV||!carVis||W.body!==carVis.body||car.pos.distanceToSquared(W.carAt)>1){walkEnd();return}
+  if((m!=='play'&&m!=='pause'&&m!=='ask'&&m!=='vault')||SKI.on||W.lv!==LV||!carVis||W.body!==carVis.body||car.pos.distanceToSquared(W.carAt)>1){walkEnd();return}
   W.carAt.copy(car.pos);if(m!=='play')return;
   W.t+=dt;
   if(W.ph==='out'){W.k=Math.min(1,W.k+dt/1.05);const p=walkPath(W.k,W.side,_wo);W.pos.set(p.x,p.y,p.z);W.h=p.h;W.sit=p.sit;W.mv=0;W.run=0;
