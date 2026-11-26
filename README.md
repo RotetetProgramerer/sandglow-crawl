@@ -41,6 +41,7 @@ js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
 js/tips.js           Tips underveis: korte hint første gang du nærmer deg et sted, sitter fast eller står stille. ← legg til nye tips her
 js/ghost.js          Spøkelset: den beste turen din kjører ved siden av deg i løypene og på Racerøya. Kan slås av i innstillingene.
+js/dagbok.js         Reisedagboka (fremgang og merker, øy for øy) og dagens utfordring (én løype og én bil hver dag, med bonus).
 js/props/             Enkeltelementer: trær, palmer, gran … én fil per element. ← finpuss elementer her
 props.html            Elementverkstedet: se og juster ett element alene (åpne i nettleseren).
 data/cars.js          Bilene.                 ← legg til nye biler her

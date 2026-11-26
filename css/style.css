@@ -578,3 +578,20 @@ body.is-touch .rc-touch{display:block}
   .vt-opts{gap:10px}
 }
 @media (prefers-reduced-motion:reduce){#vault *{animation:none!important;transition:none!important}}
+
+/* ---------- reisedagboka og dagens utfordring (js/dagbok.js) ---------- */
+.daily{border:1px solid var(--line);border-left:4px solid var(--sand);padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;background:var(--ink-2)}
+.daily .note b{color:var(--paper)}
+.sheet.wide{width:min(640px,100%)}
+.sheet h3{font-family:var(--f-display);font-weight:400;color:var(--sand);font-size:1.2rem}
+.res.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.res.four b{font-size:1.25rem}
+.dbl,.dbb{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.dbl li{border:1px solid rgba(242,232,208,.14);background:var(--ink-2);padding:7px 10px;display:flex;flex-wrap:wrap;gap:2px 14px;align-items:baseline;font-size:.95rem;color:var(--muted)}
+.dbl li b{flex:1 0 100%;color:var(--paper);font-size:1.05rem}
+.dbl li.all{border-color:var(--sand)}.dbl li.all b,.dbl span.ok{color:var(--sand)}
+.dbb{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dbb li{border:1px solid rgba(242,232,208,.14);padding:6px 10px;display:flex;flex-direction:column;font-size:.9rem;color:var(--muted);opacity:.6}
+.dbb li b{color:var(--paper);font-size:1rem}
+.dbb li.got{opacity:1;border-color:var(--sand)}.dbb li.got b{color:var(--sand)}
+@media (max-width:520px){.res.four{grid-template-columns:repeat(2,minmax(0,1fr))}.dbb{grid-template-columns:1fr}}

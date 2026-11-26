@@ -15,7 +15,7 @@ let best=store.get('best',{});
 // player profile: currency, parts, paint
 const prof=Object.assign({nuts:0,parts:{},paint:0,paints:[0],first:{},runs:0,lastDay:'',secrets:{},cars:[]},store.get('prof',{}));if(!prof.secrets)prof.secrets={};if(!prof.cars)prof.cars=[];
 const ownsCar=c=>!c.price||prof.cars.includes(c.id);
-if(!PAINTS[prof.paint])prof.paint=0;
+if(!PAINTS[prof.paint])prof.paint=0;if(!ownsCar(CARS[state.carIdx]))state.carIdx=0;   // a car lent by today's challenge is not kept
 if(!Array.isArray(prof.rims))prof.rims=[0];if(!Array.isArray(prof.flags))prof.flags=[0];if(!RIMS[prof.rim])prof.rim=0;if(!FLAGS[prof.flag])prof.flag=0;   // cosmetics from the garage
 const saveProf=()=>store.set('prof',prof);
 const fmtN=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
@@ -534,7 +534,7 @@ function startRun(){
   resetCrates();resetToStart();car.low=true;clearTracks();resetBoulder();
   showHud();updateGearUI();toast('Kjør til port 1');
 }
-function toMenu(){if(state.course)endCourse();skuterOff();state.free=false;state.mode='menu';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('garage').hidden=true;$('menu').hidden=false;renderMenu();resetToStart()}
+function toMenu(){if(state.course)endCourse();if(typeof dailyEnd==='function')dailyEnd();skuterOff();state.free=false;state.mode='menu';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('garage').hidden=true;$('menu').hidden=false;renderMenu();resetToStart()}
 function toGarage(){if(state.course)endCourse();skuterOff();clearCoat();state.mode='garage';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('menu').hidden=true;$('garage').hidden=false;resetToStart();renderGarage();$('gDrive').focus()}
 function renderGarage(){
   $('gCar').textContent=CARS[state.carIdx].name;$('gNuts').textContent=fmtN(prof.nuts);
@@ -594,6 +594,7 @@ function finishRun(){
   if(state.longJumps){e+=state.longJumps*20;el.push(`${state.longJumps} store hopp +${state.longJumps*20}`)}
   if(state.bonusNuts){e+=state.bonusNuts;el.push(`snarvei +${state.bonusNuts}`)}
   if(p===0){e+=100;el.push('feilfri +100')}
+  if(typeof dailyBonus==='function'){const db=dailyBonus(key,p);if(db){e+=db;el.push('dagens utfordring +'+db)}}
   // first-completion bonus is earned per gate: 200 for all gates, the rest can be picked up on a later run
   const frac=gatesOK/def.gates,prevF=+prof.first[key]||0;
   if(frac>prevF){const add=Math.round(200*frac)-Math.round(200*prevF);prof.first[key]=frac;e+=add;
@@ -690,7 +691,7 @@ $('bSlow').onclick=()=>setSpeed(state.speed-10);$('bFast').onclick=()=>setSpeed(
 $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
 $('gfxHi').onclick=()=>setGfx('hi');$('gfxLo').onclick=()=>setGfx('lo');$('bCam').onclick=()=>{if(state.mode==='ski')skiKeyDown('c');else cycleCam()};$('bWinch').addEventListener('pointerdown',e=>{if(hasWinch()){e.preventDefault();winchKey(true)}});$('bWinch').addEventListener('pointerup',()=>{if(hasWinch())winchKey(false)});$('bWinch').onclick=()=>{if(!hasWinch())winch()};$('pFetch').onclick=()=>{pause(false);winch()};$('bPause').onclick=()=>pause(true);
-$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);$('ghOn').onclick=()=>setGhost(true);$('ghOff').onclick=()=>setGhost(false);$('pHelp').onclick=()=>showHelp('pause');$('mHelp').onclick=()=>showHelp('menu');$('tipOk').onclick=()=>tipHide();$('pHap').onclick=()=>{setHaptics(!state.haptics);buzz(.6,80)};$('hapOn').onclick=()=>{setHaptics(true);buzz(.6,80)};$('hapOff').onclick=()=>setHaptics(false);
+$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);$('ghOn').onclick=()=>setGhost(true);$('ghOff').onclick=()=>setGhost(false);$('dailyGo').onclick=()=>dailyStart();$('mDiary').onclick=()=>openDiary('menu');$('pDiary').onclick=()=>openDiary('pause');$('pHelp').onclick=()=>showHelp('pause');$('mHelp').onclick=()=>showHelp('menu');$('tipOk').onclick=()=>tipHide();$('pHap').onclick=()=>{setHaptics(!state.haptics);buzz(.6,80)};$('hapOn').onclick=()=>{setHaptics(true);buzz(.6,80)};$('hapOff').onclick=()=>setHaptics(false);
 $('rRetry').onclick=()=>{if(!skiResultBtn('retry')&&!boatResultBtn('retry')&&!flyResultBtn('retry')&&!caveResultBtn('retry')&&!mineResultBtn('retry'))startRun()};$('rMenu').onclick=()=>{if(!skiResultBtn('car')&&!boatResultBtn('car')&&!flyResultBtn('car')&&!caveResultBtn('car')&&!mineResultBtn('car'))toMenu()};$('rNext').onclick=()=>{if(skiResultBtn('next')||boatResultBtn('next')||flyResultBtn('next')||caveResultBtn('next')||mineResultBtn('next'))return;if(state.world){endCourse();showHud();state.mode='play';return}loadLevel((state.levelIdx+1)%LEVELS.length);startRun()};
 $('bMap').onclick=()=>openMap();$('mTabIsland').onclick=()=>setMapTab('island');$('mTabArch').onclick=()=>setMapTab('arch');$('mClose').onclick=()=>openMap(false);$('pMap').onclick=()=>{$('pause').hidden=true;openMap(true)};
 $('mTow').onclick=()=>{if(prof.nuts<20){toast('Du trenger 20 muttere',true);return}prof.nuts-=20;saveProf();if(state.course)endCourse();openMap(false);const lvl=LEVELS[state.levelIdx];if(lvl.basePos)resetToStart();else if(LV.ferry){const f=LV.ferry;placeCar(car,f.pad.x,f.pad.z,Math.atan2(-f.dx,-f.dz));camSnap=true}else resetToStart();state.checkpoint={x:car.pos.x,z:car.pos.z,h:Math.atan2(car.fw.x,car.fw.z)};toast(lvl.basePos?'Tauet hjem til basen · −20 ⚙':'Tauet til kaia · −20 ⚙')};
@@ -869,6 +870,7 @@ function renderMenu(){
     <span class="best">${b?`Beste<b>${fmtTime(b.t)}</b>${b.p} straff`:'Ikke kjørt'}</span></button>`};
   const races=LEVELS.map((l,i)=>[l,i]).filter(([l])=>!l.world);
   $('levelList').innerHTML=races.map(([l,i],n)=>lvlBtn(l,i,n+1)).join('');const sel=LEVELS[state.levelIdx];$('raceBtn').textContent='Hurtigløp: '+(sel.world?races[0][0].name:sel.name);
+  if(typeof dailyRender==='function')dailyRender();
   $('mNuts').textContent=fmtN(prof.nuts);$('mStars').textContent='★ '+totalStars()+' av '+maxStars();
   $('modeEasy').setAttribute('aria-pressed',state.assist);$('modeReal').setAttribute('aria-pressed',!state.assist);
   $('modeNote').textContent=state.assist?'Litt mer grep, veltehjelp, automatisk vinsj og en pil som peker mot neste port. Fint for barn og nybegynnere.':'Ingen hjelp. Bilen oppfører seg som en ekte crawler, og du må vinsje selv.';
