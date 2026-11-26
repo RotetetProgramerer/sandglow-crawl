@@ -223,10 +223,10 @@ function cInput(){const I=state.inp||{gas:0,rev:0,steer:0};if(CV.phase!=='drive'
   return{gas:Math.max(I.gas,I.steer<0?-I.steer:0),brake:Math.max(I.rev,I.steer>0?I.steer:0)}}
 function cStep(dt){const c=CV.car,cv=CV.cave,inp=cInput();CV.inp=inp;stepCaveCar(c,inp,cv,dt);
   for(const e of c.ev){
-    if(e.type==='crash'){cNotice('Velt!',1400,true);cBoom();CV.shake=.25;for(let i=0;i<14;i++)cPart(c.x,c.y+.3,'#8a7a6a',2)}
+    if(e.type==='crash'){cNotice('Velt!',1400,true);cBoom();CV.shake=.25;buzz(1,180);for(let i=0;i<14;i++)cPart(c.x,c.y+.3,'#8a7a6a',2)}
     else if(e.type==='pit'){cNotice('Ned i juvet!',1400,true);cBoom(.6)}
     else if(e.type==='respawn'){placeCaveCar(c,cv,caveRespawnX(cv,CV.run));c.fuel=Math.max(c.fuel,.3);CV.snap=true;cNotice(CV.run.cp>=0?'Tilbake ved '+cv.cps[CV.run.cp].name:'Tilbake ved inngangen',1500)}
-    else if(e.type==='land'){if(e.air>.25){CV.shake=Math.min(.12,e.air*.08);cThump(Math.min(1,e.air));for(const w of c.wheels)if(w.contact)for(let i=0;i<5;i++)cPart(w.px,w.py,w.surf===S.SAND?'#d8b878':'#9a9084',1)}
+    else if(e.type==='land'){if(e.air>.25){CV.shake=Math.min(.12,e.air*.08);buzz(Math.min(1,e.air*.8),80);cThump(Math.min(1,e.air));for(const w of c.wheels)if(w.contact)for(let i=0;i<5;i++)cPart(w.px,w.py,w.surf===S.SAND?'#d8b878':'#9a9084',1)}
       if(e.flips){const n=e.flips;CV.flips+=n;CV.bonus+=5*n;prof.nuts+=5*n;saveProf();cNotice((n>1?n+' × ':'')+(e.back?'Baklengs salto!':'Salto!')+' +'+5*n+' ⚙',1800);cChime(1)}
       else if(e.air>1.1)cNotice('Luftetur! '+e.air.toFixed(1).replace('.',',')+' s',1200)}
     else if(e.type==='splash'){if(e.v>.8){cSplash();for(let i=0;i<12;i++)cPart(e.x+(Math.random()-.5),e.y,'#bfe8f2',2)}}

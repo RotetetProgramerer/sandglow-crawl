@@ -380,7 +380,7 @@ function bStep(){BT.wave+=BSTEP;const racing=BT.phase==='race',B=BT.P.map(p=>p.b
     if(bNear(e.b)<=0)continue;fxSplash(bV(e.b.x,1,e.b.z));if(e.b.kind==='lava')for(let i=0;i<8;i++)bSpawn(bV(e.b.x,3,e.b.z),bV(brand(-.6,.6),brand(.6,1.4),brand(-.6,.6)),{color:0xff7a20,size:brand(2,4),life:30,gravity:.05,additive:true})}
   if(racing){for(const e of stepBarrels(BT.barrels,live,BT.step)){if(e.type==='taken'){const p=BT.P.find(q=>q.b===e.b);fxSparkle(bV(e.br.x,4,e.br.z));sndCoin();if(p)bNotice(p,'Turbo! +'+BOAT_PTS.barrel+' poeng',1000)}else if(bNear(e.br)>0)fxSparkle(bV(e.br.x,4,e.br.z))}
     for(const p of BT.P){const e=boatCheck(p.b,BT.route);if(e)bProgress(p,e);bChestGrab(p)}}
-  for(const p of BT.P){for(const e of p.b.ev)if(e.type==='bump'){p.shake={t:14,mag:e.mag};sndThud();sndCreak();if(e.what==='land')fxHit(bV(p.b.x,3,p.b.z),0xe8d9ae)}p.b.ev.length=0;bWake(p,p.b)}
+  for(const p of BT.P){for(const e of p.b.ev)if(e.type==='bump'){p.shake={t:14,mag:e.mag};buzz(Math.min(1,e.mag/4),90,p.i);sndThud();sndCreak();if(e.what==='land')fxHit(bV(p.b.x,3,p.b.z),0xe8d9ae)}p.b.ev.length=0;bWake(p,p.b)}
   for(const r of BT.remote.values())if(r.live)bWake(r,r);
   const erupt=BT.vol&&BT.vol.left>0;for(const s of BT.smokers)if(Math.random()<(erupt?.6:.15)&&bNear(s)>0)bSpawn(bV(s.x+brand(-5,5),s.y,s.z+brand(-5,5)),bV(brand(-.1,.1),.35,brand(-.1,.1)),{color:erupt?0x5a3a2a:0x777777,size:12,life:120,grow:.25,opacity:.5});
   bBalls();bParticles()}
@@ -397,7 +397,7 @@ function bBalls(){for(const b of BT.balls)if(!b.m){if(b.kind==='lava'){b.m=new T
     else{b.m=new THREE.Mesh(BT.ballGeo||(BT.ballGeo=new THREE.SphereGeometry(1.1,8,8)),BT.ballMat||(BT.ballMat=new THREE.MeshStandardMaterial({color:0x111111,roughness:.4,metalness:.5})));if(bNear(b)>0)fxMuzzle(bV(b.x,b.y,b.z),b.vx,b.vz)}
     b.m.position.set(b.x,b.y,b.z);BT.scene.add(b.m);BT.ballVis.push(b)}
   BT.ballVis=BT.ballVis.filter(b=>{if(b.dead){BT.scene.remove(b.m);return false}b.m.position.set(b.x,b.y,b.z);if(b.kind==='lava'&&Math.random()<.3&&bNear(b)>0)bSpawn(b.m.position,bV(0,.1,0),{color:0x555555,size:6,life:40,grow:.3,opacity:.5});return true})}
-function bHit(p,ball){p.shake={t:22,mag:4};fxHit(bV(ball.x,Math.max(3,ball.y),ball.z));sndThud();const f=p.ui.flash;f.style.opacity=1;setTimeout(()=>f.style.opacity=0,200);bNotice(p,ball.kind==='lava'?'Lavabombe!':'Truffet!',1200)}
+function bHit(p,ball){p.shake={t:22,mag:4};buzz(1,160,p.i);fxHit(bV(ball.x,Math.max(3,ball.y),ball.z));sndThud();const f=p.ui.flash;f.style.opacity=1;setTimeout(()=>f.style.opacity=0,200);bNotice(p,ball.kind==='lava'?'Lavabombe!':'Truffet!',1200)}
 function bProgress(p,e){const R=BT.route;if(e.type==='buoy'){sndGate();bNotice(p,p.b.gate<R.buoys.length?'Bøye '+p.b.gate+' ✓':'Kurs mot '+R.dock.to+'!',1400)}
   else if(e.type==='slow'){const now=performance.now();if(now-p.warned>1800){bNotice(p,'Sakk farten for å fortøye!',1200);p.warned=now}}
   else if(e.type==='finish')bFinish(p)}

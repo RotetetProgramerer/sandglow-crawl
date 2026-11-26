@@ -31,7 +31,7 @@ function buildPortals(lv){portals=[];if(!lv.courses||!lv.courses.length)return;
     const b=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.6),new THREE.MeshBasicMaterial({map:portalSign(k),side:THREE.DoubleSide}));b.position.set(sx,sy+1.25,sz);b.rotation.y=Math.atan2(-tn.x,-tn.z);g.add(b);
     levelGroup.add(g);portals.push({k,g,x:p.x,z:p.z,lights:g.children.filter(o=>o.isSprite)})}}
 function nearestPortal(){let b=null;for(const p of portals){const d=Math.hypot(p.x-car.pos.x,p.z-car.pos.z);if(!b||d<b.d)b={k:p.k,d}}return b}
-function openAsk(k){state.mode='ask';state.askK=k;$('aList').hidden=true;$('aList').classList.remove('two');$('aYes').hidden=false;
+function openAsk(k){state.mode='ask';state.askK=k;if(typeof tipDone==='function')tipDone(k);$('aList').hidden=true;$('aList').classList.remove('two');$('aYes').hidden=false;
   if(typeof k==='string'&&k.startsWith('ski')){skiAsk(k);return}   // Gautefall: the ski trip (js/ski.js)
   if(typeof k==='string'&&k.startsWith('boat')){boatAsk(k);return}
   if(typeof k==='string'&&k.startsWith('pirat')){pirAsk(k);return}   // Piratøya: the old pirates at Skumkroa and the war of words (js/pirater.js)
@@ -143,11 +143,10 @@ function skuterAsk(){const on=onSkuter();$('aName').textContent='Skuterutleia';$
 /* ---------- roaming the archipelago ---------- */
 // «Kjør!» in the menu: free driving, starting on Tromøya or wherever you last were
 let roamSaveT=0;
-function startRoam(){state.roam=true;const sv=store.get('roam',null);let i=LEVELS.findIndex(l=>l.id===(sv&&sv.id));if(i<0||!isIsland(LEVELS[i]))i=LEVELS.findIndex(l=>l.world&&l.basePos);if(i<0)i=LEVELS.findIndex(l=>l.world);if(i<0)i=0;   // new players start on Tromøya, the island with the base
+function startRoam(){if(typeof dailyEnd==='function')dailyEnd();state.roam=true;const sv=store.get('roam',null);let i=LEVELS.findIndex(l=>l.id===(sv&&sv.id));if(i<0||!isIsland(LEVELS[i]))i=LEVELS.findIndex(l=>l.world&&l.basePos);if(i<0)i=LEVELS.findIndex(l=>l.world);if(i<0)i=0;   // new players start on Tromøya, the island with the base
   if(i!==state.levelIdx||!state.world)loadLevel(i);startFree();
-  if(!store.get('helpSeen',false)){state.mode='ask';$('help').hidden=false;$('helpOk').onclick=()=>{$('help').hidden=true;state.mode='play';store.set('helpSeen',true)};$('helpOk').focus()}
   if(sv&&sv.id===LEVELS[i].id&&isFinite(sv.x)){placeCar(car,sv.x,sv.z,sv.h||0);camSnap=true;state.checkpoint={x:sv.x,z:sv.z,h:sv.h||0}}}
-function saveRoam(dt){if(!state.roam||!state.free||state.course)return;roamSaveT-=dt;if(roamSaveT>0)return;roamSaveT=3;if(car.up.y>.9&&car.depth<0)store.set('roam',{id:LEVELS[state.levelIdx].id,x:+car.pos.x.toFixed(2),z:+car.pos.z.toFixed(2),h:+Math.atan2(car.fw.x,car.fw.z).toFixed(3)})}
+function saveRoam(dt){if(!state.roam||!state.free||state.course||(typeof DAILY!=='undefined'&&DAILY.active))return;roamSaveT-=dt;if(roamSaveT>0)return;roamSaveT=3;if(car.up.y>.9&&car.depth<0)store.set('roam',{id:LEVELS[state.levelIdx].id,x:+car.pos.x.toFixed(2),z:+car.pos.z.toFixed(2),h:+Math.atan2(car.fw.x,car.fw.z).toFixed(3)})}
 // the ferry: hull, bulwarks, wheelhouse and funnel around the drivable deck the level made
 let ferryVis=null,ferryDeckMesh=null;
 function buildFerry(lv){ferryVis=null;const f=lv.ferry;if(!f){ferryDeckMesh=null;return}const g=new THREE.Group(),yaw=Math.atan2(f.dx,f.dz);g.position.set(f.x,f.y,f.z);g.rotation.y=yaw;

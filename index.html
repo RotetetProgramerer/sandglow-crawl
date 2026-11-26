@@ -75,6 +75,7 @@
   <div class="toast" id="toast"></div>
   <div class="count" id="count" hidden></div>
   <div class="hint" id="hint" hidden></div>
+  <div class="tip" id="tip" role="status" aria-live="polite" hidden><span>Tips</span><p id="tipTxt"></p><button id="tipOk" aria-label="Lukk tipset">OK</button></div>
   <div class="offer" id="offer" hidden>
     <div class="ot"><span id="oKind">Løype</span><b id="oName"></b><small id="oBest"></small></div>
     <button class="go" id="oGo">START <kbd>Enter</kbd></button>
@@ -199,17 +200,30 @@
   </header>
   <div class="panel">
     <div class="wallet"><span class="n">⚙ <span id="mNuts">0</span></span><span class="s" id="mStars">★ 0 av 15</span><button class="ghost" id="mGarage">Garasje</button></div>
+    <button class="go" id="startBtn">Kjør!</button>
+    <p class="note">Fri kjøring i skjærgården: du starter på Tromøya, eller der du sist var. Fergen ved landsbyen tar deg til de andre øyene.</p>
+    <button class="ghost" id="mpBtn">Kjør sammen</button>
+    <button class="ghost" id="mDiary">Reisedagbok</button>
+    <div class="daily" id="dailyBox">
+      <h2>Dagens utfordring</h2>
+      <p class="note" id="dailyTxt"></p>
+      <button class="ghost" id="dailyGo">Kjør dagens utfordring</button>
+    </div>
     <h2>Velg bil</h2>
     <div class="car-grid" id="carList"></div>
     <p class="car-desc" id="carDesc"></p>
-    <h2>Hurtigløp: velg løp</h2>
-    <div class="level-list" id="levelList"></div>
     <h2>Kjøremodus</h2>
     <div class="seg" role="group" aria-label="Kjøremodus">
       <button id="modeEasy" aria-pressed="true">Lett</button>
       <button id="modeReal" aria-pressed="false">Ekte</button>
     </div>
     <p class="note" id="modeNote"></p>
+    <h2>Hurtigløp: velg løp</h2>
+    <div class="level-list" id="levelList"></div>
+    <button class="ghost" id="raceBtn">Hurtigløp</button>
+    <details class="fold" id="mSettings">
+      <summary>Innstillinger</summary>
+      <div class="fold-body">
     <h2>Fartsgrense</h2>
     <div class="slider"><input type="range" id="spdRange" min="30" max="150" step="10" value="100" aria-label="Fartsgrense i prosent"><output id="spdOut" for="spdRange">100 %</output></div>
     <p class="note">Senker eller hever toppfarten i begge gir. 50 % passer små barn, 150 % gir mer fres. Kan også endres underveis med + og −.</p>
@@ -222,10 +236,23 @@
       <button id="gfxHi" aria-pressed="true">Høy</button>
       <button id="gfxLo" aria-pressed="false">Lav</button>
     </div>
-    <button class="go" id="startBtn">Kjør!</button>
-    <p class="note">Fri kjøring i skjærgården: du starter på Tromøya, eller der du sist var. Fergen ved landsbyen tar deg til de andre øyene.</p>
-    <button class="ghost" id="mpBtn">Kjør sammen</button>
-    <button class="ghost" id="raceBtn">Hurtigløp</button>
+    <h2>Spøkelse</h2>
+    <div class="seg" role="group" aria-label="Spøkelse">
+      <button id="ghOn" aria-pressed="true">På</button>
+      <button id="ghOff" aria-pressed="false">Av</button>
+    </div>
+    <p class="note">Den beste turen din kjører ved siden av deg som en lys bil i løypene, på Racerøya og i skibakken.</p>
+    <h2>Vibrasjon</h2>
+    <div class="seg" role="group" aria-label="Vibrasjon">
+      <button id="hapOn" aria-pressed="true">På</button>
+      <button id="hapOff" aria-pressed="false">Av</button>
+    </div>
+    <p class="note">Et lite støt når bilen lander, treffer noe eller blir angrepet. Virker på Android-mobiler og på håndkontrollere med rumling.</p>
+      </div>
+    </details>
+    <details class="fold" id="mKeys">
+      <summary>Taster</summary>
+      <div class="fold-body">
     <dl class="keys">
       <dt><kbd>←</kbd><kbd>↑</kbd><kbd>→</kbd><kbd>↓</kbd></dt><dd>Styr, gass og revers (også WASD)</dd>
       <dt><kbd>G</kbd> / <kbd>Mellomrom</kbd></dt><dd>Bytt mellom lavt og høyt gir</dd>
@@ -240,6 +267,9 @@
       <dt>I gruva</dt><dd>Svalbard: ← → bytter spor, ↑ hopper, ↓ dukker, mellomrom bruker det du fant i kassen. På berøringsskjerm sveiper og trykker du.</dd>
       <dt>I grotten</dt><dd>Kameløya: → eller W gass, ← eller S brems og revers. I lufta tipper gass nesa opp og brems nesa ned.</dd>
     </dl>
+    <button class="ghost" id="mHelp">Slik spiller du</button>
+      </div>
+    </details>
   </div>
 </section>
 
@@ -248,7 +278,7 @@
   <header class="brand">
     <p class="eyebrow">Garasjen</p>
     <h1 id="gCar">Kobbe</h1>
-    <p class="lede">Du tjener muttere på hver port, hver kasse og hvert hopp. Bruk dem på deler som gjør bilen bedre. Delene gjelder alle bilene.</p>
+    <p class="lede">Du tjener muttere på hver port, hver kasse og hvert hopp. Bruk dem på deler som gjør bilen bedre, og på lakk, felger og flagg. Delene gjelder alle bilene.</p>
     <p class="wallet" style="display:inline-flex;margin-top:14px"><span class="n">⚙ <span id="gNuts">0</span></span><span class="s">muttere</span></p>
   </header>
   <div class="panel">
@@ -258,6 +288,13 @@
     <h2>Lakk</h2>
     <div class="paints" id="paintList"></div>
     <p class="note" id="paintName"></p>
+    <h2>Felger</h2>
+    <div class="paints" id="rimList"></div>
+    <p class="note" id="rimName"></p>
+    <h2>Antenneflagg</h2>
+    <div class="paints" id="flagList"></div>
+    <p class="note" id="flagName"></p>
+    <p class="note">Felger og flagg er bare til pynt. De vises på bilene som har slike felger og antenne.</p>
     <button class="go" id="gDrive">Kjør!</button>
     <button class="ghost" id="gBack">Til menyen</button>
   </div>
@@ -273,7 +310,8 @@
       <button class="ghost" id="pMenu">Til menyen</button>
     </div>
     <div class="row"><button class="ghost" id="pMap" hidden>Øykartet</button><button class="ghost" id="pFetch">Hent bilen (straff)</button><button class="ghost" id="pAbort" hidden>Avbryt løpet</button></div>
-    <div class="row"><button class="ghost" id="pSound" aria-pressed="true">Lyd: på</button></div>
+    <div class="row"><button class="ghost" id="pSound" aria-pressed="true">Lyd: på</button><button class="ghost" id="pHap" aria-pressed="true">Vibrasjon: på</button></div>
+    <div class="row"><button class="ghost" id="pDiary">Reisedagbok</button><button class="ghost" id="pHelp">Slik spiller du</button></div>
     <div class="pnet" id="pNet" hidden>
       <h3>Kjør sammen · <span id="pNetCode"></span></h3>
       <div class="alist" id="pNetList"></div>
@@ -351,7 +389,7 @@
 <!-- FIRST RUN (open world) -->
 <section class="overlay dialog" id="help" hidden>
   <div class="sheet">
-    <p class="eyebrow">Velkommen til skjærgården</p>
+    <p class="eyebrow">Skjærgården</p>
     <h2>Slik spiller du</h2>
     <ul class="log">
       <li><b>Kjør fritt.</b> Hele øya er din. Pilen og minikartet viser nærmeste startstrek.</li>
@@ -369,7 +407,21 @@
       <li><b>Hopp på sanddynene på Kameløya,</b> og let etter den hemmelige grotten. Der inne er hver diamant verdt 10 muttere.</li>
       <li><b>Sitter du fast?</b> Lavt gir (G), vinsj (R) eller «Hent bilen» i pausemenyen (Esc).</li>
     </ul>
-    <button class="go" id="helpOk">Kjør!</button>
+    <button class="go" id="helpOk">Lukk</button>
+  </div>
+</section>
+
+<!-- REISEDAGBOK (js/dagbok.js) -->
+<section class="overlay dialog" id="diary" hidden>
+  <div class="sheet wide">
+    <p class="eyebrow">Skjærgården</p>
+    <h2>Reisedagbok</h2>
+    <div class="res four" id="dbSum"></div>
+    <h3>Øyene</h3>
+    <ul class="dbl" id="dbIslands"></ul>
+    <h3>Merker</h3>
+    <ul class="dbb" id="dbBadges"></ul>
+    <button class="go" id="dbClose">Lukk</button>
   </div>
 </section>
 
@@ -630,6 +682,9 @@
 <script src="js/racenet.js"></script>
 <script src="js/net.js"></script>
 <script src="js/gps.js"></script>
+<script src="js/tips.js"></script>
+<script src="js/ghost.js"></script>
+<script src="js/dagbok.js"></script>
 <script>startGame()</script>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>

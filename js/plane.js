@@ -138,7 +138,7 @@ function fStep(){BT.wave+=BSTEP;const pl=FL.pl,R=FL.route,flying=FL.phase==='fly
   for(const e of pl.ev){
     if(e.type==='takeoff'){FL.took=true;FL.landed=false;if(flying)fNotice('Du er i lufta!',1300)}
     else if(e.type==='land'){FL.landed=true;if(flying){const ap=e.runway&&airportAt(pl.x,pl.z);fNotice(ap?'Landet på '+ap.name+' lufthavn':'Landet utenfor flyplassen',2200)}fxSplash(bV(pl.x,pl.y-PCFG.gear,pl.z))}
-    else if(e.type==='crash'){FL.mesh.visible=false;if(e.water)fxSplash(bV(pl.x,2,pl.z));else fxHit(bV(pl.x,pl.y,pl.z),0x666666);fxHit(bV(pl.x,pl.y+2,pl.z),0xf4f2ec);fBoom();if(flying)fNotice(e.water?'Plask! Prøv igjen':'Krasj! Prøv igjen',1800)}
+    else if(e.type==='crash'){FL.mesh.visible=false;if(e.water)fxSplash(bV(pl.x,2,pl.z));else fxHit(bV(pl.x,pl.y,pl.z),0x666666);fxHit(bV(pl.x,pl.y+2,pl.z),0xf4f2ec);fBoom();buzz(1,220);if(flying)fNotice(e.water?'Plask! Prøv igjen':'Krasj! Prøv igjen',1800)}
     else if(e.type==='respawn')fRespawn();
     else if(e.type==='edge'&&flying)fNotice('Snu – her slutter kartet',1500)}
   pl.ev.length=0;

@@ -4,6 +4,21 @@
    Everything is boxes and cylinders from game.js's bx()/cyl() and the shared materials M. extras in data/cars.js choose the load.
    Loaded after game.js; only functions, called at run time.
    ================================================================= */
+// the antenna flags from the garage (FLAGS in data/parts.js): drawn once on a small canvas, the pole is at the left edge
+const FLAGTEX={},FLAGMAT={};let FLAG_NOW=0;   // the flag of the car being built (set in buildBody)
+function flagCanvas(f){const c=document.createElement('canvas');c.width=132;c.height=96;const x=c.getContext('2d'),W=132,H=96;
+  if(f.k==='norge'){const u=6;x.fillStyle='#ba0c2f';x.fillRect(0,0,W,H);x.fillStyle='#fff';x.fillRect(6*u,0,4*u,H);x.fillRect(0,6*u,W,4*u);x.fillStyle='#00205b';x.fillRect(7*u,0,2*u,H);x.fillRect(0,7*u,W,2*u)}
+  else if(f.k==='ruter'){for(let j=0;j<4;j++)for(let i=0;i<6;i++){x.fillStyle=(i+j)%2?'#f4f2ec':'#14120e';x.fillRect(i*22,j*24,22,24)}}
+  else if(f.k==='regnbue'){['#e03a3a','#f08a24','#f2cf3a','#3a9a4a','#2f6fb0','#7a4aa8'].forEach((col,i)=>{x.fillStyle=col;x.fillRect(0,i*16,W,16)})}
+  else if(f.k==='pirat'){x.fillStyle='#14120e';x.fillRect(0,0,W,H);x.strokeStyle='#f4f2ec';x.lineWidth=8;x.lineCap='round';x.beginPath();x.moveTo(34,70);x.lineTo(98,90);x.moveTo(98,70);x.lineTo(34,90);x.stroke();
+    x.fillStyle='#f4f2ec';x.beginPath();x.arc(66,38,26,0,7);x.fill();x.fillRect(52,52,28,18);x.fillStyle='#14120e';x.beginPath();x.arc(56,38,7,0,7);x.arc(76,38,7,0,7);x.fill();x.fillRect(64,46,4,8);for(const i of[58,66,74])x.fillRect(i,62,2,8)}
+  else{x.fillStyle=f.c||'#ff7a1a';x.fillRect(0,0,W,H)}
+  return c}
+function flagMat(i){const f=FLAGS[i];if(!f||!f.k)return null;if(!FLAGMAT[i]){const t=FLAGTEX[i]=new THREE.CanvasTexture(flagCanvas(f));t.encoding=THREE.sRGBEncoding;FLAGMAT[i]=new THREE.MeshStandardMaterial({map:t,roughness:.8,side:THREE.DoubleSide})}return FLAGMAT[i]}
+// the rims from the garage (RIMS in data/parts.js): the colour of the spokes and the hub. The standard rim is yellow, or brass with the heavy weights.
+function rimLook(mat,rim,weight){const r=RIMS[rim];
+  if(r&&r.c){mat.color.set(r.c).convertSRGBToLinear();mat.metalness=r.m??.2;mat.roughness=r.r??.38}
+  else{mat.color.set(weight>=2?'#b08a3a':'#e3a62a').convertSRGBToLinear();mat.metalness=weight>=2?.6:.2;mat.roughness=.38}}
 /* ---------- shared pieces: merging, rounded panels, the kit of small parts every car uses ---------- */
 // all the meshes under root merged into one mesh per material (a car is hundreds of small boxes: merged, it is a handful of draw calls)
 function netMerge(root){root.updateMatrixWorld(true);const by=new Map(),olds=[];
@@ -89,7 +104,7 @@ function buildWheel(r,side,o){o=o||{};
 function carWheel(cfg,side,rear){if(cfg.style==='skuter')return buildSkuterSki(cfg,side,rear);if(cfg.style==='sport')return buildSportWheel(cfg,side,rear);if(cfg.style==='trophy')return buildTrophyWheel(cfg,side);
   const K=carKit(),w=buildWheel(WR,side,cfg.style==='rally'?{rim:K.white,lugs:26}:cfg.style==='buggy'?{rim:K.chrome}:cfg.style==='truck'?{lugs:14}:null),k=(cfg.wr||WR)/WR,tw=rear&&cfg.tireWr||cfg.tireW||.19;
   if(cfg.wr||cfg.tireW||cfg.tireWr)w.spin.scale.set(tw/.19,k,k);return w}
-function buildBody(cfg){if(cfg.style==='skuter')return buildSkuter(cfg);if(cfg.style==='monster')return buildMonster(cfg);if(cfg.style==='sport')return buildSport(cfg);if(cfg.style==='trophy')return buildTrophy(cfg);
+function buildBody(cfg){FLAG_NOW=cfg.flag!==undefined?cfg.flag:prof.flag;if(cfg.style==='skuter')return buildSkuter(cfg);if(cfg.style==='monster')return buildMonster(cfg);if(cfg.style==='sport')return buildSport(cfg);if(cfg.style==='trophy')return buildTrophy(cfg);
   if(cfg.style==='open')return buildOpen(cfg);if(cfg.style==='van')return buildVan(cfg);if(cfg.style==='truck')return buildTruck(cfg);if(cfg.style==='rally')return buildRally(cfg);if(cfg.style==='buggy')return buildBuggy(cfg);
   const g=new THREE.Group(),K=carKit(),L=cfg.L,W=.92,y0=.08,lh=.34,gh=cfg.gh,hood=cfg.hood,yT=y0+lh,fz=L/2,rz=-L/2,glassy=cfg.style==='glass';
   carUnder(g,cfg,-.02);
@@ -153,7 +168,8 @@ function buildBody(cfg){if(cfg.style==='skuter')return buildSkuter(cfg);if(cfg.s
     if(X.includes('lightbar')){bx(W-.3,.05,.04,M.blkC,0,hy+.12,hz+.01,g);bx(W-.36,.03,.012,M.lamp,0,hy+.12,hz+.035,g)}else for(let i=0;i<4;i++){cyl(.03,.025,M.lamp,-.24+i*.16,hy+.13,hz+.02,g,'z');cyl(.034,.02,M.blkC,-.24+i*.16,hy+.13,hz-.002,g,'z')}}
   bx(W+.06,.04,.04,M.blkC,0,y0+.26,rz-.1,g);for(const sx of[1,-1])bx(.06,.05,.02,M.tail,sx*.3,y0+.26,rz-.125,g);          // rear bumper bar and lamps
   if(X.includes('ladder')){const lx=W/2+.04,n=Math.max(3,Math.round((roofY-y0)/.12));for(const dz of[-.07,.07])bx(.02,roofY-y0+.1,.02,M.blkC,lx,(roofY+y0)/2+.05,rz+.18+dz,g);for(let k=0;k<n;k++)bx(.02,.02,.17,M.blkC,lx,y0+.1+k*.12,rz+.18,g)}
-  {const az=gz0+.1;cyl(.008,.55,M.blkC,-(W/2-.06),roofY+.25,az,g);const ball=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),M.red);ball.position.set(-(W/2-.06),roofY+.53,az);g.add(ball)}   // antenna
+  {const az=gz0+.1;cyl(.008,.55,M.blkC,-(W/2-.06),roofY+.25,az,g);const ball=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),M.red);ball.position.set(-(W/2-.06),roofY+.53,az);g.add(ball);
+    const fm=flagMat(FLAG_NOW);if(fm){const fl=new THREE.Mesh(new THREE.PlaneGeometry(.21,.14),fm);fl.position.set(-(W/2-.06),roofY+.435,az-.113);fl.rotation.y=Math.PI/2;fl.castShadow=true;g.add(fl)}}   // antenna, with the flag from the garage
   if(X.includes('sandLadders'))for(const sx of[1,-1]){const m=bx(.03,.2,.9,M.orange,sx*(W/2+.07),yT-.02,gz0+.5,g);for(let k=0;k<6;k++)bx(.035,.03,.06,M.blkC,sx*(W/2+.07),yT-.02,gz0+.1+k*.16,g)}   // sand ladders on the flanks
   if(X.includes('jack'))bx(.05,.3,.08,M.red,W/2+.06,yT+.04,gz0+1.1,g);
   // roof rack
@@ -498,7 +514,8 @@ function carGear(g,cfg,o){const t=cfg.tune,K=carKit();
   if(o.w&&(cfg.winch||(t&&t.lv.gear>=2))){const[y,z]=o.w;bx(.22,.09,.1,M.steel,0,y,z,g);cyl(.02,.2,M.blkC,0,y,z,g,'x',8);if(cfg.winch||t.lv.gear>=3){cyl(.045,.16,M.blkC,0,y+.01,z,g,'x',10);cyl(.05,.12,M.trim,0,y+.01,z,g,'x',10);bx(.04,.04,.06,M.steel,0,y+.01,z+.08,g);bx(.05,.02,.05,M.red,0,y+.01,z+.12,g)}}
   if(o.led&&t&&t.led){const[w,y,z]=o.led;bx(w,.045,.04,M.blkC,0,y,z,g);bx(w-.06,.025,.012,M.lamp,0,y,z+.022,g)}}
 // a whip antenna with a red ball
-function carWhip(g,x,y,z,h=.55){cyl(.008,h,M.blkC,x,y+h/2,z,g,null,5);const b=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),M.red);b.position.set(x,y+h,z);g.add(b)}
+function carWhip(g,x,y,z,h=.55){cyl(.008,h,M.blkC,x,y+h/2,z,g,null,5);const b=new THREE.Mesh(new THREE.SphereGeometry(.025,8,6),M.red);b.position.set(x,y+h,z);g.add(b);
+  const fm=flagMat(FLAG_NOW);if(fm){const fl=new THREE.Mesh(new THREE.PlaneGeometry(.21,.14),fm);fl.position.set(x,y+h-.095,z-.113);fl.rotation.y=Math.PI/2;fl.castShadow=true;g.add(fl)}}   // with the flag from the garage
 
 /* ---------- Rusken: an open veteran jeep. A low tub with cut-down sides, flat fenders, a seven-slot grille, a folding windshield and a roll bar ---------- */
 function buildOpen(cfg){
