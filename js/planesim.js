@@ -34,7 +34,7 @@ function stepPlane(pl,inp,W){const C=pl.cfg||PCFG;
   pl.p=pClamp(pl.p,C.pitchMin,pl.s<C.lift?.22:C.pitchMax);   // and it will not climb steeply until it has speed
   pl.r+=(steer*C.bankMax-pl.r)*C.bankRate;
   pl.a+=Math.sin(pl.r)*C.turn*Math.min(1,pl.s/C.cruise);
-  const target=inp.jump?C.turbo:C.cruise;pl.s+=(target-pl.s)*.012-Math.sin(pl.p)*.018;pl.s=pClamp(pl.s,.6,C.turbo+1);
+  const target=inp.jump?C.turbo:inp.slow&&C.approach?C.approach:C.cruise;pl.s+=(target-pl.s)*.012-Math.sin(pl.p)*.018;pl.s=pClamp(pl.s,.6,C.turbo+1);
   const cp=Math.cos(pl.p),sink=Math.max(0,C.lift-pl.s)*.5;pl.vy=Math.sin(pl.p)*pl.s-sink;
   pl.x+=-Math.sin(pl.a)*cp*pl.s;pl.z+=-Math.cos(pl.a)*cp*pl.s;pl.y+=pl.vy;
   if(pl.y>C.ceil){pl.y=C.ceil;if(pl.p>0)pl.p*=.9}
@@ -43,7 +43,7 @@ function stepPlane(pl,inp,W){const C=pl.cfg||PCFG;
   if(pl.edgeT)pl.edgeT--;
   const g=W.ground(pl.x,pl.z);
   if(pl.y-C.gear<=g.h){
-    if(!g.water&&pl.vy>-C.sinkOk&&Math.abs(pl.r)<.4&&pl.p>-.2&&pl.p<.4){pl.ground=true;pl.y=g.h+C.gear;pl.p=0;pl.vy=0;pl.ev.push({type:'land',runway:!!g.runway})}
+    if(!g.water&&pl.vy>-C.sinkOk&&Math.abs(pl.r)<(C.landR||.4)&&pl.p>(C.landP||-.2)&&pl.p<.4){pl.ground=true;pl.y=g.h+C.gear;pl.p=0;pl.vy=0;pl.ev.push({type:'land',runway:!!g.runway})}
     else{pl.ev.push({type:'crash',water:g.water});pl.crash=C.crashFrames;pl.crashes++;pl.y=g.h+1}}}
 // the rings of a flight: fly through them in order; the last one is the finish
 function planeRing(pl,course){if(pl.done||pl.crash||pl.ring>=course.rings.length)return null;const q=course.rings[pl.ring];
@@ -56,7 +56,7 @@ function airSea(){if(AIRSEA)return AIRSEA;const I=seaIslands().find(i=>i.id===AI
 /* ---------- the cargo plane and the airports of every island ---------- */
 // The cargo plane: heavier than the small plane, a longer roll, wider turns. Its measures are the island model's (js/cargo.js) times CARGO_SEA.
 const CARGO_SEA=5.9,PCARGO=Object.assign({},PCFG,{cruise:2.6,turbo:3.3,lift:1.9,stall:1.35,accel:.027,brake:.07,pitchRate:.012,pitchMax:.42,pitchMin:-.5,bankMax:.75,bankRate:.05,turn:.024,taxiTurn:.02,
-  gear:2*CARGO_SEA,sinkOk:1.05,kts:24});
+  gear:2*CARGO_SEA,sinkOk:1.05,kts:24,approach:2,landR:.6,landP:-.35});   // approach: the speed on the way in with the landing help; landR, landP: how much bank and nose-down a touchdown forgives
 // Every island's airport at sea: the fill lies off the coast where the island's own airport is (def.airport in data/levels/, Trinnvik's is AIRPORT in data/flights.js),
 // the runway along the coast. h is the way the cargo plane takes off (and the way to land), start is where it stands ready. On the islands +x is west and +z north; at sea +x is east and −z north.
 let SEA_AIR=null;
@@ -78,13 +78,31 @@ function makeCargo(A){const s=A.start,pl=makePlane(s.x,s.y,s.z,s.a);pl.cfg=PCARG
 const cargoApproach=(A,out=700,up=110)=>({x:A.cx-A.hx*(A.hl+out),y:A.top+up,z:A.cz-A.hz*(A.hl+out),a:A.a});
 // the best way in to an airport: from the end with the longest straight approach that stays inside the sea and clear of every island.
 // (x,y,z) is where the final approach begins, `out` from the threshold (tx,tz); (hx,hz) and a are the way you land.
-function cargoFinal(B){if(B._fin)return B._fin;let best=null;
+function cargoEnds(B){if(B._ends)return B._ends;const L=[];
   for(const sg of[1,-1]){const hx=B.hx*sg,hz=B.hz*sg,tx=B.cx-hx*B.hl,tz=B.cz-hz*B.hl,lim=SEA.bound-330;let o=900;
     for(;o>=300;o-=50){const fx=tx-hx*o,fz=tz-hz*o;if(Math.abs(fx)>lim||Math.abs(fz)>lim)continue;let ok=true;
       for(const I of seaIslands()){const ax=I.x-fx,az=I.z-fz,u=Math.max(0,Math.min(o,ax*hx+az*hz));if(Math.hypot(ax-hx*u,az-hz*u)<I.r+(I.id===B.id?0:10)){ok=false;break}}
       if(ok)break}
-    if(o<300)o=0;if(!best||o>best.out+100)best={out:o,hx,hz,a:Math.atan2(-hx,-hz),tx,tz,x:tx-hx*o,z:tz-hz*o,y:B.top+20+o*.09}}
-  return B._fin=best}
+    if(o<300)o=0;L.push({out:o,hx,hz,a:Math.atan2(-hx,-hz),tx,tz,x:tx-hx*o,z:tz-hz*o,y:B.top+20+o*.09})}
+  return B._ends=L}
+function cargoFinal(B){if(B._fin)return B._fin;let best=null;for(const e of cargoEnds(B))if(!best||e.out>best.out+100)best=e;return B._fin=best}
+// The landing help of the cargo plane. Roughly lined up with the runway of the island you chose, on the way in and not too high: the plane steers itself onto
+// the centre line, slows down, and (while you leave climb and dive alone) sinks down the glide slope to a point just past the threshold. Close to the ground
+// it keeps the nose and the wings level enough to touch down, and it does not go all the way down before it is over the runway and pointing along it.
+// After the touchdown it keeps the plane on the runway while it brakes. Steer hard away or climb and it lets go. W is the world of stepPlane (the ground under the plane).
+// Returns the input to fly with, or null outside the help.
+function cargoAssist(pl,inp,B,W){const C=pl.cfg||PCARGO;if(pl.crash)return null;const G=B.top+C.gear;let h=pl.y-G;
+  if(W&&!pl.ground&&h<120){const g=W.ground(pl.x-Math.sin(pl.a)*25,pl.z-Math.cos(pl.a)*25);if(!g.water&&g.h>B.top+.5)h=Math.min(h,pl.y-g.h-C.gear-15)}   // a hill or a house just ahead on the way in: that is the ground to stay clear of
+  for(const e of cargoEnds(B)){const da=bWrap(e.a-pl.a);if(Math.abs(da)>1)continue;const rx=pl.x-e.tx,rz=pl.z-e.tz,al=rx*e.hx+rz*e.hz,lat=rx*e.hz-rz*e.hx,d=50-al,back=Math.max(0,-al);
+    if(pl.ground){if(!pl.air||inp.gas||al<-10||al>B.hl*2+10||Math.abs(lat)>B.hw+16)continue;   // rolling out after the touchdown: along the runway, towards its middle
+      return{gas:0,rev:inp.rev||0,steer:pClamp((inp.steer||0)+pClamp(bWrap(e.a-pClamp(lat*.03,-.5,.5)-pl.a)*3,-1,1),-1,1),jump:false,help:true}}
+    if(al<-(Math.max(e.out,300)+150)||al>B.hl*2-70||Math.abs(lat)>90+back*.4||h>30+Math.max(0,d)*.17)continue;
+    let steer=pClamp((inp.steer||0)+pClamp(bWrap(e.a-pClamp(lat*.007,-1.1,1.1)-pl.a)*2,-1,1)*.75,-1,1),gas=inp.gas||0,rev=inp.rev||0;if(h<12)steer=pClamp(steer,-.55,.55);
+    const over=Math.abs(lat)<B.hw+2&&Math.abs(da)<.3&&al>-60,low=over?-.1:(7-h)/40;   // not over the runway yet: it stays a little above the ground
+    if(!gas&&!rev&&e.out){let want=pClamp((d>0?-.1:0)+(G+(d>0?d*.1-2:-6)-pl.y)/60,-.19,.2);if(h<10)want=Math.max(want,low);const pe=want-pl.p;gas=pe>0?Math.min(1,pe*6):0;rev=pe<0?Math.min(1,-pe*6):0}
+    else if(!gas){let fl=-(.1+Math.max(0,h-8)*.0075);if(h<10&&!over)fl=Math.max(fl,low);if(pl.p<fl){rev=0;gas=Math.min(1,(fl-pl.p)*6+.2)}}   // diving at the ground: the lower it is, the more the nose is eased up
+    return{gas,rev,steer,jump:!!inp.jump,slow:!inp.gas&&!inp.jump,help:true}}
+  return null}
 // where a landed plane has come to: the airport it stands on, or the airport of the island it has put down on
 function cargoWhere(x,z){const A=airportAt(x,z,true);if(A)return A;for(const I of seaIslands())if(Math.hypot(x-I.x,z-I.z)<I.r+20){const B=seaAirport(I.id);if(B)return B}return null}
 // a flight from data/flights.js with its rings turned to face the way through (yaw), and where you start: lined up on the runway

@@ -98,5 +98,20 @@ for(const f of FLIGHTS){if(only&&f.id!==only)continue;const route=flightRoute(f)
   for(const A of AP){if(from&&A.id!==from)continue;let row=[];for(const B of AP){if(A===B)continue;const r=fly(A,B);n++;tmax=Math.max(tmax,r.time);rmax=Math.max(rmax,r.roll);row.push(B.id+(r.ok?' '+r.time.toFixed(0)+'s':' FEIL'));
       if(!r.ok){bad++;console.log(A.id.padEnd(9),'→',B.id.padEnd(9),'FEIL',r.crashes?'krasj':r.rwy?'landet på '+r.at:'landet ikke på rullebanen','tid',r.time.toFixed(0)+'s',r.ev.join(' '))}else if(vb&&r.ev.length)console.log('   ',A.id,'→',B.id,r.ev.join(' '))}
     console.log(A.id.padEnd(9),'LASTEFLY',row.join(' · '))}
-  console.log('lastefly ',n,'turer,',bad,'med feil · lengste tur',tmax.toFixed(0)+'s · lengste rullestrekning',rmax.toFixed(0));if(bad)fail++}
+  console.log('lastefly ',n,'turer,',bad,'med feil · lengste tur',tmax.toFixed(0)+'s · lengste rullestrekning',rmax.toFixed(0));if(bad)fail++
+  // the landing help (cargoAssist): into the way in to every airport from the side, askew, too high or too low, and then hands off (slipp). From where a landing is
+  // within reach it must put the plane down on its airport; from anywhere it must never crash or land somewhere else (it may fly on over the runway: round again).
+  // The same with a pilot who steers the wrong way now and then and dives the last bit (vill): no crash on the way in (steered far off it and into a hillside is the pilot's own doing). And one who climbs away (bort): the help must let go.
+  {let m=0,hb=0,on=0,away=0;const drop=(B,F,o,lat,da,dy,who)=>{const pl=makeCargo(B);pl.ground=false;pl.air=1;pl.s=PCARGO.cruise;pl.x=F.tx-F.hx*o+F.hz*lat;pl.z=F.tz-F.hz*o-F.hx*lat;pl.y=B.top+PCARGO.gear+o*.1+dy;pl.a=F.a+da;
+      let landed=null,helped=0,t=0,past=false;for(;t<60*60;t++){let inp=pl.ground?{gas:0,rev:1,steer:0}:who==='bort'?{gas:1,rev:0,steer:0}:who==='vill'?{gas:0,rev:pl.y-B.top-PCARGO.gear<40?1:0,steer:t%240<60?(lat>0?1:-1):0}:{gas:0,rev:0,steer:0};
+        const h=cargoAssist(pl,inp,B,W);if(h){inp=h;helped++}else if(helped&&!pl.ground&&who!=='bort'){past=true;break}   // let go in the air: the pilot takes over
+        stepPlane(pl,inp,W);for(const e of pl.ev)if(e.type==='land')landed=e;pl.ev.length=0;if(pl.crashes||pl.ground&&pl.s<.02||pl.y>B.top+400)break}
+      const at=landed&&!pl.crashes?cargoWhere(pl.x,pl.z):null;return{ok:!!(at&&at.id===B.id),crash:pl.crashes,past,helped,up:pl.y>B.top+400,pl,side:Math.abs((pl.x-F.tx)*F.hz-(pl.z-F.tz)*F.hx)}};
+    for(const B of AP){if(from&&B.id!==from)continue;const F=cargoFinal(B);
+      for(const who of['slipp','vill'])for(const o of[F.out,F.out*.6,300])for(const lat of[-150,-60,0,60,150])for(const da of[-.4,0,.4])for(const dy of[-25,0,25]){if(Math.abs(lat)>80+o*.4)continue;{const g=groundAt(F.tx-F.hx*o+F.hz*lat,F.tz-F.hz*o-F.hx*lat);if(!g.water&&g.h>B.top+o*.1+dy-30)continue}m++;   // (not from inside a hill)
+       const r=drop(B,F,o,lat,da,dy,who);
+        const must=who==='slipp'&&Math.abs(lat)<=30+o*.12,good=r.ok||!must&&!r.crash&&(r.past||!r.helped)||who==='vill'&&r.side>100;if(r.ok)on++;
+        if(!good){hb++;if(hb<12)console.log(B.id.padEnd(9),'HJELP FEIL',who,'ut',o,'side',lat,'skjev',da,'høyde',dy,r.crash?'krasj':r.past?'fløy forbi':'landet ikke på flyplassen','ved',r.pl.x.toFixed(0),r.pl.y.toFixed(0),r.pl.z.toFixed(0),'hjulpet',r.helped)}}
+      const r=drop(B,F,F.out*.6,0,0,0,'bort');if(!r.up){away++;console.log(B.id.padEnd(9),'HJELP FEIL: slipper ikke taket når du stiger')}}
+    console.log('landingshjelp',m,'innflyginger,',on,'landet,',hb,'med feil',away?'· '+away+' slapp ikke':'');if(hb||away)fail++}}
 if(fail)process.exitCode=1;
