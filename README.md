@@ -720,6 +720,7 @@ Testen: `node tools/test-levels.js kaiman` kjører landsbytesten og alle fem lø
 
 Trykk **E** (eller knappen med den gående mannen, eller høyre skulderknapp på en spillkontroll) når bilen står stille. Da åpner sjåføren døra, stiger ut og lukker den etter seg. Etterpå styrer du ham med de samme tastene og knappene som bilen: venstre og høyre snur ham, gass går og løper, revers rygger, og mellomrom (hoppknappen på mobil) hopper. Trykk **E** igjen når han står ved bilen, så setter han seg inn og du kjører videre. Alt ligger i `js/walker.js`.
 
+- **Tilbake til bil:** Mens han er til fots, står knappen «Tilbake til bil» øverst til høyre (tast **T**, venstre skulderknapp på spillkontroll). Den setter ham tilbake ved døra uansett hvor på øya han er, og han klatrer inn. Knappen lyser gult når han er langt fra bilen. Ligger bilen på siden, eller er det ikke plass ved noen av dørene, sitter han rett bak rattet igjen. Det er `walkBack` i `js/walker.js`.
 - **Bilen** blir stående der du parkerte. Motorlyden blir svakere jo lenger unna han går, og en pil over hodet hans peker tilbake til bilen når han er mer enn noen meter unna. På minikartet og øykartet er han en lys prikk.
 - **Hva han kan:** Han følger bakken, går rundt trær, steiner, hus og sin egen bil, og kan vasse i grunt vann. Han kommer ikke opp bratte vegger, ut i dypt vann eller ut i lava. Faller han utfor en kant, lander han bare.
 - **Hva han ikke kan:** Han plukker ikke opp kasser eller gullmuttere og starter ikke løyper. Det gjør du med bilen. Dyrene bryr seg heller ikke om ham.
