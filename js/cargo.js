@@ -4,7 +4,7 @@
    Every island has an airport (def.airport in data/levels/, built by c.airport in js/core.js; Trinnvik's own is in its level file).
    At one end of the runway stands a big four-engined cargo plane with its tail ramp down. Drive up the ramp and into the hold →
    «Hvor vil du fly?» → pick an island → you fly the plane yourself over the same sea as the boat race and the sightseeing flights (js/plane.js),
-   land on that island's runway (or any other island's), brake to a stop → the island loads and you drive out of the hold. It costs nothing.
+   land on that island's runway (or any other island's; lined up with the runway of your island, the landing help sights the plane in), brake to a stop → the island loads and you drive out of the hold. It costs nothing.
    The flight uses the machinery of js/plane.js (FL: the fade, the 60 Hz steps, the camera, the boat HUD's first pane, sound, the others at sea);
    the physics and the airports at sea are in js/planesim.js (PCARGO, seaAirports, cargoFinal, cargoWhere).
    Loaded after plane.js; uses the globals of game.js, world.js, boat.js and plane.js at run time.
@@ -115,7 +115,9 @@ function cargoAbort(){if(FL.cargo&&!FL.fade)cgArrive(FL.cargo.from,'Du ble på '
 
 /* ---------- every 60 Hz step of a cargo flight: the controls, the plane, crashes, the landing ---------- */
 function cgStep(){const pl=FL.pl,S=FL.cargo,flying=FL.phase==='fly';if(!pl||!S)return;
-  const inp=flying&&!S.done?fInput():{gas:0,rev:1,steer:0,jump:false};if(pl.ground&&FL.landed&&!inp.gas)inp.rev=1;   // landed: it brakes by itself unless you give gas again
+  let inp=flying&&!S.done?fInput():{gas:0,rev:1,steer:0,jump:false};if(pl.ground&&FL.landed&&!inp.gas)inp.rev=1;   // landed: it brakes by itself unless you give gas again
+  // the landing help (cargoAssist in js/planesim.js): lined up with the runway of your island, the plane sights itself in
+  const hp=flying&&!S.done?cargoAssist(pl,inp,S.dest,FW):null;if(hp){inp=hp;if(!S.help&&!S.told&&!pl.ground){S.told=true;fNotice('Landingshjelp · flyet sikter seg inn på '+S.dest.name,2600)}}S.help=!!hp&&!pl.ground;
   stepPlane(pl,inp,FW);FL.inp=inp;
   for(const e of pl.ev){
     if(e.type==='takeoff'){FL.took=true;FL.landed=false;S.warn=false;fNotice('Du er i lufta! Kurs mot '+S.dest.name,1800)}
@@ -131,7 +133,7 @@ function cgStep(){const pl=FL.pl,S=FL.cargo,flying=FL.phase==='fly';if(!pl||!S)r
   bParticles()}
 // after a crash you do not lose the car: you are put in the air where the final approach to your island begins, lined up with the runway
 function cgRespawn(){const pl=FL.pl,S=FL.cargo,B=S.dest,F=cargoFinal(B),o=F.out||600;pl.x=F.tx-F.hx*o;pl.z=F.tz-F.hz*o;pl.y=F.out?F.y:B.top+90;pl.a=F.a;pl.p=pl.r=0;pl.vy=0;pl.ground=false;pl.s=PCARGO.cruise;
-  FL.took=true;FL.landed=false;S.fin=true;FL.camYaw=pl.a;FL.mesh.visible=true;fPose(0);FL.snap=true;fNotice('Rett fram ligger '+B.name+' · sink rolig gjennom portene',3000)}
+  FL.took=true;FL.landed=false;S.fin=true;FL.camYaw=pl.a;FL.mesh.visible=true;fPose(0);FL.snap=true;S.told=true;fNotice('Rett fram ligger '+B.name+' · landingshjelpen tar deg ned',3000)}
 
 /* ---------- the HUD: where to, how far, and whether you are high or low on the way down ---------- */
 // what to steer for: the first hoop until you are on the way in, then the runway. Missed it and flown past: round again.
@@ -144,7 +146,7 @@ function cgHUD(){const pl=FL.pl,S=FL.cargo,ui=$('bpane0'),B=S.dest,C=PCARGO;if(!
   $('bclock').hidden=true;ui.querySelector('.bpl').textContent='Lastefly';ui.querySelector('.bname').textContent=bNames()[0];
   ui.querySelector('.bkn').textContent=Math.round(pl.s*C.kts)+' kn';ui.querySelector('.balt').textContent=(pl.ground?0:Math.max(0,Math.round(pl.y-C.gear-B.top)))+' m høyde';ui.querySelector('.bboost i').style.width=Math.min(100,pl.s/C.turbo*100)+'%';
   const hi=!pl.ground&&T.fin&&T.al<0?(pl.y>T.glide+22?' · sink':pl.y<T.glide-14?' · stig':''):'';
-  ui.querySelector('.btarget').textContent=S.done?'Framme':pl.ground?(FL.landed?'Landet · brems':'Hold gass · kurs mot '+B.name):T.fin?'Land på '+B.name+' · '+d+' m'+hi:B.name+' · '+d+' m · fly til porten';
+  ui.querySelector('.btarget').textContent=S.done?'Framme':pl.ground?(FL.landed?'Landet · brems':'Hold gass · kurs mot '+B.name):S.help?'Landingshjelp · '+B.name+' · '+d+' m':T.fin?'Land på '+B.name+' · '+d+' m'+hi:B.name+' · '+d+' m · fly til porten';
   bCompass({ui:{compass:ui.querySelector('.bcompass').getContext('2d')},b:{a:pl.a},col:(PAINTS[prof.paint]||PAINTS[0]).c},Math.atan2(dx,-dz));
   if(FL.guide&&FL.guide.userData.lab)FL.guide.userData.lab.rotation.y=Math.atan2(pl.x-B.cx,pl.z-B.cz);fMinimap()}
 // on the minimap: a line to the island you fly to, and a ring round its airport

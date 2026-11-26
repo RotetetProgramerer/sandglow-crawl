@@ -449,7 +449,7 @@ Muttere: 5 per ring, 20 for å komme i mål, 15 uten krasj, 60 første gang og 2
 
 Hver øy har en flyplass på en fylling ut i sjøen: rullebane med kantlys, terminal, tårn, vindpose og en vei fra øya. Ytterst på rullebanen står et stort lastefly med fire motorer og hekkrampa nede. Kjør opp rampa og inn i lasterommet, så kommer spørsmålet «Hvor vil du fly?» med alle de andre øyene. Turen er gratis.
 
-Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme tastene som småflyet. Tre gule porter og en lyssøyle viser innflygingen til øya du valgte, og kompasset og teksten øverst sier hvor langt det er og om du er for høyt eller for lavt. Land på rullebanen og la flyet stoppe (det bremser selv), så lastes øya, og bilen står i lasterommet med nesa mot rampa. Kjør ut.
+Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme tastene som småflyet. Tre gule porter og en lyssøyle viser innflygingen til øya du valgte, og kompasset og teksten øverst sier hvor langt det er og om du er for høyt eller for lavt. Når du er på vei inn og peker omtrent langs rullebanen, slår **landingshjelpen** seg på: flyet sikter seg selv inn på midtlinja, senker farten og synker rolig ned mot rullebanen mens du lar opp og ned være. Du kan fortsatt styre selv, og stiger du eller svinger hardt unna, slipper hjelpen taket. Land på rullebanen og la flyet stoppe (det bremser selv), så lastes øya, og bilen står i lasterommet med nesa mot rampa. Kjør ut.
 
 - **Lander du på en annen øy,** kommer du dit i stedet. Skilsø har ingen flyplass.
 - **Krasj:** du mister ikke bilen. Flyet settes i lufta der innflygingen begynner, rett mot rullebanen.
@@ -472,9 +472,9 @@ Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme
 
 Fyllingen legges i `genLevel` (`airFrame` i `js/core.js`), og `c.airport` bygger resten før `build(c)`, som landsbyen. `c.cargoPlane(x,z,yaw,y)` lager selve flyet: rampa og gulvet er kjørbare dekk, veggene og skottet foran stopper bilen. Målene står i `CARGO` øverst i samme fil. Trinnvik har sin egen flyplass i banefila og kaller `c.cargoPlane` selv. Modellen tegnes av `cgMesh` i `js/cargo.js`.
 
-**På havet:** `seaAirports()` i `js/planesim.js` legger en rullebane ved hver øy på samme side som øyas egen flyplass, og `PCARGO` er tallene for lasteflyet (tyngre, lengre rullestrekning, slakere svinger enn småflyet). `cargoFinal` velger enden med lengst fri innflyging.
+**På havet:** `seaAirports()` i `js/planesim.js` legger en rullebane ved hver øy på samme side som øyas egen flyplass, og `PCARGO` er tallene for lasteflyet (tyngre, lengre rullestrekning, slakere svinger enn småflyet). `cargoFinal` velger enden med lengst fri innflyging, og `cargoAssist` er landingshjelpen (`approach`, `landR` og `landP` i `PCARGO` er farten på vei inn og hvor skjevt flyet tåler å sette seg).
 
-**Test:** `node tools/test-levels.js` kjører veien til flyplassen, opp rampa og inn i lasterommet, og ut igjen, på alle øyene (radene `LASTEFLY`). `node tools/test-flights.js last` sjekker at inn- og utflygingen til hver flyplass er fri for andre øyer, og lar en autopilot fly lasteflyet mellom alle 156 øypar med en ordentlig landingsrunde. Kjør begge når du har flyttet en flyplass. `node tools/test-flights.js last sand v` flyr bare fra én øy og viser hendelsene.
+**Test:** `node tools/test-levels.js` kjører veien til flyplassen, opp rampa og inn i lasterommet, og ut igjen, på alle øyene (radene `LASTEFLY`). `node tools/test-flights.js last` sjekker at inn- og utflygingen til hver flyplass er fri for andre øyer, og lar en autopilot fly lasteflyet mellom alle 156 øypar med en ordentlig landingsrunde. Til slutt slippes flyet inn mot hver flyplass fra siden, skjevt, for høyt og for lavt uten at noen styrer, og landingshjelpen skal sette det ned (raden `landingshjelp`). Kjør begge når du har flyttet en flyplass. `node tools/test-flights.js last sand v` flyr bare fra én øy og viser hendelsene.
 
 ## Planter og dyr (`data/vegetasjon.js`, `data/dyr.js`)
 
