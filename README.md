@@ -420,7 +420,7 @@ Muttere: 5 per bøye, 3 per turbotønne, 20 for å fortøye, 15 hvis du aldri bl
 
 ## Flyplassen og flyturene
 
-Øst på Trinnvik ligger Trinnvik lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør med kantlys, terminal, tårn, hangar og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved småflyet, så kommer spørsmålet «Vil du fly?». (Lasteflyet som flyr bilen til de andre øyene står sør på rullebanen, se neste avsnitt.) JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
+Øst på Trinnvik ligger Trinnvik lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør (18/36) med kantlys, terminal, tårn, hangar, drivstofftanker og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved småflyet, så kommer spørsmålet «Vil du fly?». (Lasteflyet som flyr bilen til de andre øyene står sør på rullebanen, se neste avsnitt.) JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
 
 | Tur | Vanskelighet | Ringer |
 |---|---|---|
@@ -447,7 +447,7 @@ Muttere: 5 per ring, 20 for å komme i mål, 15 uten krasj, 60 første gang og 2
 
 ## Lasteflyet: fly bilen mellom øyene
 
-Hver øy har en flyplass på en fylling ut i sjøen: rullebane med kantlys, terminal, tårn, vindpose og en vei fra øya. Ytterst på rullebanen står et stort lastefly med fire motorer og hekkrampa nede. Kjør opp rampa og inn i lasterommet, så kommer spørsmålet «Hvor vil du fly?» med alle de andre øyene. Turen er gratis.
+Hver øy har en flyplass på en fylling ut i sjøen: rullebane med banenummer, kantlys og PAPI-lys, terminal, tårn med radar, vindpose, drivstofftanker, tankbil, bagasjetraller, containere med gaffeltruck, lysmaster og en vei fra øya. Ytterst på rullebanen står et stort lastefly, en Antonov An-124, med hekkrampa nede. Kjør opp rampa og inn i lasterommet, så kommer spørsmålet «Hvor vil du fly?» med alle de andre øyene. Turen er gratis.
 
 Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme tastene som småflyet. Tre gule porter og en lyssøyle viser innflygingen til øya du valgte, og kompasset og teksten øverst sier hvor langt det er og om du er for høyt eller for lavt. Land på rullebanen og la flyet stoppe (det bremser selv), så lastes øya, og bilen står i lasterommet med nesa mot rampa. Kjør ut.
 
@@ -471,6 +471,10 @@ Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme
 | `ground` | `'grass'` (standard), `'sand'` eller `'snow'`. |
 
 Fyllingen legges i `genLevel` (`airFrame` i `js/core.js`), og `c.airport` bygger resten før `build(c)`, som landsbyen. `c.cargoPlane(x,z,yaw,y)` lager selve flyet: rampa og gulvet er kjørbare dekk, veggene og skottet foran stopper bilen. Målene står i `CARGO` øverst i samme fil. Trinnvik har sin egen flyplass i banefila og kaller `c.cargoPlane` selv. Modellen tegnes av `cgMesh` i `js/cargo.js`.
+
+**Flymodellen** er en Antonov An-124: høy pilvinge som henger ned mot tuppene, fire turbofanmotorer på pyloner foran vingen, cockpit høyt over en rund nese (hele nesa er et visir), radom under haka, to doble nesehjul ved siden av hverandre, fem hjulpar på rad under en kul på hver side, hekk som sveiper opp over rampa, én høy finne og haleflaten lavt på kroppen. Kroppen er kortere og tjukkere enn på det ekte flyet, for bilen skal få plass i lasterommet. Kropp, vinger og hale er skall trukket over tverrsnitt (`cgLoft`), og alle delene slås sammen til ett nett per materiale (`cgBucket`), så flyet er et dusin tegnekall uansett hvor mange detaljer det har. Nye deler legges i `Bb` (kroppen), `Bt` (det som blir gjennomsiktig når bilen er inne), `Br` (rampa) eller `Bd` (dørene som er lukket i lufta).
+
+**Det som står på flyplassene** bygges av `c.ap…` i `js/core.js` (`apRunway`, `apTerminal`, `apTower`, `apTanks`, `apTruck`, `apCargo`, `apCarts`, `apMast`, `apPapi`, `apLine`), og brukes både av `c.airport` og av Trinnvik. De tar en ramme fra `c.apFrame`, så tingene kan stå langs rullebanen uansett hvilken vei den ligger. Banenummeret regnes ut fra kompassretningen. Sett fra lufta bygges de samme tingene av `cgSeaKit` i `js/cargo.js`.
 
 **På havet:** `seaAirports()` i `js/planesim.js` legger en rullebane ved hver øy på samme side som øyas egen flyplass, og `PCARGO` er tallene for lasteflyet (tyngre, lengre rullestrekning, slakere svinger enn småflyet). `cargoFinal` velger enden med lengst fri innflyging.
 

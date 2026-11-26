@@ -34,6 +34,12 @@ function fPlaneMesh(hex){const g=new THREE.Group();g.rotation.order='YXZ';
   g.userData={prop,disc,paint:[mP]};return g}
 function fPaint(mesh,hex){const c=LIN(hex);for(const m of mesh.userData.paint)m.color.copy(c)}
 
+// a windsock: a cone open at both ends, in orange and white bands, hanging out along +z from its mouth
+function fSockMesh(r0,r1,len){const g0=new THREE.CylinderGeometry(r0,r1,len,10,5,true),g=g0.toNonIndexed();g0.dispose();g.rotateX(Math.PI/2);g.translate(0,0,len/2);
+  const p=g.attributes.position,C=new Float32Array(p.count*3),a=new THREE.Color(0xff6a2a),b=new THREE.Color(0xf4f4f0);
+  for(let i=0;i<p.count;i+=3){const k=Math.floor((p.getZ(i)+p.getZ(i+1)+p.getZ(i+2))/3/len*5)%2?b:a;for(let j=0;j<3;j++){C[(i+j)*3]=k.r;C[(i+j)*3+1]=k.g;C[(i+j)*3+2]=k.b}}
+  g.setAttribute('color',new THREE.BufferAttribute(C,3));return new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide}))}
+
 /* ---------- Trinnvik airport at sea: the fill with grass, the runway with its lights, the terminal, the tower, the hangar, the windsock ---------- */
 function fAirportSea(){const A=airSea(),L=A.land,R=A.rwy,g=new THREE.Group(),cx=(L.x0+L.x1)/2,cz=(L.z0+L.z1)/2,top=A.top;
   bAdd(g,new THREE.BoxGeometry(L.x1-L.x0+6,12,L.z1-L.z0+6),bStd(0x8a8a86),cx,top-8,cz,false);bAdd(g,new THREE.BoxGeometry(L.x1-L.x0,3,L.z1-L.z0),bStd(0x6f9a48),cx,top-1.5,cz,false);
@@ -52,7 +58,10 @@ function fAirportSea(){const A=airSea(),L=A.land,R=A.rwy,g=new THREE.Group(),cx=
   bAdd(g,new THREE.BoxGeometry(.6,16,26),bStd(0x3a3f44),H.x+15.1,top+8,H.z,false);bAdd(g,new THREE.BoxGeometry(.8,1.2,28),bStd(0xe5a92b),H.x+15.2,top+16.6,H.z,false);
   bAdd(g,new THREE.CylinderGeometry(3.4,4,30,10),bStd(0xf2e8d0,{flatShading:false}),W.x,top+15,W.z);bAdd(g,new THREE.BoxGeometry(10,6,10),new THREE.MeshStandardMaterial({color:0x1a262d,roughness:.1,metalness:.5}),W.x,top+33,W.z);bAdd(g,new THREE.BoxGeometry(11.5,1.2,11.5),bStd(0xd9432f),W.x,top+36.6,W.z,false);
   bAdd(g,new THREE.CylinderGeometry(.35,.4,16,6),bStd(0xe9e6df),S.x,top+8,S.z,false);
-  const sock=new THREE.Group(),sg=new THREE.CylinderGeometry(1.6,.7,8,10,1,true);sg.rotateX(Math.PI/2);sg.translate(0,0,4);sock.position.set(S.x,top+15.5,S.z);bAdd(sock,sg,new THREE.MeshStandardMaterial({color:0xff6a2a,side:THREE.DoubleSide}),0,0,0,false);g.add(sock);FL.sock=sock;
+  const sock=new THREE.Group();sock.position.set(S.x,top+15.5,S.z);sock.add(fSockMesh(.7,1.6,8));g.add(sock);FL.sock=sock;
+  if(typeof cgSeaKit==='function'){const g2=new THREE.Group();   // the details (js/cargo.js)
+    cgSeaKit(g2,{top,face:1,rx:R.x,hw:(R.x1-R.x0)/2,z0:R.z0,z1:R.z1,wx:0,wz:1,T:{x:T.x,z:T.z,len:40,h:14,wy:8,wh:4},W:{x:W.x,z:W.z,sh:30,roof:37.2},tanks:[H.x-2,H.z-32],cargo:[T.x+8,A.start.z-4],
+      parked:[[T.x+15,T.z-20,.5,0xc8463a],[T.x+16,T.z+18,-.5,0x2c6fb0]],truck:[T.x+12,T.z-2],masts:[[T.x+8.5,T.z-28],[T.x+8.5,T.z+28]]});BT.scene.add(g2)}
   BT.scene.add(g);BT.isl.push({I:{x:cx,z:cz,r:Math.hypot(L.x1-L.x0,L.z1-L.z0)/2},g});
   if(typeof cgSeaAirports==='function')cgSeaAirports()}   // the airports of the other islands (js/cargo.js)
 
@@ -67,8 +76,7 @@ const FW={ground:fGround,bound:SEA.bound};
 /* ---------- the airport on the island: your plane in your paint and the windsock ---------- */
 function buildAirport(lv){FL.airport=null;const A=lv.airportDef;if(!A)return;if(!BTEX)BTEX=bMakeTex();const g=new THREE.Group();let pm=null;
   if(A.plane){pm=fPlaneMesh((PAINTS[prof.paint]||PAINTS[0]).c);pm.scale.setScalar(.17);pm.position.set(A.plane.x,A.y+PCFG.gear*.17,A.plane.z);pm.rotation.y=A.plane.yaw+Math.PI;g.add(pm)}   // Trinnvik: the small plane
-  const sock=new THREE.Group();sock.position.set(A.sock.x,A.y+1.62,A.sock.z);const geo=new THREE.CylinderGeometry(.13,.05,.75,8,1,true);geo.rotateX(Math.PI/2);geo.translate(0,0,.38);
-  sock.add(new THREE.Mesh(geo,new THREE.MeshStandardMaterial({color:0xff6a2a,side:THREE.DoubleSide})));g.add(sock);
+  const sock=new THREE.Group();sock.position.set(A.sock.x,A.y+1.62,A.sock.z);sock.add(fSockMesh(.05,.13,.75));g.add(sock);
   levelGroup.add(g);FL.airport={A,plane:pm,sock,paint:prof.paint};if(A.cargo&&typeof cargoIsland==='function')cargoIsland(A,g)}   // every island: the cargo plane (js/cargo.js)
 // the windsock swings in the wind, and the planes follow the paint you choose in the garage
 function fAirportAnim(){const M=FL.airport;if(!M)return;const t=performance.now()*.001;M.sock.rotation.y=2.2+.25*Math.sin(t*.7)+.08*Math.sin(t*3.1);M.sock.rotation.x=.25+.1*Math.sin(t*1.3);
