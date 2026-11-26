@@ -142,7 +142,13 @@ Nytt element: kopier en fil i `js/props/`, gi den et nytt navn i `PROPS.navn`, o
 
 `style:'trophy'` tegner en trophy truck (`buildTrophy` i `js/carmodel.js`), se Trophy Truck: et smalt karosseri lavt mellom brede skjermer, store terrengdekk på svarte beadlock-felger, takluke, lysrampe, to reservehjul og tank på planet under et rørbur, og startnummer på dørene. Fjæringen tegnes mellom karosseriet og hjulene hver gang bilen flytter seg (`trophyLinks`), så du ser A-armene og støtdemperne foran og den stive akselen bak jobbe. Bilen er gratis.
 
-Test en bil på alle banene: `CAR=knott node tools/test-levels.js` (eller `CAR=turbo`, `CAR=trophy`).
+`style:'open'`, `'van'`, `'truck'`, `'rally'` og `'buggy'` tegner de fem nyeste bilene (`buildOpen`, `buildVan`, `buildTruck`, `buildRally` og `buildBuggy` nederst i `js/carmodel.js`): veteranjeepen Rusken, bobilen Snegla, ekspedisjonslastebilen Bamse, rallybilen Gaupe og strandbuggyen Sandloppe.
+
+**Felles deler:** Øverst i `js/carmodel.js` ligger et sett med smådeler som alle bilene bruker: `rbx` (boks med avrundede kanter til de store lakkerte flatene), `carLamp` (frontlykt med lyskjegle), `carTail` (baklykt med bremselys, blinklys og ryggelys), `carPlate` (skilt med tekst), `carSeat`, `carWheelStick` (ratt), `carCrew` (fører og passasjer), `carUnder` (ramme, girkasse, mellomaksler, eksos og fjærer) og `carGear` (snorkel, vinsj og LED fra verkstedet). Kupeen på de vanlige bilene er bygget av stolper og gjennomsiktig glass, så du ser seter, ratt og mannskap. Hele bilen slås sammen til ett nett per materiale når den er bygget (`packBody` og `netMerge`), så en bil med flere hundre deler tegnes med rundt 40 tegnekall.
+
+**Lys:** Baklyktene lyser sterkt rødt når du bremser, og de hvite ryggelysene lyser når du rygger (`tailGlow` i `js/game.js`).
+
+Test en bil på alle banene: `CAR=knott node tools/test-levels.js` (eller `CAR=turbo`, `CAR=trophy`, `CAR=rusken`, `CAR=sandloppe`, `CAR=snegla`, `CAR=gaupe`, `CAR=bamse`).
 
 Bilen dukker opp i menyen med en gang.
 

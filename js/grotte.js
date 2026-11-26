@@ -177,7 +177,7 @@ function cItems(cv,grp){const oct=new THREE.OctahedronGeometry(.2,0),gm=new THRE
 /* ---------- the car in the cave: the same model and paint as on the island ---------- */
 function cCarVis(){const cfg=Object.assign({},CARS[state.carIdx],{tune:car.tune}),key=cfg.id+'/'+JSON.stringify(prof.parts);if(CV.vis&&CV.carKey===key)return CV.vis;
   if(CV.vis){CV.scene.remove(CV.vis.root);CV.vis.root.traverse(o=>{if(o.geometry&&o.geometry!==boxGeo)o.geometry.dispose()})}
-  const root=new THREE.Group(),body=buildBody(cfg);root.add(body);const wheels=[];for(let i=0;i<4;i++){const w=carWheel(cfg,i%2===0?1:-1,i>1);root.add(w.root);wheels.push(w)}
+  const root=new THREE.Group(),body=packBody(buildBody(cfg));root.add(body);const wheels=[];for(let i=0;i<4;i++){const w=carWheel(cfg,i%2===0?1:-1,i>1),spin=netMerge(w.spin);w.root.remove(w.spin);w.root.add(spin);w.spin=spin;root.add(w.root);wheels.push(w)}   // merged, like the car outside (js/carmodel.js)
   CV.scene.add(root);CV.carKey=key;return CV.vis={root,body,wheels}}
 const _gq=new THREE.Quaternion(),_gqy=new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0,1,0),Math.PI/2),_gz=new THREE.Vector3(0,0,1);
 function cPose(){const c=CV.car,v=CV.vis;_gq.setFromAxisAngle(_gz,c.a).multiply(_gqy);v.body.position.set(c.x,c.y,0);v.body.quaternion.copy(_gq);
