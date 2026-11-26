@@ -30,6 +30,13 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .panel{background:var(--panel);border:1px solid var(--line);padding:18px 18px 20px;display:flex;flex-direction:column;gap:12px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
 .panel h2{font-family:var(--f-display);font-weight:400;font-size:1.25rem;color:var(--sand);letter-spacing:.03em;display:flex;align-items:center;gap:10px}
 .panel h2::after{content:"";flex:1;height:1px;background:var(--line)}
+.fold{border-top:1px solid var(--line)}
+.fold summary{font-family:var(--f-display);font-size:1.25rem;color:var(--sand);letter-spacing:.03em;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;padding:10px 0 0;min-height:44px}
+.fold summary::-webkit-details-marker{display:none}
+.fold summary::after{content:"+";font-family:var(--f-body,inherit);font-size:1.4rem;color:var(--muted);line-height:1}
+.fold[open] summary::after{content:"−"}
+.fold summary:focus-visible{outline:2px solid var(--sand);outline-offset:2px}
+.fold-body{display:flex;flex-direction:column;gap:12px;padding-top:10px}
 .car-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .card{text-align:left;border:1px solid rgba(242,232,208,.14);background:var(--ink-2);padding:9px 10px 10px;display:flex;flex-direction:column;gap:3px;min-width:0}
 .card:hover{border-color:var(--line)}
@@ -74,6 +81,8 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .buy.max{border-style:dashed}
 .paints{display:flex;gap:8px;flex-wrap:wrap}
 .sw{width:58px;height:58px;border:2px solid rgba(242,232,208,.2);display:grid;place-items:end center;font-size:.72rem;font-weight:700;color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000;padding-bottom:3px}
+.sw.rim{background:radial-gradient(circle at 50% 42%,#2a2826 0 9%,var(--c) 10% 38%,#1a1917 39% 100%)}
+.sw.flg{background:var(--ink-2) center/100% 100% no-repeat}
 .sw[aria-pressed="true"]{border-color:var(--sand);box-shadow:0 0 0 2px var(--ink),0 0 0 4px var(--sand)}
 .earn{display:flex;align-items:baseline;gap:10px;font-family:var(--f-display);font-size:1.7rem;color:var(--sand);line-height:1}
 .earn small{font-family:var(--f-body);font-size:.9rem;color:var(--muted)}
@@ -132,6 +141,14 @@ kbd{font-family:var(--f-body);font-weight:700;border:1px solid rgba(242,232,208,
 .toast.on{opacity:1}
 .toast.bad{color:var(--signal)}
 .hint{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--signal);color:var(--ink);font-weight:700;padding:8px 14px;font-size:1.05rem;text-align:center;max-width:calc(100% - 32px)}
+.tip{position:fixed;z-index:12;left:50%;top:calc(128px + env(safe-area-inset-top,0px));transform:translate(-50%,-8px);width:max-content;max-width:min(460px,calc(100% - 32px));
+  display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sand);padding:8px 8px 8px 12px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.tip.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.tip span{font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem;color:var(--sand)}
+.tip p{margin:0;font-size:1.02rem;line-height:1.25;color:var(--paper);flex:1;min-width:0}
+.tip button{border:1px solid var(--line);padding:8px 12px;font-weight:700;letter-spacing:.06em;color:var(--paper);min-height:40px}
+@media (prefers-reduced-motion:reduce){.tip{transition:none}}
+@media (max-width:620px){.tip{top:calc(252px + env(safe-area-inset-top,0px))}}   /* below the minimap */
 .hint button{text-decoration:underline;font-weight:700}
 /* a start portal nearby: the car keeps driving, the player chooses to start */
 .offer{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(116px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:14px;
@@ -570,3 +587,20 @@ body.is-touch .rc-touch{display:block}
   .vt-opts{gap:10px}
 }
 @media (prefers-reduced-motion:reduce){#vault *{animation:none!important;transition:none!important}}
+
+/* ---------- reisedagboka og dagens utfordring (js/dagbok.js) ---------- */
+.daily{border:1px solid var(--line);border-left:4px solid var(--sand);padding:10px 12px 12px;display:flex;flex-direction:column;gap:8px;background:var(--ink-2)}
+.daily .note b{color:var(--paper)}
+.sheet.wide{width:min(640px,100%)}
+.sheet h3{font-family:var(--f-display);font-weight:400;color:var(--sand);font-size:1.2rem}
+.res.four{grid-template-columns:repeat(4,minmax(0,1fr))}
+.res.four b{font-size:1.25rem}
+.dbl,.dbb{margin:0;padding:0;list-style:none;display:grid;gap:6px}
+.dbl li{border:1px solid rgba(242,232,208,.14);background:var(--ink-2);padding:7px 10px;display:flex;flex-wrap:wrap;gap:2px 14px;align-items:baseline;font-size:.95rem;color:var(--muted)}
+.dbl li b{flex:1 0 100%;color:var(--paper);font-size:1.05rem}
+.dbl li.all{border-color:var(--sand)}.dbl li.all b,.dbl span.ok{color:var(--sand)}
+.dbb{grid-template-columns:repeat(2,minmax(0,1fr))}
+.dbb li{border:1px solid rgba(242,232,208,.14);padding:6px 10px;display:flex;flex-direction:column;font-size:.9rem;color:var(--muted);opacity:.6}
+.dbb li b{color:var(--paper);font-size:1rem}
+.dbb li.got{opacity:1;border-color:var(--sand)}.dbb li.got b{color:var(--sand)}
+@media (max-width:520px){.res.four{grid-template-columns:repeat(2,minmax(0,1fr))}.dbb{grid-template-columns:1fr}}

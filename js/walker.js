@@ -118,6 +118,7 @@ function walkOut(){const W=WALK;if(W.on||state.mode!=='play'||!car||!carVis)retu
   if(car.vel.length()>.9){toast('Stopp bilen før du går ut',true);return}
   if(car.up.y<.6){toast('Få bilen på hjulene først',true);return}
   if(car.rope){toast('Vent til vinsjen er ferdig',true);return}
+  if(typeof tipDone==='function')tipDone('walk');
   const side=walkRoom(1)?1:walkRoom(-1)?-1:0;if(!side){toast('Det er ikke plass til å gå ut her',true);return}
   Object.assign(W,{on:true,ph:'out',k:0,t:0,side,v:0,vy:0,cyc:0,mv:0,run:0,sit:1,air:0,jumpHeld:true,lv:LV,body:carVis.body,camH:Math.atan2(car.fw.x,car.fw.z),steps:0});W.carAt.copy(car.pos);
   walkPath(0,side,_wo);W.pos.set(_wo.x,_wo.y,_wo.z);W.h=_wo.h;car.throttle=0;for(const k in W.men)W.men[k].root.visible=false;

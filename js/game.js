@@ -9,13 +9,14 @@ const store={get(k,d){try{const v=localStorage.getItem('sgc:'+k);return v==null?
 // car and level are saved by id; older saves used the list index
 const idxOf=(list,v)=>{const i=typeof v==='number'?v:list.findIndex(x=>x.id===v);return i>=0&&i<list.length?i:0};
 const state={mode:'menu',carIdx:idxOf(CARS,store.get('car',0)),levelIdx:idxOf(LEVELS,store.get('level',0)),assist:store.get('assist',true),camMode:0,lights:false,sound:store.get('sound',true),
-  speed:store.get('speed',100),gfx:store.get('gfx','hi'),volCar:store.get('volCar',70),volAmb:store.get('volAmb',70),
+  speed:store.get('speed',100),gfx:store.get('gfx','hi'),volCar:store.get('volCar',70),volAmb:store.get('volAmb',70),haptics:store.get('haptics',true),ghost:store.get('ghost',true),
   time:0,started:false,penalty:0,next:0,flipT:0,checkpoint:null,missed:0,touched:0,winches:0,log:[],input:{gas:0,rev:0,left:0,right:0}};
 let best=store.get('best',{});
 // player profile: currency, parts, paint
 const prof=Object.assign({nuts:0,parts:{},paint:0,paints:[0],first:{},runs:0,lastDay:'',secrets:{},cars:[]},store.get('prof',{}));if(!prof.secrets)prof.secrets={};if(!prof.cars)prof.cars=[];
 const ownsCar=c=>!c.price||prof.cars.includes(c.id);
-if(!PAINTS[prof.paint])prof.paint=0;
+if(!PAINTS[prof.paint])prof.paint=0;if(!ownsCar(CARS[state.carIdx]))state.carIdx=0;   // a car lent by today's challenge is not kept
+if(!Array.isArray(prof.rims))prof.rims=[0];if(!Array.isArray(prof.flags))prof.flags=[0];if(!RIMS[prof.rim])prof.rim=0;if(!FLAGS[prof.flag])prof.flag=0;   // cosmetics from the garage
 const saveProf=()=>store.set('prof',prof);
 const fmtN=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const isIsland=l=>!!(l.world||l.village);
@@ -517,11 +518,11 @@ function loadLevel(i){
 }
 function setCar(i){state.carIdx=i;store.set('car',CARS[i].id);const old=car,tune=tuneFrom(prof.parts);car=makeCar(CARS[i],tune);car.rope=null;car.assist=state.assist;car.speedScale=state.speed/100;if(old){car.low=old.low}
   applyPaint();buildCarVis(Object.assign({},CARS[i],{tune}));if(LV)resetToStart()}
-function applyPaint(){const p=PAINTS[prof.paint]||PAINTS[0],own=!prof.paint&&CARS[state.carIdx].col;M.yel.color.set(own||p.c).convertSRGBToLinear();M.rim.color.set(prof.parts.weight>=2?'#b08a3a':'#e3a62a').convertSRGBToLinear();M.rim.metalness=prof.parts.weight>=2?.6:.2}
+function applyPaint(){const p=PAINTS[prof.paint]||PAINTS[0],own=!prof.paint&&CARS[state.carIdx].col;M.yel.color.set(own||p.c).convertSRGBToLinear();rimLook(M.rim,prof.rim,prof.parts.weight|0)}
 function resetToStart(){const s=LV.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));state.checkpoint={x:s.p.x,z:s.p.z,h:Math.atan2(s.tan.x,s.tan.z)};camSnap=true}
 
 /* ---------- game flow ---------- */
-function resetRunState(){Object.assign(state,{time:0,started:false,penalty:0,next:0,flipT:0,missed:0,touched:0,winches:0,winchPen:0,rescues:0,log:[],crates:0,jumps:0,longJumps:0,bestAir:0,air:0,flood:0,drowned:0,deepWarn:false,lavaFalls:0,bonusNuts:0,bonusDone:{}})}
+function resetRunState(){Object.assign(state,{time:0,started:false,penalty:0,next:0,flipT:0,missed:0,touched:0,winches:0,winchPen:0,rescues:0,log:[],crates:0,jumps:0,longJumps:0,bestAir:0,air:0,flood:0,drowned:0,deepWarn:false,lavaFalls:0,bonusNuts:0,bonusDone:{}});if(typeof ghostBegin==='function')ghostBegin()}
 function showHud(){$('menu').hidden=true;$('garage').hidden=true;$('result').hidden=true;$('pause').hidden=true;$('hud').hidden=false;$('hint').hidden=true;$('ask').hidden=true;setOffer(null);$('hud').classList.toggle('free',!!state.free)}
 function startRun(){
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
@@ -532,7 +533,7 @@ function startRun(){
   resetCrates();resetToStart();car.low=true;clearTracks();resetBoulder();
   showHud();updateGearUI();toast('Kjør til port 1');
 }
-function toMenu(){if(state.course)endCourse();skuterOff();state.free=false;state.mode='menu';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('garage').hidden=true;$('menu').hidden=false;renderMenu();resetToStart()}
+function toMenu(){if(state.course)endCourse();if(typeof dailyEnd==='function')dailyEnd();skuterOff();state.free=false;state.mode='menu';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('garage').hidden=true;$('menu').hidden=false;renderMenu();resetToStart()}
 function toGarage(){if(state.course)endCourse();skuterOff();clearCoat();state.mode='garage';$('hud').hidden=true;$('pause').hidden=true;$('result').hidden=true;$('menu').hidden=true;$('garage').hidden=false;resetToStart();renderGarage();$('gDrive').focus()}
 function renderGarage(){
   $('gCar').textContent=CARS[state.carIdx].name;$('gNuts').textContent=fmtN(prof.nuts);
@@ -541,6 +542,10 @@ function renderGarage(){
     return`<div class="part"><span class="nm">${p.name} ${pips(lv,3)}</span><span class="lvn">${p.lv[lv]}</span><p class="ds">${p.desc}</p>
       <button class="buy ${can?'can':''} ${max?'max':''}" data-buy="${p.id}" ${can?'':'disabled'}>${max?'Fullt oppgradert':`Neste: ${p.lv[lv+1]}<b>⚙ ${price}</b>${can?'':'<span>mangler '+(price-prof.nuts)+'</span>'}`}</button></div>`}).join('');
   $('paintList').innerHTML=PAINTS.map((p,i)=>{const own=prof.paints.includes(i);if(p.locked&&!own)return`<button class="sw lk" data-paint="${i}" style="background:${p.c}" aria-label="${p.n}, låst" disabled>🔒</button>`;return`<button class="sw" data-paint="${i}" style="background:${p.c}" aria-pressed="${i===prof.paint}" aria-label="${p.n}${own?'':', koster '+p.p}">${own?'':'⚙'+p.p}</button>`}).join('');
+  $('rimList').innerHTML=RIMS.map((r,i)=>{const own=prof.rims.includes(i);return`<button class="sw rim" data-rim="${i}" style="--c:${r.c||(prof.parts.weight>=2?'#b08a3a':'#e3a62a')}" aria-pressed="${i===prof.rim}" aria-label="${r.n}${own?'':', koster '+r.p}">${own?'':'⚙'+r.p}</button>`}).join('');
+  $('rimName').textContent=RIMS[prof.rim].n;
+  $('flagList').innerHTML=FLAGS.map((f,i)=>{const own=prof.flags.includes(i);return`<button class="sw flg" data-flag="${i}" style="${f.k?'background-image:url('+flagCanvas(f).toDataURL()+')':''}" aria-pressed="${i===prof.flag}" aria-label="${f.n}${own?'':', koster '+f.p}">${own?(f.k?'':'Ingen'):'⚙'+f.p}</button>`}).join('');
+  $('flagName').textContent=FLAGS[prof.flag].n;
   const cp=PAINTS[prof.paint]||PAINTS[0];$('paintName').textContent=cp.n+(PAINTS.some(p=>p.locked&&!prof.paints.includes(PAINTS.indexOf(p)))?' · Gull-lakken låses opp når alle '+totalSecrets()+' gullmutterne er funnet ('+foundSecrets()+' funnet).':'');
 }
 function buyPart(id){const p=PARTS.find(x=>x.id===id),lv=prof.parts[id]||0;if(lv>=3)return;const price=p.price[lv+1];if(prof.nuts<price)return;
@@ -548,10 +553,14 @@ function buyPart(id){const p=PARTS.find(x=>x.id===id),lv=prof.parts[id]||0;if(lv
 function pickPaint(i){const p=PAINTS[i];if(p.locked&&!prof.paints.includes(i))return;if(!prof.paints.includes(i)){if(prof.nuts<p.p)return;prof.nuts-=p.p;prof.paints.push(i)}prof.paint=i;saveProf();applyPaint();renderGarage()}
 $('partList').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b)buyPart(b.dataset.buy)});
 $('carSale').addEventListener('click',e=>{const b=e.target.closest('[data-buycar]');if(!b)return;const c=CARS.find(x=>x.id===b.dataset.buycar);if(!c||prof.nuts<c.price)return;prof.nuts-=c.price;prof.cars.push(c.id);saveProf();setCar(CARS.indexOf(c));renderGarage();toast('Gratulerer med '+c.name+'!')});
+// felger og antenneflagg: kjøpes én gang, og byttes fritt etterpå
+function pickLook(list,key,i){const it=list[i],own=prof[key+'s'];if(!it)return;if(!own.includes(i)){if(prof.nuts<it.p){toast('Mangler '+(it.p-prof.nuts)+' muttere',true);return}prof.nuts-=it.p;own.push(i)}prof[key]=i;saveProf();if(key==='flag')setCar(state.carIdx);else applyPaint();renderGarage()}
+$('rimList').addEventListener('click',e=>{const b=e.target.closest('[data-rim]');if(b)pickLook(RIMS,'rim',+b.dataset.rim)});
+$('flagList').addEventListener('click',e=>{const b=e.target.closest('[data-flag]');if(b)pickLook(FLAGS,'flag',+b.dataset.flag)});
 $('paintList').addEventListener('click',e=>{const b=e.target.closest('[data-paint]');if(b)pickPaint(+b.dataset.paint)});
 $('mGarage').onclick=toGarage;$('rGarage').onclick=toGarage;$('gBack').onclick=toMenu;$('gDrive').onclick=startRun;
 function pause(on){if(state.mode==='race'){if(on)raceKeyDown('escape');return}if(state.mode==='cave'){if(on)caveKeyDown('escape');return}if(state.mode==='mine'){if(on)mineKeyDown('escape');return}if(state.mode==='ski'){if(on)skiKeyDown('escape');return}if(state.mode==='boat'){if(on)boatKeyDown('escape');return}if(state.mode==='fly'){if(on)flyKeyDown('escape');return}if(state.mode!=='play'&&state.mode!=='pause')return;state.mode=on?'pause':'play';$('pause').hidden=!on;$('pAbort').hidden=!state.course;$('pMap').hidden=!state.world;$('pRestart').textContent=state.course?'Start løpet på nytt':state.world?'Tilbake til basen':'Start på nytt';if(on)$('pResume').focus();if(on&&typeof netPauseUI==='function')netPauseUI()}
-function addPenalty(n,why){state.penalty+=n;state.log.push(why);toast('+'+n+' '+why.split(':')[0],true)}
+function addPenalty(n,why){buzz(n>=5?.8:.5,n>=5?120:70);state.penalty+=n;state.log.push(why);toast('+'+n+' '+why.split(':')[0],true)}
 // auto: the flip assist in easy mode puts the car back for free; everything else costs a winch penalty
 function winch(auto){
   if(state.mode!=='play')return;walkEnd();const cp=state.checkpoint;placeCar(car,cp.x,cp.z,cp.h);   // walkEnd: a driver on foot is back behind the wheel (js/walker.js)
@@ -561,7 +570,7 @@ function winch(auto){
 }
 function finishRun(){
   state.mode='done';const lvl=LEVELS[state.levelIdx],def=state.course?Object.assign({},state.course,{gates:state.course.gates.length}):lvl,key=state.course?courseKey(lvl,state.course):lvl.id,t=Math.max(0,state.time-state.crates*2),p=state.penalty;const stars=p===0?3:p<=6?2:1;
-  const prev=best[key];let isBest=false;if(!prev||p<prev.p||(p===prev.p&&t<prev.t)){best[key]={p,t,s:stars};store.set('best',best);isBest=true}
+  const prev=best[key];let isBest=false;if(!prev||p<prev.p||(p===prev.p&&t<prev.t)){best[key]={p,t,s:stars};store.set('best',best);isBest=true}if(typeof ghostFinish==='function')ghostFinish(key,isBest);
   $('rLevel').textContent=state.course&&!state.course.main?lvl.name+' · '+def.name:def.name;$('rTitle').textContent=p===0?'Feilfri tur!':'I mål!';$('rTime').textContent=fmtTime(t);$('rPen').textContent=p;
   $('rGates').textContent=(LV.gates.length-state.missed)+'/'+LV.gates.length;
   $('rStars').innerHTML=[0,1,2].map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z" fill="${i<stars?'#E5A92B':'rgba(242,232,208,.15)'}"/></svg>`).join('');
@@ -584,6 +593,7 @@ function finishRun(){
   if(state.longJumps){e+=state.longJumps*20;el.push(`${state.longJumps} store hopp +${state.longJumps*20}`)}
   if(state.bonusNuts){e+=state.bonusNuts;el.push(`snarvei +${state.bonusNuts}`)}
   if(p===0){e+=100;el.push('feilfri +100')}
+  if(typeof dailyBonus==='function'){const db=dailyBonus(key,p);if(db){e+=db;el.push('dagens utfordring +'+db)}}
   // first-completion bonus is earned per gate: 200 for all gates, the rest can be picked up on a later run
   const frac=gatesOK/def.gates,prevF=+prof.first[key]||0;
   if(frac>prevF){const add=Math.round(200*frac)-Math.round(200*prevF);prof.first[key]=frac;e+=add;
@@ -666,6 +676,15 @@ function setLights(on){state.lights=on;$('bLights').setAttribute('aria-pressed',
 const CAMS=['Følgekamera','Bakkekamera','Førerkamera'];
 function cycleCam(){state.camMode=(state.camMode+1)%3;tripod=null;if(state.camMode===0){orbitYaw=0;orbitPitch=0}camSnap=true;fovZoom=1;toast(CAMS[state.camMode])}
 function setSound(on){state.sound=on;store.set('sound',on);$('pSound').textContent='Lyd: '+(on?'på':'av');$('pSound').setAttribute('aria-pressed',on)}
+function setHaptics(on){state.haptics=on;store.set('haptics',on);$('hapOn').setAttribute('aria-pressed',on);$('hapOff').setAttribute('aria-pressed',!on);$('pHap').textContent='Vibrasjon: '+(on?'på':'av');$('pHap').setAttribute('aria-pressed',on)}
+// a short jolt in the phone (Android) and in a gamepad that can rumble. k: strength 0–1, ms: length, pad: which player's gamepad (split screen).
+// A weaker jolt never cuts off a stronger one that is still running.
+let buzzEnd=0,buzzK=0;
+function buzz(k,ms=70,pad=0){if(!state.haptics||!(k>.04))return;k=Math.min(1,k);const now=performance.now();if(now<buzzEnd&&k<buzzK)return;buzzEnd=now+ms;buzzK=k;
+  try{if(navigator.vibrate&&document.body.classList.contains('is-touch'))navigator.vibrate(Math.round(ms*(.35+.65*k)))}catch(e){}
+  try{const pads=navigator.getGamepads?[...navigator.getGamepads()].filter(g=>g&&g.connected):[],gp=pads[pad]||pads[0];if(!gp)return;
+    const a=gp.vibrationActuator;if(a&&a.playEffect){const p=a.playEffect('dual-rumble',{duration:ms,strongMagnitude:k,weakMagnitude:k*.6});if(p&&p.catch)p.catch(()=>{})}
+    else if(gp.hapticActuators&&gp.hapticActuators[0]&&gp.hapticActuators[0].pulse)gp.hapticActuators[0].pulse(k,ms)}catch(e){}}
 function setVol(which,v){v=Math.max(0,Math.min(100,Math.round(v)));state[which]=v;store.set(which,v);const ids=which==='volCar'?['volCar','pVolCar']:['volAmb','pVolAmb'];
   for(const id of ids){const el=$(id);if(el&&el.value!==undefined)el.value=v;const o=$(id+'Out');if(o)o.textContent=v+' %'}}
 for(const[id,w]of[['volCar','volCar'],['pVolCar','volCar'],['volAmb','volAmb'],['pVolAmb','volAmb']]){const el=$(id);if(el)el.addEventListener('input',e=>setVol(w,+e.target.value))}
@@ -674,7 +693,7 @@ $('bSlow').onclick=()=>setSpeed(state.speed-10);$('bFast').onclick=()=>setSpeed(
 $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
 $('gfxHi').onclick=()=>setGfx('hi');$('gfxLo').onclick=()=>setGfx('lo');$('bCam').onclick=()=>{if(state.mode==='ski')skiKeyDown('c');else cycleCam()};$('bWinch').addEventListener('pointerdown',e=>{if(hasWinch()){e.preventDefault();winchKey(true)}});$('bWinch').addEventListener('pointerup',()=>{if(hasWinch())winchKey(false)});$('bWinch').onclick=()=>{if(!hasWinch())winch()};$('pFetch').onclick=()=>{pause(false);winch()};$('bPause').onclick=()=>pause(true);
-$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);
+$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);$('ghOn').onclick=()=>setGhost(true);$('ghOff').onclick=()=>setGhost(false);$('dailyGo').onclick=()=>dailyStart();$('mDiary').onclick=()=>openDiary('menu');$('pDiary').onclick=()=>openDiary('pause');$('pHelp').onclick=()=>showHelp('pause');$('mHelp').onclick=()=>showHelp('menu');$('tipOk').onclick=()=>tipHide();$('pHap').onclick=()=>{setHaptics(!state.haptics);buzz(.6,80)};$('hapOn').onclick=()=>{setHaptics(true);buzz(.6,80)};$('hapOff').onclick=()=>setHaptics(false);
 $('rRetry').onclick=()=>{if(!skiResultBtn('retry')&&!boatResultBtn('retry')&&!flyResultBtn('retry')&&!caveResultBtn('retry')&&!mineResultBtn('retry'))startRun()};$('rMenu').onclick=()=>{if(!skiResultBtn('car')&&!boatResultBtn('car')&&!flyResultBtn('car')&&!caveResultBtn('car')&&!mineResultBtn('car'))toMenu()};$('rNext').onclick=()=>{if(skiResultBtn('next')||boatResultBtn('next')||flyResultBtn('next')||caveResultBtn('next')||mineResultBtn('next'))return;if(state.world){endCourse();showHud();state.mode='play';return}loadLevel((state.levelIdx+1)%LEVELS.length);startRun()};
 $('bMap').onclick=()=>openMap();$('mTabIsland').onclick=()=>setMapTab('island');$('mTabArch').onclick=()=>setMapTab('arch');$('mClose').onclick=()=>openMap(false);$('pMap').onclick=()=>{$('pause').hidden=true;openMap(true)};
 $('mTow').onclick=()=>{if(prof.nuts<20){toast('Du trenger 20 muttere',true);return}prof.nuts-=20;saveProf();if(state.course)endCourse();openMap(false);const lvl=LEVELS[state.levelIdx];if(lvl.basePos)resetToStart();else if(LV.ferry){const f=LV.ferry;placeCar(car,f.pad.x,f.pad.z,Math.atan2(-f.dx,-f.dz));camSnap=true}else resetToStart();state.checkpoint={x:car.pos.x,z:car.pos.z,h:Math.atan2(car.fw.x,car.fw.z)};toast(lvl.basePos?'Tauet hjem til basen · −20 ⚙':'Tauet til kaia · −20 ⚙')};
@@ -806,7 +825,7 @@ function frame(now){
   // physics blew up: put the car back at the last checkpoint (the start outside a run)
   if(!isFinite(car.pos.x)||!isFinite(car.q.w)){car.q.set(0,0,0,1);const cp=state.mode==='play'&&state.checkpoint;if(cp)placeCar(car,cp.x,cp.z,cp.h);else resetToStart();camSnap=true}
   if(state.mode==='play'){
-    if(state.started)state.time+=dt;
+    if(state.started)state.time+=dt;if(typeof ghostTick==='function')ghostTick(dt);
     checkGates();
     if(car.up.y<.3&&car.vel.length()<1.5)state.flipT+=dt;else state.flipT=Math.max(0,state.flipT-dt*2);
     if(state.flipT>1.3&&$('hint').hidden){$('hint').hidden=false;$('hint').innerHTML=car.assist?'Bilen har veltet. Veltehjelpen henter den straks, uten straff.':hasWinch()?'Bilen har veltet. Hold <b>R</b> for å feste vinsjen i noe foran bilen og dra den opp, eller <button id="hWinch">hent bilen</button> (straff).':'Bilen har veltet. Trykk <b>R</b> eller <button id="hWinch">Vinsj</button> for å komme videre.';const hb=$('hWinch');if(hb)hb.onclick=()=>winch()}
@@ -826,6 +845,7 @@ function frame(now){
     if(car.pos.y<-3||Math.abs(car.pos.x)>HALF-.5||Math.abs(car.pos.z)>HALF-.5){winch();toast('Utenfor banen: vinsj',true)}
     if(state.world){updateWorld(dt);gpsUpdate(dt);updateFog(dt);saveRoam(dt)}
     updateSecrets(dt);
+    if(typeof tipsUpdate==='function')tipsUpdate(dt);
     updateHUD(dt);
   }
   if(state.mode==='done'&&toastT>0)updateHUD(dt);
@@ -857,6 +877,7 @@ function renderMenu(){
     <span class="best">${b?`Beste<b>${fmtTime(b.t)}</b>${b.p} straff`:'Ikke kjørt'}</span></button>`};
   const races=LEVELS.map((l,i)=>[l,i]).filter(([l])=>!l.world);
   $('levelList').innerHTML=races.map(([l,i],n)=>lvlBtn(l,i,n+1)).join('');const sel=LEVELS[state.levelIdx];$('raceBtn').textContent='Hurtigløp: '+(sel.world?races[0][0].name:sel.name);
+  if(typeof dailyRender==='function')dailyRender();
   $('mNuts').textContent=fmtN(prof.nuts);$('mStars').textContent='★ '+totalStars()+' av '+maxStars();
   $('modeEasy').setAttribute('aria-pressed',state.assist);$('modeReal').setAttribute('aria-pressed',!state.assist);
   $('modeNote').textContent=state.assist?'Litt mer grep, veltehjelp, automatisk vinsj og en pil som peker mot neste port. Fint for barn og nybegynnere.':'Ingen hjelp. Bilen oppfører seg som en ekte crawler, og du må vinsje selv.';
@@ -869,7 +890,7 @@ $('modeReal').onclick=()=>{state.assist=false;store.set('assist',false);if(car)c
 function boot(){
   state.roam=false;initMaps();decalMat=new THREE.MeshStandardMaterial({map:decalTexture(),transparent:true,roughness:.5});
   if(state.carIdx>=CARS.length||!ownsCar(CARS[state.carIdx])||CARS[state.carIdx].hire)state.carIdx=0;if(state.levelIdx>=LEVELS.length)state.levelIdx=0;
-  loadLevel(state.levelIdx);setCar(state.carIdx);setSound(state.sound);setVol('volCar',state.volCar);setVol('volAmb',state.volAmb);setSpeed(state.speed,true);setGfx(state.gfx);renderMenu();
+  loadLevel(state.levelIdx);setCar(state.carIdx);setSound(state.sound);setHaptics(state.haptics);setGhost(state.ghost);setVol('volCar',state.volCar);setVol('volAmb',state.volAmb);setSpeed(state.speed,true);setGfx(state.gfx);renderMenu();
   for(let i=0;i<240;i++)stepCar(car,FIXED);
   requestAnimationFrame(frame);
 }

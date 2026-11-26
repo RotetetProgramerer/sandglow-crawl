@@ -102,7 +102,7 @@ function updateMinimap(){const cv=MAP.mini;if(!MAP.base||!car||$('hud').hidden||
   x.strokeStyle='rgba(242,232,208,.5)';x.lineWidth=2;x.beginPath();x.arc(R,R,R-2,0,6.283);x.stroke()}
 
 /* ---------- the island map ---------- */
-function openMap(on){if(!state.world||!MAP.base)return;if(on===undefined)on=!MAP.open;MAP.open=on;$('map').hidden=!on;
+function openMap(on){if(!state.world||!MAP.base)return;if(on===undefined)on=!MAP.open;MAP.open=on;if(on&&typeof tipDone==='function')tipDone('gps');$('map').hidden=!on;
   if(on){if(state.mode==='play')state.mode='pause';const lvl=LEVELS[state.levelIdx];$('mIsland').textContent=lvl.name;$('mTow').textContent=lvl.basePos?'Tau hjem til basen (20 ⚙)':'Tau til kaia (20 ⚙)';setMapTab(MAP.tab||'island');$('mClose').focus()}
   else if(state.mode==='pause'&&$('pause').hidden)state.mode='play'}
 function bigLayout(){const cv=MAP.big,fr=cv.parentElement.parentElement,sz=Math.max(200,Math.min(fr.clientWidth-32,innerHeight*.58));cv.parentElement.style.width=cv.parentElement.style.height=sz+'px';if(cv.width!==sz){cv.width=cv.height=sz}MAP.scale=sz/MAP.W;return sz}

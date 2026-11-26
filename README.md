@@ -39,6 +39,9 @@ js/race.js            Racene på Racerøya sett ovenfra: tegningen, kameraet, HU
 js/racenet.js         Kjør sammen på Racerøya: invitasjon, lobby, felles start, bilene til de andre og dult mellom spillerne.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
+js/tips.js           Tips underveis: korte hint første gang du nærmer deg et sted, sitter fast eller står stille. ← legg til nye tips her
+js/ghost.js          Spøkelset: den beste turen din kjører ved siden av deg i løypene og på Racerøya. Kan slås av i innstillingene.
+js/dagbok.js         Reisedagboka (fremgang og merker, øy for øy) og dagens utfordring (én løype og én bil hver dag, med bonus).
 js/props/             Enkeltelementer: trær, palmer, gran … én fil per element. ← finpuss elementer her
 props.html            Elementverkstedet: se og juster ett element alene (åpne i nettleseren).
 data/cars.js          Bilene.                 ← legg til nye biler her
@@ -748,6 +751,8 @@ Strenge nettverk, som enkelte skole- og jobbnett, kan blokkere direkte kobling m
 ## Justere garasjen
 
 `data/parts.js` har navn, priser og beskrivelser. Selve effektene (hvor mye mer grep klatredekk gir, og så videre) ligger i funksjonen `tuneFrom` nederst i `js/core.js`, i små tabeller med fire verdier (nivå 0–3).
+
+Pynten ligger i de to listene `RIMS` (felger) og `FLAGS` (antenneflagg) nederst i `data/parts.js`. Den endrer bare utseendet, kjøpes én gang og kan byttes fritt. En ny felg er én linje med navn, farge og pris. Et nytt flagg trenger i tillegg en tegning i `flagCanvas` i `js/carmodel.js`. Legg nye til sist i lista, for plassen i lista er det som lagres.
 
 ## Publisere på GitHub Pages
 
