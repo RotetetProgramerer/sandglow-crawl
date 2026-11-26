@@ -81,6 +81,8 @@ h1,h2,h3{text-wrap:balance;margin:0}
 .buy.max{border-style:dashed}
 .paints{display:flex;gap:8px;flex-wrap:wrap}
 .sw{width:58px;height:58px;border:2px solid rgba(242,232,208,.2);display:grid;place-items:end center;font-size:.72rem;font-weight:700;color:#fff;text-shadow:0 1px 2px #000,0 0 4px #000;padding-bottom:3px}
+.sw.rim{background:radial-gradient(circle at 50% 42%,#2a2826 0 9%,var(--c) 10% 38%,#1a1917 39% 100%)}
+.sw.flg{background:var(--ink-2) center/100% 100% no-repeat}
 .sw[aria-pressed="true"]{border-color:var(--sand);box-shadow:0 0 0 2px var(--ink),0 0 0 4px var(--sand)}
 .earn{display:flex;align-items:baseline;gap:10px;font-family:var(--f-display);font-size:1.7rem;color:var(--sand);line-height:1}
 .earn small{font-family:var(--f-body);font-size:.9rem;color:var(--muted)}

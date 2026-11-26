@@ -16,6 +16,7 @@ let best=store.get('best',{});
 const prof=Object.assign({nuts:0,parts:{},paint:0,paints:[0],first:{},runs:0,lastDay:'',secrets:{},cars:[]},store.get('prof',{}));if(!prof.secrets)prof.secrets={};if(!prof.cars)prof.cars=[];
 const ownsCar=c=>!c.price||prof.cars.includes(c.id);
 if(!PAINTS[prof.paint])prof.paint=0;
+if(!Array.isArray(prof.rims))prof.rims=[0];if(!Array.isArray(prof.flags))prof.flags=[0];if(!RIMS[prof.rim])prof.rim=0;if(!FLAGS[prof.flag])prof.flag=0;   // cosmetics from the garage
 const saveProf=()=>store.set('prof',prof);
 const fmtN=n=>String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
 const isIsland=l=>!!(l.world||l.village);
@@ -176,6 +177,8 @@ const M={
   glass:new THREE.MeshStandardMaterial({color:0x1a262d,roughness:.06,metalness:.85,envMapIntensity:1.3}),
   tire:new THREE.MeshStandardMaterial({color:0x1a1918,roughness:.95,flatShading:true}),
   rim:new THREE.MeshStandardMaterial({color:0xe3a62a,roughness:.45,metalness:.2}),
+  rimF:new THREE.MeshStandardMaterial({color:0x1d1c1a,roughness:.7}),   // the face of the wheel: black, or the rim colour from the garage
+
   steel:new THREE.MeshStandardMaterial({color:0x9a9a96,roughness:.35,metalness:.8}),
   lamp:new THREE.MeshStandardMaterial({color:0xf3efe2,roughness:.15,emissive:0x000000,metalness:.2}),
   tail:new THREE.MeshStandardMaterial({color:0x7c1410,roughness:.25,emissive:0x000000}),
@@ -516,7 +519,7 @@ function loadLevel(i){
 }
 function setCar(i){state.carIdx=i;store.set('car',CARS[i].id);const old=car,tune=tuneFrom(prof.parts);car=makeCar(CARS[i],tune);car.rope=null;car.assist=state.assist;car.speedScale=state.speed/100;if(old){car.low=old.low}
   applyPaint();buildCarVis(Object.assign({},CARS[i],{tune}));if(LV)resetToStart()}
-function applyPaint(){const p=PAINTS[prof.paint]||PAINTS[0],own=!prof.paint&&CARS[state.carIdx].col;M.yel.color.set(own||p.c).convertSRGBToLinear();M.rim.color.set(prof.parts.weight>=2?'#b08a3a':'#e3a62a').convertSRGBToLinear();M.rim.metalness=prof.parts.weight>=2?.6:.2}
+function applyPaint(){const p=PAINTS[prof.paint]||PAINTS[0],own=!prof.paint&&CARS[state.carIdx].col;M.yel.color.set(own||p.c).convertSRGBToLinear();rimLook(M.rim,M.rimF,prof.rim,prof.parts.weight|0)}
 function resetToStart(){const s=LV.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));state.checkpoint={x:s.p.x,z:s.p.z,h:Math.atan2(s.tan.x,s.tan.z)};camSnap=true}
 
 /* ---------- game flow ---------- */
@@ -540,6 +543,10 @@ function renderGarage(){
     return`<div class="part"><span class="nm">${p.name} ${pips(lv,3)}</span><span class="lvn">${p.lv[lv]}</span><p class="ds">${p.desc}</p>
       <button class="buy ${can?'can':''} ${max?'max':''}" data-buy="${p.id}" ${can?'':'disabled'}>${max?'Fullt oppgradert':`Neste: ${p.lv[lv+1]}<b>⚙ ${price}</b>${can?'':'<span>mangler '+(price-prof.nuts)+'</span>'}`}</button></div>`}).join('');
   $('paintList').innerHTML=PAINTS.map((p,i)=>{const own=prof.paints.includes(i);if(p.locked&&!own)return`<button class="sw lk" data-paint="${i}" style="background:${p.c}" aria-label="${p.n}, låst" disabled>🔒</button>`;return`<button class="sw" data-paint="${i}" style="background:${p.c}" aria-pressed="${i===prof.paint}" aria-label="${p.n}${own?'':', koster '+p.p}">${own?'':'⚙'+p.p}</button>`}).join('');
+  $('rimList').innerHTML=RIMS.map((r,i)=>{const own=prof.rims.includes(i);return`<button class="sw rim" data-rim="${i}" style="--c:${r.c||'#3a3835'}" aria-pressed="${i===prof.rim}" aria-label="${r.n}${own?'':', koster '+r.p}">${own?'':'⚙'+r.p}</button>`}).join('');
+  $('rimName').textContent=RIMS[prof.rim].n;
+  $('flagList').innerHTML=FLAGS.map((f,i)=>{const own=prof.flags.includes(i);return`<button class="sw flg" data-flag="${i}" style="${f.k?'background-image:url('+flagCanvas(f).toDataURL()+')':''}" aria-pressed="${i===prof.flag}" aria-label="${f.n}${own?'':', koster '+f.p}">${own?(f.k?'':'Ingen'):'⚙'+f.p}</button>`}).join('');
+  $('flagName').textContent=FLAGS[prof.flag].n;
   const cp=PAINTS[prof.paint]||PAINTS[0];$('paintName').textContent=cp.n+(PAINTS.some(p=>p.locked&&!prof.paints.includes(PAINTS.indexOf(p)))?' · Gull-lakken låses opp når alle '+totalSecrets()+' gullmutterne er funnet ('+foundSecrets()+' funnet).':'');
 }
 function buyPart(id){const p=PARTS.find(x=>x.id===id),lv=prof.parts[id]||0;if(lv>=3)return;const price=p.price[lv+1];if(prof.nuts<price)return;
@@ -547,6 +554,10 @@ function buyPart(id){const p=PARTS.find(x=>x.id===id),lv=prof.parts[id]||0;if(lv
 function pickPaint(i){const p=PAINTS[i];if(p.locked&&!prof.paints.includes(i))return;if(!prof.paints.includes(i)){if(prof.nuts<p.p)return;prof.nuts-=p.p;prof.paints.push(i)}prof.paint=i;saveProf();applyPaint();renderGarage()}
 $('partList').addEventListener('click',e=>{const b=e.target.closest('[data-buy]');if(b)buyPart(b.dataset.buy)});
 $('carSale').addEventListener('click',e=>{const b=e.target.closest('[data-buycar]');if(!b)return;const c=CARS.find(x=>x.id===b.dataset.buycar);if(!c||prof.nuts<c.price)return;prof.nuts-=c.price;prof.cars.push(c.id);saveProf();setCar(CARS.indexOf(c));renderGarage();toast('Gratulerer med '+c.name+'!')});
+// felger og antenneflagg: kjøpes én gang, og byttes fritt etterpå
+function pickLook(list,key,i){const it=list[i],own=prof[key+'s'];if(!it)return;if(!own.includes(i)){if(prof.nuts<it.p){toast('Mangler '+(it.p-prof.nuts)+' muttere',true);return}prof.nuts-=it.p;own.push(i)}prof[key]=i;saveProf();if(key==='flag')setCar(state.carIdx);else applyPaint();renderGarage()}
+$('rimList').addEventListener('click',e=>{const b=e.target.closest('[data-rim]');if(b)pickLook(RIMS,'rim',+b.dataset.rim)});
+$('flagList').addEventListener('click',e=>{const b=e.target.closest('[data-flag]');if(b)pickLook(FLAGS,'flag',+b.dataset.flag)});
 $('paintList').addEventListener('click',e=>{const b=e.target.closest('[data-paint]');if(b)pickPaint(+b.dataset.paint)});
 $('mGarage').onclick=toGarage;$('rGarage').onclick=toGarage;$('gBack').onclick=toMenu;$('gDrive').onclick=startRun;
 function pause(on){if(state.mode==='race'){if(on)raceKeyDown('escape');return}if(state.mode==='cave'){if(on)caveKeyDown('escape');return}if(state.mode==='mine'){if(on)mineKeyDown('escape');return}if(state.mode==='ski'){if(on)skiKeyDown('escape');return}if(state.mode==='boat'){if(on)boatKeyDown('escape');return}if(state.mode==='fly'){if(on)flyKeyDown('escape');return}if(state.mode!=='play'&&state.mode!=='pause')return;state.mode=on?'pause':'play';$('pause').hidden=!on;$('pAbort').hidden=!state.course;$('pMap').hidden=!state.world;$('pRestart').textContent=state.course?'Start løpet på nytt':state.world?'Tilbake til basen':'Start på nytt';if(on)$('pResume').focus();if(on&&typeof netPauseUI==='function')netPauseUI()}

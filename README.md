@@ -739,6 +739,8 @@ Strenge nettverk, som enkelte skole- og jobbnett, kan blokkere direkte kobling m
 
 `data/parts.js` har navn, priser og beskrivelser. Selve effektene (hvor mye mer grep klatredekk gir, og så videre) ligger i funksjonen `tuneFrom` nederst i `js/core.js`, i små tabeller med fire verdier (nivå 0–3).
 
+Pynten ligger i de to listene `RIMS` (felger) og `FLAGS` (antenneflagg) nederst i `data/parts.js`. Den endrer bare utseendet, kjøpes én gang og kan byttes fritt. En ny felg er én linje med navn, farge og pris. Et nytt flagg trenger i tillegg en tegning i `flagCanvas` i `js/carmodel.js`. Legg nye til sist i lista, for plassen i lista er det som lagres.
+
 ## Publisere på GitHub Pages
 
 1. Lag et nytt repository på GitHub og last opp hele mappa.

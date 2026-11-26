@@ -84,11 +84,11 @@ addEventListener('pagehide',()=>{if(NET.on){NET.leaving=true;netSend({t:'bye'});
 // a hidden tab stops drawing, so it would stop sending; a slow ping tells the others it is still there
 setInterval(()=>{if(NET.on&&document.hidden)netSend({t:'ping'})},1000);
 
-function myInfo(){return{car:CARS[state.carIdx].id,paint:prof.paint|0,parts:Object.assign({},prof.parts)}}
+function myInfo(){return{car:CARS[state.carIdx].id,paint:prof.paint|0,rim:prof.rim|0,flag:prof.flag|0,parts:Object.assign({},prof.parts)}}
 function rosterList(){const L=[{id:NET.me,name:NET.name,slot:NET.slot,info:myInfo()}];for(const p of NET.players.values())L.push({id:p.id,name:p.name,slot:p.slot,info:p.info});return L}
 // messages from others are checked before use: names, car ids, paint and part levels, numbers
 function cleanInfo(i){i=i||{};const car=CARS.some(c=>c.id===i.car)?i.car:CARS[0].id,paint=Number.isInteger(i.paint)&&PAINTS[i.paint]?i.paint:0,parts={};
-  for(const k of['tyres','susp','motor','weight','gear']){const v=i.parts&&i.parts[k];if(Number.isInteger(v)&&v>=0&&v<=3)parts[k]=v}return{car,paint,parts}}
+  for(const k of['tyres','susp','motor','weight','gear']){const v=i.parts&&i.parts[k];if(Number.isInteger(v)&&v>=0&&v<=3)parts[k]=v}const rim=Number.isInteger(i.rim)&&RIMS[i.rim]?i.rim:0,flag=Number.isInteger(i.flag)&&FLAGS[i.flag]?i.flag:0;return{car,paint,rim,flag,parts}}
 const netFin=(a,n)=>Array.isArray(a)&&a.length===n&&a.every(v=>typeof v==='number'&&isFinite(v)&&Math.abs(v)<1e5);
 
 function netSend(m){if(!NET.tr)return;m.f=NET.me;if(NET.host){for(const L of NET.links.values())L.send(m)}else if(NET.hostLink)NET.hostLink.send(m)}
@@ -188,15 +188,15 @@ function netMerge(root){root.updateMatrixWorld(true);const by=new Map(),olds=[];
     const m=new THREE.Mesh(g,mat);m.castShadow=list.some(e=>e.cs)&&!mat.transparent;m.receiveShadow=true;out.add(m)}
   for(const g of new Set(olds))g.dispose();return out}
 function netMats(info){const own=m=>{const c=m.clone();if(Object.prototype.hasOwnProperty.call(c,'onBeforeCompile'))delete c.onBeforeCompile;return c};   // no mud shader: that one follows your own car
-  const mats={yel:own(M.yel),blkC:own(M.blkC),tire:own(M.tire),rim:own(M.rim),lamp:own(M.lamp),tail:own(M.tail),beam:own(M.beam)};
-  const cc=CARS.find(c=>c.id===info.car);mats.yel.color.set(!info.paint&&cc&&cc.col||(PAINTS[info.paint]||PAINTS[0]).c).convertSRGBToLinear();const heavy=(info.parts.weight|0)>=2;mats.rim.color.set(heavy?'#b08a3a':'#e3a62a').convertSRGBToLinear();mats.rim.metalness=heavy?.6:.2;
+  const mats={yel:own(M.yel),blkC:own(M.blkC),tire:own(M.tire),rim:own(M.rim),rimF:own(M.rimF),lamp:own(M.lamp),tail:own(M.tail),beam:own(M.beam)};
+  const cc=CARS.find(c=>c.id===info.car);mats.yel.color.set(!info.paint&&cc&&cc.col||(PAINTS[info.paint]||PAINTS[0]).c).convertSRGBToLinear();rimLook(mats.rim,mats.rimF,info.rim|0,info.parts.weight|0);
   mats.lamp.emissive.set(0);mats.tail.emissive.set(0);mats.beam.opacity=0;return mats}
 function netSwap(root,mats){root.traverse(o=>{if(!o.isMesh)return;for(const k in mats)if(o.material===M[k]){o.material=mats[k];break}})}
 function netTag(name,col){const c=document.createElement('canvas');c.width=256;c.height=64;const x=c.getContext('2d');x.font='700 34px "Barlow Condensed",sans-serif';const w=Math.min(244,x.measureText(name).width+36);
   x.fillStyle='rgba(20,18,14,.78)';x.fillRect((256-w)/2,8,w,48);x.fillStyle=col;x.fillRect((256-w)/2,8,8,48);x.fillStyle='#f2e8d0';x.textAlign='center';x.textBaseline='middle';x.fillText(name,128+4,33);
   const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;const s=new THREE.Sprite(new THREE.SpriteMaterial({map:t,transparent:true,depthTest:false,depthWrite:false,fog:false}));s.renderOrder=20;return s}
 function netBuildVis(p){netDropVis(p);if(typeof buildBody!=='function')return;
-  const ci=Math.max(0,CARS.findIndex(c=>c.id===p.info.car)),tune=tuneFrom(p.info.parts),cfg=Object.assign({},CARS[ci],{tune}),mats=netMats(p.info);
+  const ci=Math.max(0,CARS.findIndex(c=>c.id===p.info.car)),tune=tuneFrom(p.info.parts),cfg=Object.assign({},CARS[ci],{tune,flag:p.info.flag|0}),mats=netMats(p.info);
   const root=new THREE.Group();root.visible=false;
   const raw=buildBody(cfg);netSwap(raw,mats);const drv=new THREE.Group();for(const o of[...raw.children])if(o.userData.driver)drv.add(o);   // the driver on his own, so he can be hidden while he is out of the car (js/walker.js)
   const body=netMerge(raw),driver=netMerge(drv);body.add(driver);root.add(body);
