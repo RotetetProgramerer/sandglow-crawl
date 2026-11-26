@@ -229,6 +229,12 @@
       <button id="gfxHi" aria-pressed="true">Høy</button>
       <button id="gfxLo" aria-pressed="false">Lav</button>
     </div>
+    <h2>Spøkelse</h2>
+    <div class="seg" role="group" aria-label="Spøkelse">
+      <button id="ghOn" aria-pressed="true">På</button>
+      <button id="ghOff" aria-pressed="false">Av</button>
+    </div>
+    <p class="note">Den beste turen din kjører ved siden av deg som en lys bil i løypene, på Racerøya og i skibakken.</p>
     <h2>Vibrasjon</h2>
     <div class="seg" role="group" aria-label="Vibrasjon">
       <button id="hapOn" aria-pressed="true">På</button>
@@ -656,6 +662,7 @@
 <script src="js/net.js"></script>
 <script src="js/gps.js"></script>
 <script src="js/tips.js"></script>
+<script src="js/ghost.js"></script>
 <script>startGame()</script>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>

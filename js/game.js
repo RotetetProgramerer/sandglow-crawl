@@ -9,7 +9,7 @@ const store={get(k,d){try{const v=localStorage.getItem('sgc:'+k);return v==null?
 // car and level are saved by id; older saves used the list index
 const idxOf=(list,v)=>{const i=typeof v==='number'?v:list.findIndex(x=>x.id===v);return i>=0&&i<list.length?i:0};
 const state={mode:'menu',carIdx:idxOf(CARS,store.get('car',0)),levelIdx:idxOf(LEVELS,store.get('level',0)),assist:store.get('assist',true),camMode:0,lights:false,sound:store.get('sound',true),
-  speed:store.get('speed',100),gfx:store.get('gfx','hi'),volCar:store.get('volCar',70),volAmb:store.get('volAmb',70),haptics:store.get('haptics',true),
+  speed:store.get('speed',100),gfx:store.get('gfx','hi'),volCar:store.get('volCar',70),volAmb:store.get('volAmb',70),haptics:store.get('haptics',true),ghost:store.get('ghost',true),
   time:0,started:false,penalty:0,next:0,flipT:0,checkpoint:null,missed:0,touched:0,winches:0,log:[],input:{gas:0,rev:0,left:0,right:0}};
 let best=store.get('best',{});
 // player profile: currency, parts, paint
@@ -523,7 +523,7 @@ function applyPaint(){const p=PAINTS[prof.paint]||PAINTS[0],own=!prof.paint&&CAR
 function resetToStart(){const s=LV.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));state.checkpoint={x:s.p.x,z:s.p.z,h:Math.atan2(s.tan.x,s.tan.z)};camSnap=true}
 
 /* ---------- game flow ---------- */
-function resetRunState(){Object.assign(state,{time:0,started:false,penalty:0,next:0,flipT:0,missed:0,touched:0,winches:0,winchPen:0,rescues:0,log:[],crates:0,jumps:0,longJumps:0,bestAir:0,air:0,flood:0,drowned:0,deepWarn:false,lavaFalls:0,bonusNuts:0,bonusDone:{}})}
+function resetRunState(){Object.assign(state,{time:0,started:false,penalty:0,next:0,flipT:0,missed:0,touched:0,winches:0,winchPen:0,rescues:0,log:[],crates:0,jumps:0,longJumps:0,bestAir:0,air:0,flood:0,drowned:0,deepWarn:false,lavaFalls:0,bonusNuts:0,bonusDone:{}});if(typeof ghostBegin==='function')ghostBegin()}
 function showHud(){$('menu').hidden=true;$('garage').hidden=true;$('result').hidden=true;$('pause').hidden=true;$('hud').hidden=false;$('hint').hidden=true;$('ask').hidden=true;setOffer(null);$('hud').classList.toggle('free',!!state.free)}
 function startRun(){
   initAudio();if(AC&&AC.state==='suspended')AC.resume();
@@ -571,7 +571,7 @@ function winch(auto){
 }
 function finishRun(){
   state.mode='done';const lvl=LEVELS[state.levelIdx],def=state.course?Object.assign({},state.course,{gates:state.course.gates.length}):lvl,key=state.course?courseKey(lvl,state.course):lvl.id,t=Math.max(0,state.time-state.crates*2),p=state.penalty;const stars=p===0?3:p<=6?2:1;
-  const prev=best[key];let isBest=false;if(!prev||p<prev.p||(p===prev.p&&t<prev.t)){best[key]={p,t,s:stars};store.set('best',best);isBest=true}
+  const prev=best[key];let isBest=false;if(!prev||p<prev.p||(p===prev.p&&t<prev.t)){best[key]={p,t,s:stars};store.set('best',best);isBest=true}if(typeof ghostFinish==='function')ghostFinish(key,isBest);
   $('rLevel').textContent=state.course&&!state.course.main?lvl.name+' · '+def.name:def.name;$('rTitle').textContent=p===0?'Feilfri tur!':'I mål!';$('rTime').textContent=fmtTime(t);$('rPen').textContent=p;
   $('rGates').textContent=(LV.gates.length-state.missed)+'/'+LV.gates.length;
   $('rStars').innerHTML=[0,1,2].map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z" fill="${i<stars?'#E5A92B':'rgba(242,232,208,.15)'}"/></svg>`).join('');
@@ -690,7 +690,7 @@ $('bSlow').onclick=()=>setSpeed(state.speed-10);$('bFast').onclick=()=>setSpeed(
 $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
 $('gfxHi').onclick=()=>setGfx('hi');$('gfxLo').onclick=()=>setGfx('lo');$('bCam').onclick=()=>{if(state.mode==='ski')skiKeyDown('c');else cycleCam()};$('bWinch').addEventListener('pointerdown',e=>{if(hasWinch()){e.preventDefault();winchKey(true)}});$('bWinch').addEventListener('pointerup',()=>{if(hasWinch())winchKey(false)});$('bWinch').onclick=()=>{if(!hasWinch())winch()};$('pFetch').onclick=()=>{pause(false);winch()};$('bPause').onclick=()=>pause(true);
-$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);$('pHelp').onclick=()=>showHelp('pause');$('mHelp').onclick=()=>showHelp('menu');$('tipOk').onclick=()=>tipHide();$('pHap').onclick=()=>{setHaptics(!state.haptics);buzz(.6,80)};$('hapOn').onclick=()=>{setHaptics(true);buzz(.6,80)};$('hapOff').onclick=()=>setHaptics(false);
+$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);$('ghOn').onclick=()=>setGhost(true);$('ghOff').onclick=()=>setGhost(false);$('pHelp').onclick=()=>showHelp('pause');$('mHelp').onclick=()=>showHelp('menu');$('tipOk').onclick=()=>tipHide();$('pHap').onclick=()=>{setHaptics(!state.haptics);buzz(.6,80)};$('hapOn').onclick=()=>{setHaptics(true);buzz(.6,80)};$('hapOff').onclick=()=>setHaptics(false);
 $('rRetry').onclick=()=>{if(!skiResultBtn('retry')&&!boatResultBtn('retry')&&!flyResultBtn('retry')&&!caveResultBtn('retry')&&!mineResultBtn('retry'))startRun()};$('rMenu').onclick=()=>{if(!skiResultBtn('car')&&!boatResultBtn('car')&&!flyResultBtn('car')&&!caveResultBtn('car')&&!mineResultBtn('car'))toMenu()};$('rNext').onclick=()=>{if(skiResultBtn('next')||boatResultBtn('next')||flyResultBtn('next')||caveResultBtn('next')||mineResultBtn('next'))return;if(state.world){endCourse();showHud();state.mode='play';return}loadLevel((state.levelIdx+1)%LEVELS.length);startRun()};
 $('bMap').onclick=()=>openMap();$('mTabIsland').onclick=()=>setMapTab('island');$('mTabArch').onclick=()=>setMapTab('arch');$('mClose').onclick=()=>openMap(false);$('pMap').onclick=()=>{$('pause').hidden=true;openMap(true)};
 $('mTow').onclick=()=>{if(prof.nuts<20){toast('Du trenger 20 muttere',true);return}prof.nuts-=20;saveProf();if(state.course)endCourse();openMap(false);const lvl=LEVELS[state.levelIdx];if(lvl.basePos)resetToStart();else if(LV.ferry){const f=LV.ferry;placeCar(car,f.pad.x,f.pad.z,Math.atan2(-f.dx,-f.dz));camSnap=true}else resetToStart();state.checkpoint={x:car.pos.x,z:car.pos.z,h:Math.atan2(car.fw.x,car.fw.z)};toast(lvl.basePos?'Tauet hjem til basen · −20 ⚙':'Tauet til kaia · −20 ⚙')};
@@ -817,7 +817,7 @@ function frame(now){
   // physics blew up: put the car back at the last checkpoint (the start outside a run)
   if(!isFinite(car.pos.x)||!isFinite(car.q.w)){car.q.set(0,0,0,1);const cp=state.mode==='play'&&state.checkpoint;if(cp)placeCar(car,cp.x,cp.z,cp.h);else resetToStart();camSnap=true}
   if(state.mode==='play'){
-    if(state.started)state.time+=dt;
+    if(state.started)state.time+=dt;if(typeof ghostTick==='function')ghostTick(dt);
     checkGates();
     if(car.up.y<.3&&car.vel.length()<1.5)state.flipT+=dt;else state.flipT=Math.max(0,state.flipT-dt*2);
     if(state.flipT>1.3&&$('hint').hidden){$('hint').hidden=false;$('hint').innerHTML=car.assist?'Bilen har veltet. Veltehjelpen henter den straks, uten straff.':hasWinch()?'Bilen har veltet. Hold <b>R</b> for å feste vinsjen i noe foran bilen og dra den opp, eller <button id="hWinch">hent bilen</button> (straff).':'Bilen har veltet. Trykk <b>R</b> eller <button id="hWinch">Vinsj</button> for å komme videre.';const hb=$('hWinch');if(hb)hb.onclick=()=>winch()}
@@ -881,7 +881,7 @@ $('modeReal').onclick=()=>{state.assist=false;store.set('assist',false);if(car)c
 function boot(){
   state.roam=false;initMaps();decalMat=new THREE.MeshStandardMaterial({map:decalTexture(),transparent:true,roughness:.5});
   if(state.carIdx>=CARS.length||!ownsCar(CARS[state.carIdx])||CARS[state.carIdx].hire)state.carIdx=0;if(state.levelIdx>=LEVELS.length)state.levelIdx=0;
-  loadLevel(state.levelIdx);setCar(state.carIdx);setSound(state.sound);setHaptics(state.haptics);setVol('volCar',state.volCar);setVol('volAmb',state.volAmb);setSpeed(state.speed,true);setGfx(state.gfx);renderMenu();
+  loadLevel(state.levelIdx);setCar(state.carIdx);setSound(state.sound);setHaptics(state.haptics);setGhost(state.ghost);setVol('volCar',state.volCar);setVol('volAmb',state.volAmb);setSpeed(state.speed,true);setGfx(state.gfx);renderMenu();
   for(let i=0;i<240;i++)stepCar(car,FIXED);
   requestAnimationFrame(frame);
 }
