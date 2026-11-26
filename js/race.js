@@ -138,11 +138,18 @@ function raceExit(){if(RC.fade||!RC.on)return;rnLeave();$('fade').classList.add(
     for(const id of['raceHud','raceMenu','racePause','raceResult'])$(id).hidden=true;state.mode='play';state.askCool='race';camSnap=true;showHud();toast('Tilbake ved bilen')}}}
 
 /* ---------- the race menu ---------- */
-function rcMenu(){const N=RC.net;if(N){if(N.racing&&N.lead!==NET.me)rnSend({t:'Rr',id:N.id,ready:1});N.racing=false;RC.lvl=N.lvl;if(N.lead===NET.me)setTimeout(rnList,0)}RC.phase='menu';RC.paused=false;RC.R=null;for(const id of['racePause','raceResult'])$(id).hidden=true;const tr=rcTrack();if(!RC.T||RC.track!==tr){RC.track=tr;rcBuildTrack(tr)}RC.menuT=0;
+// the touch buttons and the pause button show only while driving (not behind the menu or the result)
+function rcDrive(on){$('raceHud').classList.toggle('drive',!!on)}
+function rcMenu(){rcDrive(false);const N=RC.net;if(N){if(N.racing&&N.lead!==NET.me)rnSend({t:'Rr',id:N.id,ready:1});N.racing=false;RC.lvl=N.lvl;if(N.lead===NET.me)setTimeout(rnList,0)}RC.phase='menu';RC.paused=false;RC.R=null;for(const id of['racePause','raceResult'])$(id).hidden=true;const tr=rcTrack();if(!RC.T||RC.track!==tr){RC.track=tr;rcBuildTrack(tr)}RC.menuT=0;
   rcMenuRender();$('raceMenu').hidden=false;$('rmGo').focus()}
+// a small map of a track for the menu: the centre line as an SVG path, with a dot on the start line
+function rcThumb(t){const M=RC.thumbs||(RC.thumbs=new Map());if(M.has(t.id))return M.get(t.id);const T=RC.track===t&&RC.T?RC.T:makeTrack(t),b=T.bounds,w=b.x1-b.x0,h=b.y1-b.y0,k=Math.min(56/w,38/h),ox=(64-w*k)/2,oy=(46-h*k)/2,
+    f=p=>(ox+(p.x-b.x0)*k).toFixed(1)+' '+(oy+(p.y-b.y0)*k).toFixed(1),d='M'+T.pts.filter((p,i)=>i%3===0).map(f).join('L')+'Z',p0=T.pts[0],
+    svg=`<svg class="thumb" viewBox="0 0 64 46" aria-hidden="true"><path d="${d}" fill="none" stroke="rgba(20,18,14,.9)" stroke-width="6" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="#f2e8d0" stroke-width="3" stroke-linejoin="round"/><circle cx="${f(p0).split(' ')[0]}" cy="${f(p0).split(' ')[1]}" r="3.2" fill="#E5A92B" stroke="#14120E"/></svg>`;
+  M.set(t.id,svg);return svg}
 function rcMenuRender(){rcCamTxt();const sel=rcTrack(),touch=document.body.classList.contains('is-touch');
   $('rmTracks').innerHTML=RACE_TRACKS.map(t=>{const b=best[rcKey(t)],st=b?'★'.repeat(b.s||0)+'☆'.repeat(3-(b.s||0)):'☆☆☆';
-    return`<button data-track="${t.id}" aria-pressed="${t===sel}"><span><span class="nm"><i class="pdot" style="background:${DIFFCOL[t.diff]}"></i>${t.name}</span><span class="sub">${t.desc}${b&&b.t?' Beste: '+fmtTime(b.t)+(b.lap?', runde '+fmtTime(b.lap):'')+'.':''}</span></span><span class="pr">${st}</span></button>`}).join('');
+    return`<button data-track="${t.id}" aria-pressed="${t===sel}">${rcThumb(t)}<span><span class="nm"><i class="pdot" style="background:${DIFFCOL[t.diff]}"></i>${t.name}</span><span class="sub">${t.desc}${b&&b.t?' Beste: '+fmtTime(b.t)+(b.lap?', runde '+fmtTime(b.lap):'')+'.':''}</span></span><span class="pr">${st}</span></button>`}).join('');
   RACE_LEVELS.forEach((L,i)=>$('rmLv'+i).setAttribute('aria-pressed',i===RC.lvl));$('rm1').setAttribute('aria-pressed',!RC.two);$('rm2').setAttribute('aria-pressed',RC.two);
   $('rmKeys').innerHTML=RC.two?'<b>Spiller 1</b> (lakken din): W A S D, håndbrekk SPACE. <b>Spiller 2</b> (blå): piltastene, håndbrekk ENTER.'
     :touch?'Styr med pilene til venstre. Gass, brems og håndbrekk til høyre.':'Piltastene eller W A S D. Håndbrekk: SPACE eller SHIFT. R setter bilen tilbake på banen.';
@@ -160,10 +167,10 @@ function rcStart(netEnts,netGo){if(RC.net&&!netEnts){rnStart();return}const tr=R
   for(let h=0;h<nh;h++)ents.push({name:nh>1?'Spiller '+(h+1):'Deg',col:cols[h],num:h?2:1,human:true,pi:h});
   if(netEnts)ents=netEnts.map(e=>Object.assign({pi:0},e));   // online (js/racenet.js): the leader's grid
   RC.R=makeRace(T,ents,tr.laps);RC.R.cars.forEach(c=>{c.base=c.skill;if(c.human)c.pi=ents[c.idx].pi;c.stripe=c.col==='#f2e8d0'?'#14120E':'#f2e8d0'});
-  RC.humans=RC.R.cars.filter(c=>c.human).sort((a,b)=>a.pi-b.pi);RC.views=RC.humans.map((c,i)=>({car:c,cx:c.x+Math.cos(c.a)*8,cy:c.y+Math.sin(c.a)*8,z:1,notice:'',noticeT:0,noticeBad:false,lastPos:6,i}));
+  RC.humans=RC.R.cars.filter(c=>c.human).sort((a,b)=>a.pi-b.pi);RC.views=RC.humans.map((c,i)=>({car:c,cx:c.x+Math.cos(c.a)*8,cy:c.y+Math.sin(c.a)*8,z:1,notice:'',noticeSub:'',noticeT:0,noticeBad:false,lastPos:RC.R.cars.length,posT:0,posFx:0,posDir:0,stuckT:0,i}));
   RC.parts.length=0;RC.skid.ctx.clearRect(0,0,RC.skid.cv.width,RC.skid.cv.height);RC.prevW=RC.R.cars.map(()=>null);
   RC.phase='count';RC.countT=0;RC.lights=0;RC.goAt=netGo||4.2+.4+Math.random()*.9;RC.finT=0;RC.result=null;RC.paused=false;RC.flash=0;
-  for(const id of['raceMenu','racePause','raceResult'])$(id).hidden=true;rcLayout();rcNotice(null,'Gjør deg klar!',1400)}
+  for(const id of['raceMenu','racePause','raceResult'])$(id).hidden=true;rcLayout();rcDrive(true);rcNotice(null,'Gjør deg klar!',1400)}
 // the lights: one more red every .8 s, all five on, then out together (that is the start)
 function rcCount(dt){RC.countT+=dt;const n=Math.min(5,Math.floor((RC.countT-.6)/.8)+1);if(RC.countT>.6&&n>RC.lights){RC.lights=n;rcBeep(440,.18)}
   if(RC.countT>=RC.goAt){RC.lights=0;RC.phase='race';RC.R.phase='race';rcBeep(880,.5);rcNotice(null,'KJØR!',900)}}
@@ -207,15 +214,17 @@ function updateRace(dt){
     // the rivals ease off a little when they are far ahead of the humans, and push when far behind
     if(RC.phase==='race'){const hp=Math.max(...RC.humans.map(c=>c.prog));for(const c of R.cars)if(!c.human){const gap=c.prog-hp;c.skill=c.base*(gap>120?.95:gap>60?.98:gap<-150?1.03:1)}}
     const ev=raceStep(R,rcInput,dt);rcEvents(ev);rnTick(dt);
-    for(const c of RC.humans)if(c.wrongT>1.5){const v=RC.views.find(q=>q.car===c);if(v&&v.noticeT<=0)rcNotice(v,'Feil vei!',1200,true)}
+    if(RC.phase==='race')rcCoach(dt);
     if(RC.phase==='finish'){RC.finT+=dt;if(RC.finT>3.2)rcResult()}}
   rcEffects(dt);rcSndUpdate(dt);rcDraw(dt);return true}
 function rcEvents(ev){const R=RC.R;
   for(const e of ev){const c=e.car,v=RC.views.find(q=>q.car===c),near=rcNearCam(e.x,e.y);
-    if(e.type==='wall'){if(near>0){rcThump(Math.min(1,e.v/14)*near);for(let i=0;i<Math.min(14,e.v);i++)rcPart(e.x,e.y,'spark')}if(v)v.shake=Math.min(1,e.v/12)}
+    if(e.type==='wall'){if(near>0){rcThump(Math.min(1,e.v/14)*near);for(let i=0;i<Math.min(14,e.v);i++)rcPart(e.x,e.y,'spark')}if(v){v.shake=Math.min(1,e.v/12);rcBuzz(c,Math.min(1,e.v/14))}}
     else if(e.type==='bump'){if(near>0&&c.idx<e.other.idx){rcThump(Math.min(1,e.v/10)*near*.8,1);for(let i=0;i<6;i++)rcPart(e.x,e.y,'spark')}if(v)v.shake=Math.min(.8,e.v/12)}
     else if(e.type==='boost'){if(v){rcNotice(v,e.charge>1.8?'SUPERTURBO!':'TURBO!',900);rcWhoosh()}}
-    else if(e.type==='lap'&&c.human){const left=R.laps-e.lap;if(left===1)rcNotice(v,'Siste runde!',1600);else if(e.best&&e.lap>1)rcNotice(v,'Raskeste runde: '+fmtTime(e.t),1500);else if(left>0)rcNotice(v,'Runde '+(e.lap+1)+' av '+R.laps,1200);rcChime()}
+    else if(e.type==='lap'&&c.human){const left=R.laps-e.lap,prev=c.laps.length>1?Math.min(...c.laps.slice(0,-1)):null,dl=prev!=null?e.t-prev:0,
+      sub='Rundetid '+fmtTime(e.t)+(prev!=null&&Math.abs(dl)>=.05?' ('+(dl<0?'−':'+')+Math.abs(dl).toFixed(1)+' s)':'')+(e.best&&prev!=null?' · din raskeste':'');
+      if(left===1)rcNotice(v,'Siste runde!',2000,false,sub);else if(left>0)rcNotice(v,'Runde '+(e.lap+1)+' av '+R.laps,1800,false,sub);rcChime()}
     else if(e.type==='finish'&&c.human){rnFinish(c);rcNotice(v,e.place===1?'DU VANT!':'I mål: '+rcPlace(e.place)+' plass',3000);if(e.place===1)rcFanfare();else rcChime();RC.cheer=2.5;RC.flash=1;
       if(RC.humans.every(h=>h.done)){RC.phase='finish';RC.finT=0}}}}
 
@@ -240,7 +249,22 @@ function rcEffects(dt){const R=RC.R,run=R&&!RC.paused;
       if(c.boost>0&&Math.random()<dt*90)rcPart(c.x-ca*2.4,c.y-sa*2.4,'flame',c)})}
   for(const p of RC.parts){p.life-=dt;p.x+=p.vx*dt;p.y+=p.vy*dt;p.vx*=Math.exp(-dt*2);p.vy*=Math.exp(-dt*2);if(p.grow)p.size=Math.max(.05,p.size+p.grow*dt)}
   RC.parts=RC.parts.filter(p=>p.life>0);
-  for(const v of RC.views){v.noticeT-=dt;v.shake=Math.max(0,(v.shake||0)-dt*3)}RC.cheer=Math.max(0,RC.cheer-dt);RC.flash=Math.max(0,RC.flash-dt*.8)}
+  for(const v of RC.views){v.noticeT-=dt;v.shake=Math.max(0,(v.shake||0)-dt*3);v.posFx=Math.max(0,(v.posFx||0)-dt)}RC.cheer=Math.max(0,RC.cheer-dt);RC.flash=Math.max(0,RC.flash-dt*.8)}
+// a short buzz when you hit something: the phone (touch) and the gamepad of that player
+function rcBuzz(c,k){try{if(document.body.classList.contains('is-touch')&&navigator.vibrate)navigator.vibrate(Math.round(15+45*k));
+  const pads=navigator.getGamepads?[...navigator.getGamepads()].filter(g=>g&&g.connected):[],gp=pads[RC.two?c.pi||0:0];if(gp&&gp.vibrationActuator&&gp.vibrationActuator.playEffect)gp.vibrationActuator.playEffect('dual-rumble',{duration:120+120*k,strongMagnitude:.3+.6*k,weakMagnitude:.2+.4*k}).catch(()=>{})}catch(e){}}
+// what the players need to hear about during the race: a new place, the wrong way, a car that stands still
+function rcCoach(dt){const R=RC.R,touch=document.body.classList.contains('is-touch');
+  for(const v of RC.views){const c=v.car;if(c.done)continue;const key=RC.two?(c.pi?'BACKSPACE':'R'):touch?'R-knappen':'R',back='Trykk '+key+' for å komme tilbake på banen';
+    // a new place that has held for half a second: the place box lights up green (up) or red (down)
+    const place=R.order.indexOf(c)+1;if(place!==v.lastPos){v.posT+=dt;if(v.posT>.5){v.posDir=place<v.lastPos?1:-1;v.posFx=1.6;v.lastPos=place;v.posT=0;if(v.posDir>0)rcTone(660,.07,'triangle',.12,220)}}else v.posT=0;
+    if(c.wrongT>1.5&&v.noticeT<=0)rcNotice(v,'Feil vei!',1400,true,back);
+    // standing still for a while (against a wall, in the sand): remind about R
+    if(R.t>4&&Math.hypot(c.vx,c.vy)<2&&(c.thr>0||c.brk>0))v.stuckT+=dt;else v.stuckT=0;
+    if(v.stuckT>2.5&&v.noticeT<=0){v.stuckT=-3;rcNotice(v,'Står du fast?',2200,false,back)}}}
+// the gap in seconds between two cars: the distance along the track over the speed of the one behind
+function rcGap(a,b){return Math.abs(a.prog-b.prog)/Math.max(14,Math.hypot((a.prog<b.prog?a:b).vx,(a.prog<b.prog?a:b).vy))}
+const rcGapTxt=g=>g>=60?'1 min+':g.toFixed(1).replace('.',',')+' s';
 // how close a point is to the nearest camera (1 = on screen, 0 = far away): the volume of what happens there
 function rcNearCam(x,y){let m=0;for(const v of RC.views){const d=Math.hypot(x-v.cx,y-v.cy);m=Math.max(m,1-Math.max(0,d-30)/80)}return Math.max(0,m)}
 
@@ -334,6 +358,9 @@ function rcCar(x,c,t,view){const sp=rcCarSprite(c.col,c.num,c.stripe||'#f2e8d0')
   x.restore();
   // a ring under the human players' cars, and the name over the others
   if(c.human&&RC.views.length>1){x.strokeStyle=c.pi?'#3b8cf0':'#E5A92B';x.lineWidth=.25;x.beginPath();x.arc(c.x,c.y,3.2,0,6.283);x.stroke()}
+  if(c.human&&RC.views.length===1&&RC.R&&(RC.phase==='count'||RC.R.t<3)){const z=view?view.z:10,r=view&&view.rot||0,a=RC.phase==='count'?1:Math.max(0,1-RC.R.t/3),bob=Math.sin(t*6)*2.5;
+    x.save();x.translate(c.x,c.y);x.rotate(-r);x.scale(1/z,1/z);x.translate(0,-3.4*z-10+bob);x.globalAlpha=a;x.font='700 15px '+RC_BODY;x.textAlign='center';x.textBaseline='middle';const w=x.measureText('DEG').width+16;
+    x.fillStyle='#E5A92B';x.fillRect(-w/2,-22,w,22);x.beginPath();x.moveTo(-7,-1);x.lineTo(7,-1);x.lineTo(0,8);x.fill();x.fillStyle='#14120E';x.fillText('DEG',0,-10);x.restore()}
   if(!c.human||RC.views.length>1){const z=view?view.z:10,r=view&&view.rot||0;x.save();x.translate(c.x-Math.sin(-r)*-3.1,c.y-Math.cos(-r)*3.1);x.rotate(-r);x.scale(1/z,1/z);x.font='600 12px '+RC_BODY;x.textAlign='center';x.textBaseline='middle';const w=x.measureText(c.name).width+8;
     x.fillStyle='rgba(20,18,14,.6)';x.fillRect(-w/2,-8,w,16);x.fillStyle=c.human?'#E5A92B':'#f2e8d0';x.fillText(c.name,0,1);x.restore()}}
 function rcStand(x,s,t){x.save();x.translate(s.x,s.y);x.rotate(s.a);const w=s.w,d=s.d,R=mulberry32(s.seed*31+7);
@@ -363,47 +390,57 @@ function rcGantry(x,g,T){x.save();x.translate(g.x,g.y);x.rotate(g.a);const L=T.w
 function rcTxt(x,s,px,py,size,col,align='left',font=RC_FONT,base='alphabetic'){const m=/^(\d{3}) (.*)$/.exec(font);x.font=m?m[1]+' '+size+'px '+m[2]:size+'px '+font;x.textAlign=align;x.textBaseline=base;x.lineWidth=Math.max(2,size*.14);x.strokeStyle='rgba(20,18,14,.85)';x.strokeText(s,px,py);x.fillStyle=col;x.fillText(s,px,py)}
 function rcBox(x,px,py,w,h){x.fillStyle='rgba(20,18,14,.78)';x.fillRect(px,py,w,h);x.strokeStyle='rgba(229,169,43,.32)';x.lineWidth=1;x.strokeRect(px+.5,py+.5,w-1,h-1)}
 function rcHud(x,v,t){const c=v.car,R=RC.R,vp=v.vp,two=RC.views.length>1,s=Math.max(.7,Math.min(1.15,Math.min(vp.w,vp.h)/620)),touch=document.body.classList.contains('is-touch');
-  const L=vp.x+14,Tp=vp.y+12;
+  const L=vp.x+14,Tp=vp.y+12,list=rcShowList(),ph=(list?78:96)*s;   // without the standings, the place box has a line for the gap to the car in front
   // place and lap
-  const place=R.order.indexOf(c)+1;rcBox(x,L,Tp,128*s,78*s);rcTxt(x,rcPlace(place),L+10*s,Tp+50*s,46*s,place===1?'#E5A92B':'#f2e8d0');rcTxt(x,'/'+R.cars.length,L+(place>9?80:58)*s,Tp+50*s,20*s,'#B5A988','left',RC_BODY);
+  const place=R.order.indexOf(c)+1,fx=Math.min(1,(v.posFx||0)/.5),pc=fx>0?(v.posDir>0?'#8bdb5a':'#ff6a2a'):place===1?'#E5A92B':'#f2e8d0';rcBox(x,L,Tp,128*s,ph);
+  if(fx>0){x.fillStyle=v.posDir>0?'rgba(139,219,90,'+fx*.28+')':'rgba(255,106,42,'+fx*.28+')';x.fillRect(L,Tp,128*s,ph);rcTxt(x,v.posDir>0?'▲':'▼',L+118*s,Tp+26*s,16*s,pc,'right',RC_BODY)}
+  rcTxt(x,rcPlace(place),L+10*s,Tp+50*s,46*s,pc);rcTxt(x,'/'+R.cars.length,L+(place>9?80:58)*s,Tp+50*s,20*s,'#B5A988','left',RC_BODY);
   const lap=Math.min(R.laps,c.lap+1);rcTxt(x,c.done?'I MÅL':'RUNDE '+Math.max(1,lap)+'/'+R.laps,L+10*s,Tp+70*s,15*s,'#f2e8d0','left','600 '+RC_BODY);
-  if(two){x.fillStyle=c.pi?'#3b8cf0':'#E5A92B';x.fillRect(L,Tp,4*s,78*s)}
+  if(!list&&!c.done&&RC.phase!=='count'){const o=R.order[place===1?1:place-2];if(o&&!o.gone)rcTxt(x,(place===1?'▼ ':'▲ ')+rcGapTxt(o.done?99:rcGap(c,o))+' '+o.name.split(/[ -]/)[0],L+10*s,Tp+88*s,13*s,'#B5A988','left','600 '+RC_BODY)}
+  if(two){x.fillStyle=c.pi?'#3b8cf0':'#E5A92B';x.fillRect(L,Tp,4*s,ph)}
   // time and the best lap
   const Rt=vp.x+vp.w-14-(two?0:58);rcBox(x,Rt-128*s,Tp,128*s,58*s);rcTxt(x,fmtTime(c.done?c.finT:R.t),Rt-10*s,Tp+30*s,26*s,'#f2e8d0','right','700 '+RC_BODY);
   rcTxt(x,c.best!=null?'BESTE '+fmtTime(c.best):'RUNDE '+fmtTime(c.lapT),Rt-10*s,Tp+50*s,14*s,'#B5A988','right','600 '+RC_BODY);
   // speed and the drift meter
-  const bw=206*s,bh=56*s,by=touch&&!two?vp.y+100*s:vp.y+vp.h-70*s,bx=touch&&!two?L:vp.x+vp.w/2-bw/2;rcBox(x,bx,by,bw,bh);
+  // on touch the bottom belongs to the buttons: the speed sits at the top, in the middle when there is room, else under the place
+  const bw=206*s,bh=56*s,tt=touch&&!two,mid=!tt||vp.w>=bw+2*(142*s+58)+24,by=!tt?vp.y+vp.h-70*s:mid?Tp:Tp+ph+8,bx=mid?vp.x+vp.w/2-bw/2:L;rcBox(x,bx,by,bw,bh);
   rcTxt(x,Math.round(Math.max(0,c.u)*3.6)+'',bx+56*s,by+36*s,32*s,'#f2e8d0','right','700 '+RC_BODY);rcTxt(x,'km/t',bx+60*s,by+36*s,14*s,'#B5A988','left','600 '+RC_BODY);
   const ch=Math.min(1,c.charge/2.5),bb=c.boost>0,mx=bx+104*s,mw=92*s;x.fillStyle='rgba(242,232,208,.12)';x.fillRect(mx,by+14*s,mw,10*s);x.fillStyle=bb?'#6ad0ff':ch>.28?'#ff6a2a':'#E5A92B';x.fillRect(mx,by+14*s,mw*(bb?c.boost/1.6:ch),10*s);
   rcTxt(x,bb?'TURBO!':c.drift>0?'SLADD …':'SLADD = TURBO',mx+mw/2,by+42*s,12*s,bb?'#6ad0ff':c.drift>0?'#ff6a2a':'#B5A988','center','700 '+RC_BODY);
   // the big notice in the middle of the view
-  if(v.noticeT>0&&v.notice){const a=Math.min(1,v.noticeT*3);x.globalAlpha=a;rcTxt(x,v.notice,vp.x+vp.w/2,vp.y+vp.h*.3,Math.min(56,vp.w/12)*Math.max(.8,s),v.noticeBad?'#FF6A2A':'#E5A92B','center');x.globalAlpha=1}
+  if(v.noticeT>0&&v.notice){const a=Math.min(1,v.noticeT*3),ns=Math.min(56,vp.w/12)*Math.max(.8,s),ny=vp.y+vp.h*(tt&&mid&&vp.h<460?.44:.3);x.globalAlpha=a;rcTxt(x,v.notice,vp.x+vp.w/2,ny,ns,v.noticeBad?'#FF6A2A':'#E5A92B','center');
+    if(v.noticeSub)rcTxt(x,v.noticeSub,vp.x+vp.w/2,ny+ns*.62,Math.max(15,ns*.42),'#f2e8d0','center','600 '+RC_BODY);x.globalAlpha=1}
+  // the first races: the keys, under the lights and for the first seconds
+  if(!two&&!touch&&(RC.phase==='count'||R.t<5)&&((prof.race&&prof.race.runs)||0)<3){const a=RC.phase==='count'?1:Math.max(0,Math.min(1,5-R.t));x.globalAlpha=a;rcTxt(x,'↑ gass   ← → styr   ↓ brems   SPACE håndbrekk',vp.x+vp.w/2,vp.y+vp.h-92*s,17*s,'#f2e8d0','center','600 '+RC_BODY);x.globalAlpha=1}
   // the countdown lights, big
-  if(RC.phase==='count'){const n=5,r=18*s,gx=vp.x+vp.w/2-(n-1)*r*1.3,gy=vp.y+vp.h*.18;rcBox(x,gx-r*1.6,gy-r*1.6,(n-1)*r*2.6+r*3.2,r*3.2);
+  if(RC.phase==='count'){const n=5,r=18*s,gx=vp.x+vp.w/2-(n-1)*r*1.3,gy=Math.max(vp.y+vp.h*.18,tt&&mid?by+bh+r*1.6+8:0);rcBox(x,gx-r*1.6,gy-r*1.6,(n-1)*r*2.6+r*3.2,r*3.2);
     for(let i=0;i<n;i++){x.fillStyle=i<RC.lights?'#ff2a1a':'#3a2020';x.beginPath();x.arc(gx+i*r*2.6,gy,r,0,6.283);x.fill();if(i<RC.lights){x.fillStyle='rgba(255,60,30,.3)';x.beginPath();x.arc(gx+i*r*2.6,gy,r*1.5,0,6.283);x.fill()}}}
   // an arrow at the edge of the view towards the other player
   if(two){const o=RC.views[1-v.i].car,r0=v.rot||0,ex=o.x-v.cx,ey=o.y-v.cy,dx=ex*Math.cos(r0)-ey*Math.sin(r0),dy=ex*Math.sin(r0)+ey*Math.cos(r0),hw=vp.w/2/v.z,hh=vp.h/2/v.z;if(Math.abs(dx)>hw||Math.abs(dy)>hh){const a=Math.atan2(dy,dx),k=Math.min((hw-3)/Math.abs(Math.cos(a)||1e-6),(hh-3)/Math.abs(Math.sin(a)||1e-6)),
     px=vp.x+vp.w/2+Math.cos(a)*k*v.z*.92,py=vp.y+vp.h/2+Math.sin(a)*k*v.z*.92;x.save();x.translate(px,py);x.rotate(a);x.fillStyle=o.pi?'#3b8cf0':'#E5A92B';x.beginPath();x.moveTo(12,0);x.lineTo(-8,-9);x.lineTo(-8,9);x.fill();x.restore()}}}
+// the standings are shown to one player on a screen wide enough for them
+function rcShowList(){return RC.views.length===1&&RC.W>700&&RC.H>=340}
 // shared: the standings and the minimap (one player), the flash at the finish
 function rcHudShared(x,t){const R=RC.R,W=RC.W,H=RC.H,two=RC.views.length>1,touch=document.body.classList.contains('is-touch');if(!R)return;
-  if(!two&&W>700){const s0=Math.max(.7,Math.min(1.15,Math.min(W,H)/620)),L=14,Tp=12+78*s0+10,s=Math.max(.8,Math.min(1.1,H/700));R.order.forEach((c,i)=>{const y=Tp+i*24*s;x.fillStyle=c.human?'rgba(229,169,43,.88)':'rgba(20,18,14,.7)';x.fillRect(L,y,150*s,21*s);
+  if(rcShowList()){const me=RC.humans[0],s0=Math.max(.7,Math.min(1.15,Math.min(W,H)/620)),L=14,Tp=12+78*s0+10,s=Math.max(.8,Math.min(1.1,H/700));R.order.forEach((c,i)=>{const y=Tp+i*24*s;x.fillStyle=c.human?'rgba(229,169,43,.88)':'rgba(20,18,14,.7)';x.fillRect(L,y,172*s,21*s);x.font='600 '+Math.round(14*s)+'px '+RC_BODY;
     x.fillStyle=c.col;x.fillRect(L,y,5*s,21*s);x.font='600 '+Math.round(14*s)+'px '+RC_BODY;x.textAlign='left';x.textBaseline='middle';x.fillStyle=c.human?'#14120E':'#f2e8d0';x.fillText((i+1)+'. '+c.name,L+10*s,y+11*s);
-    if(c.done){x.textAlign='right';x.fillText('🏁',L+146*s,y+11*s)}})}
+    // to the right: the flag for those at the finish, else the gap to you in seconds (− in front of you, + behind)
+    x.textAlign='right';if(c.done)x.fillText('🏁',L+168*s,y+11*s);else if(me&&c!==me&&!me.done&&RC.phase!=='count'&&R.t>2&&rcGap(c,me)<60){x.font='600 '+Math.round(12*s)+'px '+RC_BODY;x.fillStyle='#B5A988';x.fillText((c.prog>me.prog?'−':'+')+rcGapTxt(rcGap(c,me)).replace(' s',''),L+168*s,y+11*s)}})}
   // the minimap
   const M=RC.mini,ms=two?Math.min(150,Math.min(W,H)*.22):Math.min(190,Math.min(W,H)*.28),k=ms/Math.max(M.w,M.h),mw=M.w*k+16,mh=M.h*k+16;
-  let mx,my;if(two){const v=RC.views[1].vp;if(v.y>0){mx=W-mw-12;my=v.y-mh/2}else{mx=v.x-mw/2;my=H-mh-12}}else{mx=W-mw-14;my=touch?H-mh-150:H-mh-14}
+  let mx,my;if(two){const v=RC.views[1].vp;if(v.y>0){mx=W-mw-12;my=v.y-mh/2}else{mx=v.x-mw/2;my=H-mh-12}}else if(touch){const s0=Math.max(.7,Math.min(1.15,Math.min(W,H)/620));mx=W-mw-14-58;my=12+58*s0+8}else{mx=W-mw-14;my=H-mh-14}
   x.fillStyle='rgba(20,18,14,.7)';x.fillRect(mx,my,mw,mh);x.save();x.translate(mx+8-M.b.x0*k,my+8-M.b.y0*k);x.scale(k,k);
   x.strokeStyle='rgba(242,232,208,.85)';x.lineWidth=Math.max(2.5/k,RC.T.hw*1.2);x.lineJoin='round';x.stroke(RC.paths.cp);
   const p0=trackPos(RC.T,0,0);x.strokeStyle='#14120E';x.lineWidth=2/k;x.beginPath();x.moveTo(p0.x-p0.a*0,p0.y-RC.T.hw*1.5);x.lineTo(p0.x,p0.y+RC.T.hw*1.5);x.stroke();
   for(const c of R.cars.filter(c=>!c.gone).sort((a,b)=>a.human-b.human)){x.fillStyle=c.col;x.strokeStyle='#14120E';x.lineWidth=1.5/k;x.beginPath();x.arc(c.x,c.y,(c.human?5.5:4)/k,0,6.283);x.fill();x.stroke()}x.restore();
   if(RC.flash>0){x.fillStyle='rgba(255,255,255,'+RC.flash*.25+')';x.fillRect(0,0,W,H)}}
-function rcNotice(v,text,ms,bad){for(const q of(v?[v]:RC.views)){q.notice=text;q.noticeT=ms/1000;q.noticeBad=!!bad}}
+function rcNotice(v,text,ms,bad,sub){for(const q of(v?[v]:RC.views)){q.notice=text;q.noticeSub=sub||'';q.noticeT=ms/1000;q.noticeBad=!!bad}}
 
 /* ---------- the result: places, times, prizes ---------- */
 // the places: finished cars by time, the others by when they would finish at their pace
 function rcOrder(){const R=RC.R;return R.cars.filter(c=>!c.gone||c.done).sort((a,b)=>raceEstimate(R,a)-raceEstimate(R,b))}
-function rcResultTable(){const R=RC.R;$('rrTable').innerHTML=rcOrder().map((c,i)=>`<li class="${c.human?'me':''}"><b>${i+1}.</b><i class="chip" style="background:${c.col}"></i><span>${c.name}${c.pid&&!c.human?' 🌐':''}</span><em>${c.done?fmtTime(c.finT):'~'+fmtTime(raceEstimate(R,c))}</em></li>`).join('')}
-function rcResult(){if(RC.phase==='result')return;RC.phase='result';const R=RC.R,tr=RC.track,L=RACE_LEVELS[RC.lvl],key=rcKey(tr),prev=best[key]||{};
+function rcResultTable(){const R=RC.R,O=rcOrder(),w=O.length?raceEstimate(R,O[0]):0;$('rrTable').innerHTML=O.map((c,i)=>`<li class="${c.human?'me':''}"><b>${i+1}.</b><i class="chip" style="background:${c.col}"></i><span>${c.name}${c.pid&&!c.human?' 🌐':''}</span><em>${(c.done?'':'~')+(i?'+'+rcGapTxt(Math.max(0,raceEstimate(R,c)-w)):fmtTime(raceEstimate(R,c)))}</em></li>`).join('')}
+function rcResult(){if(RC.phase==='result')return;RC.phase='result';rcDrive(false);const R=RC.R,tr=RC.track,L=RACE_LEVELS[RC.lvl],key=rcKey(tr),prev=best[key]||{};
   const order=rcOrder(),hs=RC.humans,top=hs.reduce((m,c)=>Math.min(m,order.indexOf(c)),9),me=order[top];
   const placeN=top+1,prize=Math.round((RACE_PRIZE[top]||0)*L.nuts),firstWin=placeN===1&&!prev.win,bonus=firstWin?RACE_FIRST_WIN:0,t=me.finT,lapBest=Math.min(...hs.map(c=>c.best||1e9));
   const stars=placeN===1&&t<=tr.par[0]?3:placeN<=2&&t<=tr.par[1]?2:placeN<=3?1:0;
@@ -413,9 +450,9 @@ function rcResult(){if(RC.phase==='result')return;RC.phase='result';const R=RC.R
   $('rrStars').innerHTML=[0,1,2].map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z" fill="${i<stars?'#E5A92B':'rgba(242,232,208,.15)'}"/></svg>`).join('');$('rrStars').setAttribute('aria-label',stars+' av 3 stjerner');
   rcResultTable();$('rrAgain').textContent=RC.net?'Til lobbyen':'Kjør igjen';
   const Lg=[`<li><b>${rcPlace(placeN)} plass:</b> +${prize} ⚙${L.nuts!==1?' ('+L.name+': ×'+String(L.nuts).replace('.',',')+')':''}</li>`];
+  Lg.push(`<li><b>Tiden din:</b> ${fmtTime(t)}${prev.t?t<prev.t?' (ny rekord! Før: '+fmtTime(prev.t)+')':' (rekorden din er '+fmtTime(prev.t)+')':''}</li>`);
   if(bonus)Lg.push(`<li><b>Første seier på ${tr.name}:</b> +${bonus} ⚙</li>`);
   if(lapBest<1e9)Lg.push(`<li><b>Beste runde:</b> ${fmtTime(lapBest)}${prev.lap&&lapBest<prev.lap?' (ny rekord!)':prev.lap?' (rekorden din er '+fmtTime(prev.lap)+')':''}</li>`);
-  if(prev.t&&t<prev.t)Lg.push('<li><b>Ny rekord</b> for hele løpet: '+fmtTime(t)+'.</li>');
   Lg.push(`<li><b>Stjerner:</b> vinn på under ${fmtTime(tr.par[0])} for tre, kom blant de to første på under ${fmtTime(tr.par[1])} for to.</li>`);
   $('rrLog').innerHTML=Lg.join('');$('rrNuts').textContent='+'+fmtN(prize+bonus);$('rrNutsNote').textContent='Du har nå '+fmtN(prof.nuts)+' ⚙.';
   $('raceResult').hidden=false;$('rrAgain').focus()}
