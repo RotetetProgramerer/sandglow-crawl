@@ -711,6 +711,7 @@ renderer.domElement.addEventListener('pointerdown',e=>{ptrs.set(e.pointerId,{x:e
 addEventListener('pointermove',e=>{if(!ptrs.has(e.pointerId))return;ptrs.set(e.pointerId,{x:e.clientX,y:e.clientY});
   if(ptrs.size===2&&pinch){const[a,b]=[...ptrs.values()];camDist=Math.max(1.6,Math.min(12,pinch.cd*pinch.d/Math.max(20,Math.hypot(a.x-b.x,a.y-b.y))));store.set('camDist',camDist);return}
   if(drag){orbitYaw-=(e.clientX-drag.x)*.008;orbitPitch=Math.max(-.5,Math.min(.9,orbitPitch+(e.clientY-drag.y)*.005));drag={x:e.clientX,y:e.clientY}}});
+renderer.domElement.addEventListener('pointerdown',()=>{if(state.mode==='ferry')skipFerry()});
 const endPtr=e=>{ptrs.delete(e.pointerId);if(ptrs.size<2)pinch=null;if(!ptrs.size)drag=null};
 addEventListener('pointerup',endPtr);addEventListener('pointercancel',endPtr);
 renderer.domElement.addEventListener('wheel',e=>{e.preventDefault();if(state.camMode===0){camDist=Math.max(1.6,Math.min(12,camDist*(1+Math.sign(e.deltaY)*.1)));store.set('camDist',camDist)}else fovZoom=Math.max(.45,Math.min(1.6,fovZoom*(1+Math.sign(e.deltaY)*.08)))},{passive:false});
@@ -788,7 +789,7 @@ function syncVisuals(dt){
   if(ng&&state.mode==='play'){beacon.visible=true;beacon.position.set(ng.c.x,H(ng.c.x,ng.c.z),ng.c.z);beacon.userData.ring.scale.setScalar(1+.08*Math.sin(performance.now()*.005));
     arrow.visible=car.assist;if(arrow.visible){arrow.position.copy(car.pos).add(_c2.set(0,1.25,0));_c1.set(ng.c.x-car.pos.x,0,ng.c.z-car.pos.z).normalize();arrow.quaternion.setFromUnitVectors(YAX,_c1)}}
   else if(gpsLive()&&state.world){beacon.visible=false;arrow.visible=false}   // the GPS has its own arrow (js/gps.js)
-  else if(state.free&&car.assist&&state.world){const n=nearestPortal();let tx=null,tz=null;if(n&&n.d>6){tx=n.k.start.p.x;tz=n.k.start.p.z}
+  else if(state.free&&car.assist&&state.world){const n=guidePortal();let tx=null,tz=null;if(n&&n.d>6){tx=n.k.start.p.x;tz=n.k.start.p.z}
     if(tx!==null){arrow.visible=true;arrow.position.copy(car.pos).add(_c2.set(0,1.25,0));_c1.set(tx-car.pos.x,0,tz-car.pos.z).normalize();arrow.quaternion.setFromUnitVectors(YAX,_c1)}else arrow.visible=false;beacon.visible=false}
   else{beacon.visible=false;arrow.visible=false}
   gpsSync(dt);
@@ -806,7 +807,7 @@ function updateHUD(dt){
     if(!gps){const lvl=LEVELS[state.levelIdx],b=lvl.basePos||(LV.ferry?[LV.ferry.quay.x,LV.ferry.quay.z]:[0,0]);const dm=Math.hypot(b[0]-car.pos.x,b[1]-car.pos.z)*UNIT_CM/100;$('hBase').textContent=dm.toFixed(1).replace('.',',')+' m';$('hBaseL').textContent=lvl.basePos?'Basen':'Kaia'}}
   else{$('hGate').textContent=(Math.min(state.next,LV.gates.length)-state.missed)+'/'+LV.gates.length;$('hTime').textContent=fmtTime(state.time);$('hPen').textContent=state.penalty;$('hCrate').textContent=state.crates+'/'+LV.crates.length}
   const sp=car.vel.dot(car.fw)*UNIT_CM;$('hSpeed').textContent=Math.round(Math.abs(sp));
-  const ng=LV.gates[state.next];if(!gps){if(ng){const dcm=Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)*UNIT_CM;if(dcm>=100){$('hNext').textContent=(dcm/100).toFixed(1).replace('.',',');$('hNextU').textContent='m'}else{$('hNext').textContent=Math.round(dcm);$('hNextU').textContent='cm'}}else if(state.free){const n=nearestPortal();if(n){$('hNext').textContent=(n.d*UNIT_CM/100).toFixed(1).replace('.',',');$('hNextU').textContent='m til '+n.k.name}else{$('hNext').textContent='–';$('hNextU').textContent=''}}}
+  const ng=LV.gates[state.next];if(!gps){if(ng){const dcm=Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)*UNIT_CM;if(dcm>=100){$('hNext').textContent=(dcm/100).toFixed(1).replace('.',',');$('hNextU').textContent='m'}else{$('hNext').textContent=Math.round(dcm);$('hNextU').textContent='cm'}}else if(state.free){const n=guidePortal();if(n){$('hNext').textContent=(n.d*UNIT_CM/100).toFixed(1).replace('.',',');$('hNextU').textContent='m til '+n.k.name}else{$('hNext').textContent='–';$('hNextU').textContent=''}}}
   const roll=Math.asin(Math.max(-1,Math.min(1,car.lf.y)))*57.3,pitch=Math.asin(Math.max(-1,Math.min(1,car.fw.y)))*57.3;
   $('hRoll').textContent=Math.round(Math.abs(roll))+'°';$('hPitch').textContent=Math.round(pitch)+'°';
   $('inclRoll').setAttribute('transform','rotate('+(-roll).toFixed(1)+')');$('gIncl').classList.toggle('warn',Math.abs(roll)>35||Math.abs(pitch)>40);

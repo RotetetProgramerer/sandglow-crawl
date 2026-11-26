@@ -106,7 +106,7 @@ function flyStart(){if(FL.on||FL.fade||BT.on||BT.fade)return;initAudio();if(AC&&
   $('fade').classList.add('on');FL.fade={t:0,hold:.2,cb:()=>{buildSea();bShadowSize();fHideBoats();if(!FL.cam)FL.cam=new THREE.PerspectiveCamera(60,1,1,B_FAR);FL.on=true;$('hud').hidden=true;$('hint').hidden=true;
     const H=$('boatHud');H.hidden=false;H.classList.add('fly');H.classList.remove('two','won');$('bpane1').hidden=true;$('bdiv').hidden=true;$('bpane0').querySelector('.bplace').hidden=true;fLayout();flyMenu()}}}
 function flyExit(){if(FL.fade||!FL.on)return;$('fade').classList.add('on');
-  FL.fade={t:0,hold:.2,cb:()=>{FL.on=false;FL.phase='';FL.result=false;FL.paused=false;if(FL.snd)FL.snd.master.gain.setTargetAtTime(0,AC.currentTime,.1);if(BT.snd)BT.snd.master.gain.setTargetAtTime(0,AC.currentTime,.1);const H=$('boatHud');H.hidden=true;H.classList.remove('fly','menu','won');
+  FL.fade={t:0,hold:.2,cb:()=>{FL.on=false;FL.phase='';if(FL.ringGrp)FL.ringGrp.visible=false;FL.result=false;FL.paused=false;if(FL.snd)FL.snd.master.gain.setTargetAtTime(0,AC.currentTime,.1);if(BT.snd)BT.snd.master.gain.setTargetAtTime(0,AC.currentTime,.1);const H=$('boatHud');H.hidden=true;H.classList.remove('fly','menu','won');
     $('flyMenu').hidden=true;$('flyPause').hidden=true;if(!$('result').hidden){$('result').hidden=true;bResultReset()}
     renderer.setScissorTest(false);renderer.setViewport(0,0,innerWidth,innerHeight);state.mode='play';state.askCool='fly';camSnap=true;showHud();toast('Tilbake ved bilen')}}}
 const fSel=()=>{const id=store.get('flyPick','fri');if(id==='fri')return null;const f=FLIGHTS.find(q=>q.id===id);return f||null};

@@ -182,7 +182,7 @@ function rcCount(dt){RC.countT+=dt;const n=Math.min(5,Math.floor((RC.countT-.6)/
   if(RC.countT>=RC.goAt){RC.lights=0;RC.phase='race';RC.R.phase='race';rcBeep(880,.5);rcNotice(null,'KJØR!',900)}}
 
 /* ---------- input ---------- */
-addEventListener('keydown',e=>{if(!RC.on)return;RC.codes.add(e.code);if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab'].includes(e.code)&&RC.phase!=='menu')e.preventDefault()});
+addEventListener('keydown',e=>{if(!RC.on)return;RC.codes.add(e.code);if(['Space','ArrowUp','ArrowDown','ArrowLeft','ArrowRight','Tab'].includes(e.code)&&RC.phase!=='menu'&&!RC.paused&&RC.phase!=='result')e.preventDefault()});
 addEventListener('keyup',e=>RC.codes.delete(e.code));addEventListener('blur',()=>RC.codes.clear());
 function rcInput(c){const K=RC.codes,ti=state.input,two=RC.two,i=c.pi||0;let gas=0,brake=0,steer=0,hb=0;
   const has=(...a)=>a.some(k=>K.has(k));

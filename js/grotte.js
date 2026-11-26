@@ -324,7 +324,7 @@ function cSnd(){if(CV.snd||!AC)return CV.snd;try{const C=AC,master=C.createGain(
   o.connect(f);o2.connect(g2);g2.connect(f);f.connect(eg);eg.connect(master);const es=C.createGain();es.gain.value=.25;eg.connect(es);es.connect(echo);o.start();o2.start();
   const hum=C.createBufferSource();hum.buffer=noiseBuf(C,3);hum.loop=true;const hf=C.createBiquadFilter();hf.type='lowpass';hf.frequency.value=180;const hg=C.createGain();hg.gain.value=0;hum.connect(hf);hf.connect(hg);hg.connect(master);hum.start();
   CV.snd={master,fx,o,o2,f,eg,hg,nb:noiseBuf(C,1),drip:1}}catch(e){CV.snd=null}return CV.snd}
-function cSndUpdate(dt){const S_=cSnd();if(!S_)return;const t=AC.currentTime,on=CV.on&&state.sound&&!CV.paused,c=CV.car,vc=state.volCar/70,va=state.volAmb/70;
+function cSndUpdate(dt){const S_=cSnd();if(!S_)return;const t=AC.currentTime,on=CV.on&&state.sound&&!CV.paused&&!CV.result,c=CV.car,vc=state.volCar/70,va=state.volAmb/70;
   S_.master.gain.setTargetAtTime(on?1:0,t,.15);if(!on||!c)return;const run=c.crashT===0&&c.fuel>0,thr=Math.abs(c.thr),f=45+(CV.rpm||0)*150+thr*20;
   S_.o.frequency.setTargetAtTime(f,t,.05);S_.o2.frequency.setTargetAtTime(f*.5,t,.05);S_.f.frequency.setTargetAtTime(400+thr*900+(CV.rpm||0)*600,t,.08);S_.eg.gain.setTargetAtTime(run?(.014+thr*.05+(CV.rpm||0)*.02)*vc:0,t,.08);
   S_.hg.gain.setTargetAtTime(.05*va,t,.5);
