@@ -145,7 +145,13 @@ Nytt element: kopier en fil i `js/props/`, gi den et nytt navn i `PROPS.navn`, o
 
 `style:'trophy'` tegner en trophy truck (`buildTrophy` i `js/carmodel.js`), se Trophy Truck: et smalt karosseri lavt mellom brede skjermer, store terrengdekk på svarte beadlock-felger, takluke, lysrampe, to reservehjul og tank på planet under et rørbur, og startnummer på dørene. Fjæringen tegnes mellom karosseriet og hjulene hver gang bilen flytter seg (`trophyLinks`), så du ser A-armene og støtdemperne foran og den stive akselen bak jobbe. Bilen er gratis.
 
-Test en bil på alle banene: `CAR=knott node tools/test-levels.js` (eller `CAR=turbo`, `CAR=trophy`).
+`style:'open'`, `'van'`, `'truck'`, `'rally'` og `'buggy'` tegner de fem nyeste bilene (`buildOpen`, `buildVan`, `buildTruck`, `buildRally` og `buildBuggy` nederst i `js/carmodel.js`): veteranjeepen Rusken, bobilen Snegla, ekspedisjonslastebilen Bamse, rallybilen Gaupe og strandbuggyen Sandloppe.
+
+**Felles deler:** Øverst i `js/carmodel.js` ligger et sett med smådeler som alle bilene bruker: `rbx` (boks med avrundede kanter til de store lakkerte flatene), `carLamp` (frontlykt med lyskjegle), `carTail` (baklykt med bremselys, blinklys og ryggelys), `carPlate` (skilt med tekst), `carSeat`, `carWheelStick` (ratt), `carCrew` (fører og passasjer), `carUnder` (ramme, girkasse, mellomaksler, eksos og fjærer) og `carGear` (snorkel, vinsj og LED fra verkstedet). Kupeen på de vanlige bilene er bygget av stolper og gjennomsiktig glass, så du ser seter, ratt og mannskap. Hele bilen slås sammen til ett nett per materiale når den er bygget (`packBody` og `netMerge`), så en bil med flere hundre deler tegnes med rundt 40 tegnekall.
+
+**Lys:** Baklyktene lyser sterkt rødt når du bremser, og de hvite ryggelysene lyser når du rygger (`tailGlow` i `js/game.js`).
+
+Test en bil på alle banene: `CAR=knott node tools/test-levels.js` (eller `CAR=turbo`, `CAR=trophy`, `CAR=rusken`, `CAR=sandloppe`, `CAR=snegla`, `CAR=gaupe`, `CAR=bamse`).
 
 Bilen dukker opp i menyen med en gang.
 
@@ -423,7 +429,7 @@ Muttere: 5 per bøye, 3 per turbotønne, 20 for å fortøye, 15 hvis du aldri bl
 
 ## Flyplassen og flyturene
 
-Øst på Trinnvik ligger Trinnvik lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør med kantlys, terminal, tårn, hangar og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved småflyet, så kommer spørsmålet «Vil du fly?». (Lasteflyet som flyr bilen til de andre øyene står sør på rullebanen, se neste avsnitt.) JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
+Øst på Trinnvik ligger Trinnvik lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør (18/36) med kantlys, terminal, tårn, hangar, drivstofftanker og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved småflyet, så kommer spørsmålet «Vil du fly?». (Lasteflyet som flyr bilen til de andre øyene står sør på rullebanen, se neste avsnitt.) JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
 
 | Tur | Vanskelighet | Ringer |
 |---|---|---|
@@ -450,7 +456,7 @@ Muttere: 5 per ring, 20 for å komme i mål, 15 uten krasj, 60 første gang og 2
 
 ## Lasteflyet: fly bilen mellom øyene
 
-Hver øy har en flyplass på en fylling ut i sjøen: rullebane med kantlys, terminal, tårn, vindpose og en vei fra øya. Ytterst på rullebanen står et stort lastefly med fire motorer og hekkrampa nede. Kjør opp rampa og inn i lasterommet, så kommer spørsmålet «Hvor vil du fly?» med alle de andre øyene. Turen er gratis.
+Hver øy har en flyplass på en fylling ut i sjøen: rullebane med banenummer, kantlys og PAPI-lys, terminal, tårn med radar, vindpose, drivstofftanker, tankbil, bagasjetraller, containere med gaffeltruck, lysmaster og en vei fra øya. Ytterst på rullebanen står et stort lastefly, en Antonov An-124, med hekkrampa nede. Kjør opp rampa og inn i lasterommet, så kommer spørsmålet «Hvor vil du fly?» med alle de andre øyene. Turen er gratis.
 
 Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme tastene som småflyet. Tre gule porter og en lyssøyle viser innflygingen til øya du valgte, og kompasset og teksten øverst sier hvor langt det er og om du er for høyt eller for lavt. Land på rullebanen og la flyet stoppe (det bremser selv), så lastes øya, og bilen står i lasterommet med nesa mot rampa. Kjør ut.
 
@@ -474,6 +480,10 @@ Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme
 | `ground` | `'grass'` (standard), `'sand'` eller `'snow'`. |
 
 Fyllingen legges i `genLevel` (`airFrame` i `js/core.js`), og `c.airport` bygger resten før `build(c)`, som landsbyen. `c.cargoPlane(x,z,yaw,y)` lager selve flyet: rampa og gulvet er kjørbare dekk, veggene og skottet foran stopper bilen. Målene står i `CARGO` øverst i samme fil. Trinnvik har sin egen flyplass i banefila og kaller `c.cargoPlane` selv. Modellen tegnes av `cgMesh` i `js/cargo.js`.
+
+**Flymodellen** er en Antonov An-124: høy pilvinge som henger ned mot tuppene, fire turbofanmotorer på pyloner foran vingen, cockpit høyt over en rund nese (hele nesa er et visir), radom under haka, to doble nesehjul ved siden av hverandre, fem hjulpar på rad under en kul på hver side, hekk som sveiper opp over rampa, én høy finne og haleflaten lavt på kroppen. Kroppen er kortere og tjukkere enn på det ekte flyet, for bilen skal få plass i lasterommet. Kropp, vinger og hale er skall trukket over tverrsnitt (`cgLoft`), og alle delene slås sammen til ett nett per materiale (`cgBucket`), så flyet er et dusin tegnekall uansett hvor mange detaljer det har. Nye deler legges i `Bb` (kroppen), `Bt` (det som blir gjennomsiktig når bilen er inne), `Br` (rampa) eller `Bd` (dørene som er lukket i lufta).
+
+**Det som står på flyplassene** bygges av `c.ap…` i `js/core.js` (`apRunway`, `apTerminal`, `apTower`, `apTanks`, `apTruck`, `apCargo`, `apCarts`, `apMast`, `apPapi`, `apLine`), og brukes både av `c.airport` og av Trinnvik. De tar en ramme fra `c.apFrame`, så tingene kan stå langs rullebanen uansett hvilken vei den ligger. Banenummeret regnes ut fra kompassretningen. Sett fra lufta bygges de samme tingene av `cgSeaKit` i `js/cargo.js`.
 
 **På havet:** `seaAirports()` i `js/planesim.js` legger en rullebane ved hver øy på samme side som øyas egen flyplass, og `PCARGO` er tallene for lasteflyet (tyngre, lengre rullestrekning, slakere svinger enn småflyet). `cargoFinal` velger enden med lengst fri innflyging.
 
@@ -713,6 +723,7 @@ Testen: `node tools/test-levels.js kaiman` kjører landsbytesten og alle fem lø
 
 Trykk **E** (eller knappen med den gående mannen, eller høyre skulderknapp på en spillkontroll) når bilen står stille. Da åpner sjåføren døra, stiger ut og lukker den etter seg. Etterpå styrer du ham med de samme tastene og knappene som bilen: venstre og høyre snur ham, gass går og løper, revers rygger, og mellomrom (hoppknappen på mobil) hopper. Trykk **E** igjen når han står ved bilen, så setter han seg inn og du kjører videre. Alt ligger i `js/walker.js`.
 
+- **Tilbake til bil:** Mens han er til fots, står knappen «Tilbake til bil» øverst til høyre (tast **T**, venstre skulderknapp på spillkontroll). Den setter ham tilbake ved døra uansett hvor på øya han er, og han klatrer inn. Knappen lyser gult når han er langt fra bilen. Ligger bilen på siden, eller er det ikke plass ved noen av dørene, sitter han rett bak rattet igjen. Det er `walkBack` i `js/walker.js`.
 - **Bilen** blir stående der du parkerte. Motorlyden blir svakere jo lenger unna han går, og en pil over hodet hans peker tilbake til bilen når han er mer enn noen meter unna. På minikartet og øykartet er han en lys prikk.
 - **Hva han kan:** Han følger bakken, går rundt trær, steiner, hus og sin egen bil, og kan vasse i grunt vann. Han kommer ikke opp bratte vegger, ut i dypt vann eller ut i lava. Faller han utfor en kant, lander han bare.
 - **Hva han ikke kan:** Han plukker ikke opp kasser eller gullmuttere og starter ikke løyper. Det gjør du med bilen. Dyrene bryr seg heller ikke om ham.
@@ -820,6 +831,8 @@ Kjør inn på den blå ruta foran depotet, så kommer spørsmålet «Vil du kjø
 **Grep og hjelp:** bilen har godt veigrep, rattet vris mindre i stor fart, og bilen retter seg opp av seg selv når den sklir. Treffer du dekkveggen nesen først, blir bilen dreid tilbake langs banen. Gule piler står på yttersiden av de krappe svingene, og skiltene 100 og 50 viser hvor du bør bremse. Testen har en «nybegynner» som bare styrer av og på og aldri bremser: den skal komme rundt uten mange treff i veggen.
 
 **Kjør sammen på nett** (`js/racenet.js`): er du i et rom (se «Kjør sammen»), trykk «Inviter rommet» i racemenyen. De andre får spørsmålet «Vil du bli med?» der de er, og kommer rett til lobbyen. Lederen velger bane og motstandere og starter løpet for alle, og alle får de fem lysene samtidig. Hver spiller kjører sin egen bil på sin egen skjerm, lederen kjører motstanderne, og ledige plasser fylles med motstandere (6 biler til sammen). Spillerne kan dulte hverandre: hver skjerm skyver sin egen bil, så med treg forbindelse kan et dult se litt annerledes ut på de to skjermene. Løpet går videre mens du har pause. Forsvinner lederen, kjører hver skjerm motstanderne selv videre. Mutterne, stjernene og rekordene er personlige.
+
+**Hjelp underveis:** ved start står «DEG» over bilen din, og de første løpene står tastene nederst på skjermen. Plassen lyser grønt når du tar en plass og rødt når du mister en. Lista til venstre viser hvor mange sekunder de andre er foran (−) eller bak (+) deg; på smale skjermer står luka til bilen foran under plassen. Ved hver runde ser du rundetiden og forskjellen fra din raskeste. Står bilen stille mens du gir gass, eller kjører du feil vei, minner spillet om R. Treff i veggen gir et lite støt i mobilen eller håndkontrollen. Racemenyen viser et lite kart av hver bane, og resultatet viser hvor langt bak vinneren hver bil kom.
 
 **Dult:** bilene er to sirkler hver og spretter av hverandre og av dekkveggene. Gress og sand ved siden av asfalten sakker bilen ned.
 

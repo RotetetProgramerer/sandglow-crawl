@@ -171,16 +171,14 @@ function clearTracks(){tracks.count=0;trkI=0;if(car)car.wheels.forEach(w=>{if(w.
 
 /* ---------- materials & car model ---------- */
 const M={
-  yel:new THREE.MeshStandardMaterial({color:0xe3a62a,roughness:.3,metalness:.08,envMapIntensity:.9}),
+  yel:new THREE.MeshPhysicalMaterial({color:0xe3a62a,roughness:.42,metalness:.12,envMapIntensity:.75,clearcoat:1,clearcoatRoughness:.07}),   // the paint: colour under a glossy clear coat that mirrors the sky
   blk:new THREE.MeshStandardMaterial({color:0x1d1c1a,roughness:.7}),
   blkC:new THREE.MeshStandardMaterial({color:0x1d1c1a,roughness:.7}),   // the car's black parts (gets mud and snow like the paint)
-  glass:new THREE.MeshStandardMaterial({color:0x1a262d,roughness:.06,metalness:.85,envMapIntensity:1.3}),
+  glass:new THREE.MeshStandardMaterial({color:0x1a262d,roughness:.04,metalness:.9,envMapIntensity:1.6}),
   tire:new THREE.MeshStandardMaterial({color:0x1a1918,roughness:.95,flatShading:true}),
-  rim:new THREE.MeshStandardMaterial({color:0xe3a62a,roughness:.45,metalness:.2}),
-  rimF:new THREE.MeshStandardMaterial({color:0x1d1c1a,roughness:.7}),   // the face of the wheel: black, or the rim colour from the garage
-
-  steel:new THREE.MeshStandardMaterial({color:0x9a9a96,roughness:.35,metalness:.8}),
-  lamp:new THREE.MeshStandardMaterial({color:0xf3efe2,roughness:.15,emissive:0x000000,metalness:.2}),
+  rim:new THREE.MeshStandardMaterial({color:0xe3a62a,roughness:.38,metalness:.2,envMapIntensity:1.1}),
+  steel:new THREE.MeshStandardMaterial({color:0xa6a6a2,roughness:.28,metalness:.9,envMapIntensity:1.2}),
+  lamp:new THREE.MeshStandardMaterial({color:0xf3efe2,roughness:.08,emissive:0x000000,metalness:.35,envMapIntensity:1.5}),
   tail:new THREE.MeshStandardMaterial({color:0x7c1410,roughness:.25,emissive:0x000000}),
   amber:new THREE.MeshStandardMaterial({color:0xd98a1a,roughness:.3}),
   can:new THREE.MeshStandardMaterial({color:0x44502f,roughness:.6}),
@@ -233,16 +231,16 @@ function cyl(r,h,mat,x,y,z,p,axis,seg=14){const m=new THREE.Mesh(new THREE.Cylin
 
 let carVis=null;
 function buildCarVis(cfg){
-  if(carVis){scene.remove(carVis.body);carVis.wheels.forEach(w=>scene.remove(w.root));carVis.axles.forEach(a=>scene.remove(a));carVis.links.forEach(l=>{scene.remove(l.m);l.m.geometry.dispose()});
+  if(carVis){scene.remove(carVis.body);carVis.wheels.forEach(w=>{scene.remove(w.root);w.root.traverse(o=>{if(o.geometry)o.geometry.dispose()})});carVis.axles.forEach(a=>scene.remove(a));carVis.links.forEach(l=>{scene.remove(l.m);l.m.geometry.dispose()});
     carVis.body.traverse(o=>{if(o.geometry)o.geometry.dispose()})}
-  const body=buildBody(cfg);scene.add(body);
-  const wheels=[];for(let i=0;i<4;i++){const w=carWheel(cfg,i%2===0?1:-1,i>1);scene.add(w.root);wheels.push(w)}
+  const body=packBody(buildBody(cfg));scene.add(body);   // merged into one mesh per material (js/carmodel.js)
+  const wheels=[];for(let i=0;i<4;i++){const w=carWheel(cfg,i%2===0?1:-1,i>1),spin=netMerge(w.spin);w.root.remove(w.spin);w.root.add(spin);w.spin=spin;scene.add(w.root);wheels.push(w)}
   const axles=[];for(let i=0;i<2;i++){const a=new THREE.Group();const tube=new THREE.Mesh(new THREE.CylinderGeometry(.03,.03,1,8),M.blk);tube.castShadow=true;a.add(tube);
     const diff=new THREE.Mesh(new THREE.SphereGeometry(.075,12,10),M.blk);diff.castShadow=true;a.add(diff);a.userData.tube=tube;scene.add(a);axles.push(a)}
   // the trophy truck: the front wheels hang on their own arms (no axle between them), and the arms and shocks follow the wheels (js/carmodel.js)
   const links=cfg.style==='trophy'?trophyLinks(cfg):[];links.forEach(l=>scene.add(l.m));if(cfg.style==='trophy')axles[0].visible=false;if(cfg.style==='skuter')axles.forEach(a=>a.visible=false);   // the snowmobile has skis and a belt, no axles
   const spots=[];for(const sx of[1,-1]){const s=new THREE.SpotLight(0xfff1cc,0,16,.55,.6,1.2);s.position.set(sx*.3,.3,cfg.L/2);const t=new THREE.Object3D();t.position.set(sx*.3,-.4,cfg.L/2+4);body.add(s,t);s.target=t;spots.push(s)}
-  carVis={body,wheels,axles,spots,links};setLights(state.lights);
+  carVis={body,wheels,axles,spots,links,brk:false,rev:false};setLights(state.lights);
 }
 
 /* ---------- gate visuals ---------- */
@@ -277,12 +275,13 @@ function setGateState(i,s){const g=gateVis[i];if(!g)return;g.state=s;g.mats.forE
 
 /* ---------- particles (dust) ---------- */
 const dustTex=(()=>{const c=document.createElement('canvas');c.width=c.height=64;const x=c.getContext('2d');const g=x.createRadialGradient(32,32,2,32,32,30);g.addColorStop(0,'rgba(255,255,255,.9)');g.addColorStop(1,'rgba(255,255,255,0)');x.fillStyle=g;x.fillRect(0,0,64,64);return new THREE.CanvasTexture(c)})();
-const dust=[];for(let i=0;i<70;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:dustTex,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);dust.push({s,life:0,v:new V3()})}
+const dust=[];for(let i=0;i<130;i++){const s=new THREE.Sprite(new THREE.SpriteMaterial({map:dustTex,transparent:true,depthWrite:false,opacity:0}));s.visible=false;scene.add(s);dust.push({s,life:0,v:new V3()})}
 let dustI=0;
 const DUST_COL={0:'#d8ccb2',2:'#7a5c3e',5:'#4b3b2a',13:'#2e2218',10:'#9c9384',3:'#6b7a45',4:'#a07a55',14:'#4a4440',15:'#ff7a20',19:'#8a8a86',98:'#7a5a3a',99:'#e6f3f7'};
-function spawnDust(p,surf,big){const c=DUST_COL[surf];if(!c)return;const d=dust[dustI++%dust.length];d.s.material.color.set(c).convertSRGBToLinear();d.s.position.copy(p);d.s.position.y+=.05;d.life=1;d.big=big||0;
-  const up=big?.7+Math.random()*.9:.25+Math.random()*.3,sp=big?.9:.4;d.v.set((Math.random()-.5)*sp,up,(Math.random()-.5)*sp);d.s.visible=true}
-function updateDust(dt){for(const d of dust){if(d.life<=0)continue;d.life-=dt*(d.big?1.6:1.3);if(d.big)d.v.y-=3.2*dt;d.s.position.addScaledVector(d.v,dt);const k=1-d.life;d.s.scale.setScalar(d.big?.1+k*.35:.15+k*.6);d.s.material.opacity=Math.max(0,d.life)*(d.big?.7:.45);if(d.life<=0)d.s.visible=false}}
+// kx,kz: a push along the ground (what a spinning wheel throws backwards, or the cloud a fast car drags along); grow: how much bigger the puff gets
+function spawnDust(p,surf,big,kx=0,kz=0,grow=1){const c=DUST_COL[surf];if(!c)return;const d=dust[dustI++%dust.length];d.s.material.color.set(c).convertSRGBToLinear();d.s.position.copy(p);d.s.position.y+=.05;d.life=1;d.big=big||0;d.grow=grow;
+  const up=big?.7+Math.random()*.9:.25+Math.random()*.3,sp=big?.9:.4;d.v.set((Math.random()-.5)*sp+kx,up,(Math.random()-.5)*sp+kz);d.s.material.rotation=Math.random()*6.28;d.s.visible=true}
+function updateDust(dt){for(const d of dust){if(d.life<=0)continue;d.life-=dt*(d.big?1.6:1.3);if(d.big)d.v.y-=3.2*dt;d.s.position.addScaledVector(d.v,dt);const k=1-d.life;d.s.scale.setScalar((d.big?.1+k*.35:.15+k*.6)*(d.grow||1));if(!d.big){d.v.x*=1-1.5*dt;d.v.z*=1-1.5*dt}d.s.material.opacity=Math.max(0,d.life)*(d.big?.7:.45);if(d.life<=0)d.s.visible=false}}
 
 /* ---------- effects: lava, hanging bridges, waterfall, volcano (the data comes from the level's c.fx list) ---------- */
 function lavaTexture(){const s=128,c=document.createElement('canvas');c.width=c.height=s;const x=c.getContext('2d'),img=x.createImageData(s,s),r=mulberry32(5),Gd=[];
@@ -519,7 +518,7 @@ function loadLevel(i){
 }
 function setCar(i){state.carIdx=i;store.set('car',CARS[i].id);const old=car,tune=tuneFrom(prof.parts);car=makeCar(CARS[i],tune);car.rope=null;car.assist=state.assist;car.speedScale=state.speed/100;if(old){car.low=old.low}
   applyPaint();buildCarVis(Object.assign({},CARS[i],{tune}));if(LV)resetToStart()}
-function applyPaint(){const p=PAINTS[prof.paint]||PAINTS[0],own=!prof.paint&&CARS[state.carIdx].col;M.yel.color.set(own||p.c).convertSRGBToLinear();rimLook(M.rim,M.rimF,prof.rim,prof.parts.weight|0)}
+function applyPaint(){const p=PAINTS[prof.paint]||PAINTS[0],own=!prof.paint&&CARS[state.carIdx].col;M.yel.color.set(own||p.c).convertSRGBToLinear();rimLook(M.rim,prof.rim,prof.parts.weight|0)}
 function resetToStart(){const s=LV.start;placeCar(car,s.p.x,s.p.z,Math.atan2(s.tan.x,s.tan.z));state.checkpoint={x:s.p.x,z:s.p.z,h:Math.atan2(s.tan.x,s.tan.z)};camSnap=true}
 
 /* ---------- game flow ---------- */
@@ -543,7 +542,7 @@ function renderGarage(){
     return`<div class="part"><span class="nm">${p.name} ${pips(lv,3)}</span><span class="lvn">${p.lv[lv]}</span><p class="ds">${p.desc}</p>
       <button class="buy ${can?'can':''} ${max?'max':''}" data-buy="${p.id}" ${can?'':'disabled'}>${max?'Fullt oppgradert':`Neste: ${p.lv[lv+1]}<b>⚙ ${price}</b>${can?'':'<span>mangler '+(price-prof.nuts)+'</span>'}`}</button></div>`}).join('');
   $('paintList').innerHTML=PAINTS.map((p,i)=>{const own=prof.paints.includes(i);if(p.locked&&!own)return`<button class="sw lk" data-paint="${i}" style="background:${p.c}" aria-label="${p.n}, låst" disabled>🔒</button>`;return`<button class="sw" data-paint="${i}" style="background:${p.c}" aria-pressed="${i===prof.paint}" aria-label="${p.n}${own?'':', koster '+p.p}">${own?'':'⚙'+p.p}</button>`}).join('');
-  $('rimList').innerHTML=RIMS.map((r,i)=>{const own=prof.rims.includes(i);return`<button class="sw rim" data-rim="${i}" style="--c:${r.c||'#3a3835'}" aria-pressed="${i===prof.rim}" aria-label="${r.n}${own?'':', koster '+r.p}">${own?'':'⚙'+r.p}</button>`}).join('');
+  $('rimList').innerHTML=RIMS.map((r,i)=>{const own=prof.rims.includes(i);return`<button class="sw rim" data-rim="${i}" style="--c:${r.c||(prof.parts.weight>=2?'#b08a3a':'#e3a62a')}" aria-pressed="${i===prof.rim}" aria-label="${r.n}${own?'':', koster '+r.p}">${own?'':'⚙'+r.p}</button>`}).join('');
   $('rimName').textContent=RIMS[prof.rim].n;
   $('flagList').innerHTML=FLAGS.map((f,i)=>{const own=prof.flags.includes(i);return`<button class="sw flg" data-flag="${i}" style="${f.k?'background-image:url('+flagCanvas(f).toDataURL()+')':''}" aria-pressed="${i===prof.flag}" aria-label="${f.n}${own?'':', koster '+f.p}">${own?(f.k?'':'Ingen'):'⚙'+f.p}</button>`}).join('');
   $('flagName').textContent=FLAGS[prof.flag].n;
@@ -648,6 +647,7 @@ addEventListener('keydown',e=>{
   if(state.mode!=='play')return;
   if(k==='enter'&&state.offerK){acceptOffer();return}
   if(k==='e'){walkToggle();return}   // out of the car and in again (js/walker.js)
+  if(k==='t'&&WALK.on){walkBack();return}   // «Tilbake til bil»: back to the car from anywhere
   if(WALK.on&&walkKeyDown(k))return;
   if(k==='k')openMap();
   if(k==='g'||k===' ')toggleGear();if(k==='l')setLights(!state.lights);if(k==='c')cycleCam();if(k==='r'){if(hasWinch())winchKey(true);else winch()}if(k==='m')setSound(!state.sound);
@@ -670,7 +670,9 @@ addEventListener('keyup',e=>{keys.delete(e.key.toLowerCase());if(e.key.toLowerCa
 addEventListener('blur',()=>{keys.clear();for(const k in state.input)state.input[k]=0});
 function toggleGear(){car.low=!car.low;updateGearUI();toast(car.low?'Lavt gir: krabbing':'Høyt gir: fart')}
 function updateGearUI(){$('hGearTxt').textContent=car.low?'LAV':'HØY';$('hGearSub').textContent=car.low?'krabb':'fart';$('bGear').classList.toggle('hi',!car.low)}
-function setLights(on){state.lights=on;$('bLights').setAttribute('aria-pressed',on);const led=car&&car.tune.led;M.lamp.emissive.set(on?0xfff1c0:0x000000);M.tail.emissive.set(on?0x8a1010:0x000000);M.beam.opacity=on?(led?.14:.085):0;if(carVis)carVis.spots.forEach(s=>s.intensity=on?(led?3.8:2.2):0)}
+// the tail lamps: dim red with the lights on, bright while you brake; the white lamps light when you reverse
+function tailGlow(){const V=carVis;M.tail.emissive.set(V&&V.brk?0xff2a14:state.lights?0x8a1010:0x000000);if(typeof carKit==='function')carKit().rev.emissive.set(V&&V.rev?0xdfe6ff:0x000000)}
+function setLights(on){state.lights=on;$('bLights').setAttribute('aria-pressed',on);const led=car&&car.tune.led;M.lamp.emissive.set(on?0xfff1c0:0x000000);tailGlow();M.beam.opacity=on?(led?.14:.085):0;if(carVis)carVis.spots.forEach(s=>s.intensity=on?(led?3.8:2.2):0)}
 const CAMS=['Følgekamera','Bakkekamera','Førerkamera'];
 function cycleCam(){state.camMode=(state.camMode+1)%3;tripod=null;if(state.camMode===0){orbitYaw=0;orbitPitch=0}camSnap=true;fovZoom=1;toast(CAMS[state.camMode])}
 function setSound(on){state.sound=on;store.set('sound',on);$('pSound').textContent='Lyd: '+(on?'på':'av');$('pSound').setAttribute('aria-pressed',on)}
@@ -686,7 +688,7 @@ function buzz(k,ms=70,pad=0){if(!state.haptics||!(k>.04))return;k=Math.min(1,k);
 function setVol(which,v){v=Math.max(0,Math.min(100,Math.round(v)));state[which]=v;store.set(which,v);const ids=which==='volCar'?['volCar','pVolCar']:['volAmb','pVolAmb'];
   for(const id of ids){const el=$(id);if(el&&el.value!==undefined)el.value=v;const o=$(id+'Out');if(o)o.textContent=v+' %'}}
 for(const[id,w]of[['volCar','volCar'],['pVolCar','volCar'],['volAmb','volAmb'],['pVolAmb','volAmb']]){const el=$(id);if(el)el.addEventListener('input',e=>setVol(w,+e.target.value))}
-$('bGear').onclick=()=>{if(state.mode==='play'&&!WALK.on)toggleGear()};$('bWalk').onclick=()=>walkToggle();$('bLights').onclick=()=>setLights(!state.lights);
+$('bGear').onclick=()=>{if(state.mode==='play'&&!WALK.on)toggleGear()};$('bWalk').onclick=()=>walkToggle();$('bBack').onclick=()=>walkBack();$('bLights').onclick=()=>setLights(!state.lights);
 $('bSlow').onclick=()=>setSpeed(state.speed-10);$('bFast').onclick=()=>setSpeed(state.speed+10);
 $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
@@ -723,7 +725,7 @@ function readInput(dt){
   if(gp){const ax=gp.axes[0]||0;if(Math.abs(ax)>.12)steer-=ax;const rt=gp.buttons[7]?gp.buttons[7].value:0,lt=gp.buttons[6]?gp.buttons[6].value:0;gas=Math.max(gas,rt);rev=Math.max(rev,lt);
     const ly=gp.axes[1]||0;if(ly<-.2)gas=Math.max(gas,-ly);if(ly>.2)rev=Math.max(rev,ly);
     const pr=i=>gp.buttons[i]&&gp.buttons[i].pressed&&!padPrev[i];
-    if(state.mode==='play'){if(pr(5))walkToggle();if(!WALK.on){if(pr(0))toggleGear();if(pr(1)){if(hasWinch())winchKey(true);else winch()}if(hasWinch()&&padPrev[1]&&!(gp.buttons[1]&&gp.buttons[1].pressed))winchKey(false)}if(pr(3))cycleCam();if(pr(2))setLights(!state.lights)}
+    if(state.mode==='play'){if(pr(5))walkToggle();if(pr(4))walkBack();if(!WALK.on){if(pr(0))toggleGear();if(pr(1)){if(hasWinch())winchKey(true);else winch()}if(hasWinch()&&padPrev[1]&&!(gp.buttons[1]&&gp.buttons[1].pressed))winchKey(false)}if(pr(3))cycleCam();if(pr(2))setLights(!state.lights)}
     if(pr(9)){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ski')skiKeyDown('escape');else if(state.mode==='boat')boatKeyDown('escape');else if(state.mode==='fly')flyKeyDown('escape');else if(state.mode==='cave')caveKeyDown('escape');else if(state.mode==='race')raceKeyDown('escape');else if(state.mode==='mine')mineKeyDown('escape');else if(state.mode==='menu')startRun()}
     padPrev={};gp.buttons.forEach((b,i)=>padPrev[i]=b.pressed)}
   steer=Math.max(-1,Math.min(1,steer));
@@ -765,14 +767,19 @@ const _q2=new Q4(),_q3=new Q4(),_e=new THREE.Euler(),_lA=new V3(),_lB=new V3();
 function syncVisuals(dt){
   carVis.body.position.copy(car.pos);carVis.body.quaternion.copy(car.q);
   car.wheels.forEach((w,i)=>{const v=carVis.wheels[i];v.root.position.copy(w.center);_q2.setFromAxisAngle(YAX,w.front?car.steer:0);v.root.quaternion.copy(car.q).multiply(_q2);v.spin.rotation.x=w.spin;
-    if(w.contact&&w.wd>0){if((Math.abs(w.vl)>.6||w.slip>.3)&&Math.random()<dt*30){_c2.copy(w.P);_c2.y=w.P.y+w.wd;spawnDust(_c2,w.surf===S.MUD||w.surf===S.BOG?98:99,true)}}
-    else if(w.contact&&(w.slip>.35||(car.vel.lengthSq()>4&&Math.random()<.3))&&Math.random()<dt*25)spawnDust(w.P,w.surf,w.surf===S.BOG||w.surf===S.MUD?w.slip>.5:false);
+    // spray: water splashes out to the sides, a spinning wheel throws mud and gravel backwards, and a fast car drags a cloud that grows with the speed
+    const v2=car.vel.lengthSq(),sp=Math.sqrt(v2),wet=w.surf===S.BOG||w.surf===S.MUD,sd=w.left?1:-1;
+    if(w.contact&&w.wd>0){if((Math.abs(w.vl)>.6||w.slip>.3)&&Math.random()<dt*(30+sp*8)){_c2.copy(w.P);_c2.y=w.P.y+w.wd;spawnDust(_c2,wet?98:99,true,car.lf.x*sd*(.5+sp*.25)+car.vel.x*.3,car.lf.z*sd*(.5+sp*.25)+car.vel.z*.3,1+Math.min(1,sp*.2))}}
+    else if(w.contact){const spin=w.slip>.35,kb=spin?-Math.sign(w.vl||1)*Math.min(2.2,.5+w.slip*.8):0;
+      if(spin&&Math.random()<dt*(wet?40:30))spawnDust(w.P,w.surf,wet||w.slip>1.2?1:0,car.fw.x*kb,car.fw.z*kb,1+Math.min(.6,w.slip*.2));
+      else if(v2>4&&Math.random()<dt*Math.min(26,4+sp*4))spawnDust(w.P,w.surf,false,car.vel.x*.18,car.vel.z*.18,1+Math.min(1.2,sp*.18))}
     if(w.contact&&(w.surf===S.BOG||w.surf===S.MUD))v.root.position.y-=w.surf===S.BOG?.06:.03;
     if(w.contact&&state.mode!=='menu'){const st=w.front?car.steer:0,cs=Math.cos(st),sn=Math.sin(st);layTrack(w,car.fw.x*cs+car.lf.x*sn,car.fw.z*cs+car.lf.z*sn)}});
   for(let a=0;a<2;a++){const L=car.wheels[a*2].center,R=car.wheels[a*2+1].center,ax=carVis.axles[a];ax.position.copy(L).add(R).multiplyScalar(.5);_c2.copy(L).sub(R);const len=_c2.length();
     ax.quaternion.setFromUnitVectors(YAX,_c2.normalize());ax.userData.tube.scale.y=len}
   for(const l of carVis.links){_lA.copy(l.a).applyQuaternion(car.q).add(car.pos);_lB.copy(l.o).applyQuaternion(car.q).add(car.wheels[l.w].center);l.m.position.copy(_lA).add(_lB).multiplyScalar(.5);
     _lB.sub(_lA);const len=_lB.length()||1;l.m.quaternion.setFromUnitVectors(YAX,_lB.multiplyScalar(1/len));l.m.scale.set(1,len,1)}
+  {const fv=car.vel.dot(car.fw),drv=state.mode==='play'&&!WALK.on,brk=drv&&((car.throttle<-.05&&fv>.25)||(car.throttle>.05&&fv<-.25)),rev=drv&&car.throttle<-.05&&fv<=.25;if(brk!==carVis.brk||rev!==carVis.rev){carVis.brk=brk;carVis.rev=rev;tailGlow()}}
   // shadow follows car
   const d=LEVELS[state.levelIdx].sunDir,fp=focusPos();sun.position.set(fp.x+d[0],fp.y+d[1],fp.z+d[2]);sun.target.position.copy(fp);
   skyDome.position.copy(camera.position);const dl=Math.hypot(d[0],d[1],d[2]);sunGlow.position.set(camera.position.x+d[0]/dl*170,camera.position.y+d[1]/dl*170,camera.position.z+d[2]/dl*170);
