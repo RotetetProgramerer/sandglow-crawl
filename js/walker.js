@@ -3,14 +3,14 @@
    ON FOOT: the driver gets out of the car and walks around.
    E (or the button with the walking man) when the car stands still: the driver climbs out of his door, and you steer him with the
    same keys and touch buttons as the car (left and right turn him, gas walks and runs, reverse backs up, space or the jump button hops).
-   E again beside the car and he gets back in. The car stays where it was parked.
+   E again beside the car and he gets back in. The car stays where it was parked. Lost far away? «Tilbake til bil» (T) puts him back at his door.
    He follows the ground (H), cannot climb walls or wade into deep water or lava, and walks round trees, houses and his own car.
    Anything that takes the car away or ends the driving (a course starting, the ferry, the winch home, the garage, the menu) puts him
    straight back behind the wheel, so the rest of the game never has to know that he was out.
    Loaded after ski.js (bone) and before net.js; uses the globals of game.js, carmodel.js and world.js at run time.
    ================================================================= */
 const WALK={on:false,ph:'',k:0,t:0,side:1,pos:new V3(),h:0,v:0,vy:0,cyc:0,mv:0,run:0,sit:0,air:0,camH:0,from:new V3(),fromH:0,goT:0,goD:1,jumpHeld:false,
-  men:{},door:null,shut:false,lv:null,body:null,carAt:new V3(),sayT:0,steps:0};
+  men:{},door:null,shut:false,far:false,lv:null,body:null,carAt:new V3(),sayT:0,steps:0};
 const wSm=x=>{x=x<0?0:x>1?1:x;return x*x*(3-2*x)};
 const wAng=a=>Math.atan2(Math.sin(a),Math.cos(a));
 
@@ -127,12 +127,20 @@ function walkIn(){const W=WALK;if(!W.on||W.ph!=='walk'||W.air>.3)return;
   const side=(W.pos.x-car.pos.x)*car.lf.x+(W.pos.z-car.pos.z)*car.lf.z<0?-1:1;   // the door on the side he stands
   const p=walkPath(1,side,_wo),d=Math.hypot(p.x-W.pos.x,p.z-W.pos.z),dx=W.pos.x-car.pos.x,dz=W.pos.z-car.pos.z,l=Math.hypot(car.lf.x,car.lf.z)||1;
   const off=Math.hypot(Math.max(0,Math.abs(dx*car.lf.x+dz*car.lf.z)/l-walkSeat(car.cfg).hw),Math.max(0,Math.abs(-dx*car.lf.z+dz*car.lf.x)/l-car.cfg.L/2));   // how far he is from the side of the car, wherever along it he stands
-  if((d>1.7&&off>1.2)||Math.abs(p.y-W.pos.y)>.8){toast('Gå bort til bilen for å sette deg inn',true);return}
+  if((d>1.7&&off>1.2)||Math.abs(p.y-W.pos.y)>.8){toast(document.body.classList.contains('is-touch')?'For langt unna · trykk Tilbake til bil':'For langt unna · T tar deg tilbake til bilen',true);return}
   if(car.up.y<.6){toast('Bilen ligger på siden',true);return}
   W.side=side;W.ph='go';W.from.copy(W.pos);W.fromH=W.h;W.goT=0;W.goD=Math.max(.12,d/1.7);W.v=0}
+// «Tilbake til bil» (T): from anywhere on the island he is put back at his door, and climbs in. If the car lies on its side, or there is
+// no room at either door, he is simply back behind the wheel
+function walkBack(){const W=WALK;if(!W.on||W.ph!=='walk'||state.mode!=='play')return;
+  const far=Math.hypot(W.pos.x-car.pos.x,W.pos.z-car.pos.z)>6,side=car.up.y<.6?0:walkRoom(1)?1:walkRoom(-1)?-1:0;
+  if(far){camSnap=true;tripod=null}   // the camera cuts to the car instead of sweeping across the island
+  if(!side){walkEnd();toast('Tilbake i bilen');return}
+  const p=walkPath(1,side,_wo);Object.assign(W,{side,ph:'in',k:1,v:0,vy:0,mv:0,run:0,air:0,sit:0,h:p.h,camH:Math.atan2(car.fw.x,car.fw.z)});W.pos.set(p.x,H(p.x,p.z),p.z);
+  toast('Tilbake til bilen')}
 // back behind the wheel at once
 function walkEnd(){const W=WALK;if(!W.on)return;W.on=false;W.ph='';W.v=0;for(const k in W.men)W.men[k].root.visible=false;walkDriver(true);walkDoorDrop();arrow.scale.setScalar(1);
-  $('hud').classList.remove('walk');$('bWalk').setAttribute('aria-pressed',false)}
+  $('hud').classList.remove('walk');$('bWalk').setAttribute('aria-pressed',false);W.far=false;$('bBack').classList.remove('far')}
 // keys while he is out: the gear, the winch and the speed limit belong to the car
 function walkKeyDown(k){return k==='g'||k===' '||k==='r'||k==='+'||k==='='||k==='-'||k==='_'}
 
@@ -206,6 +214,7 @@ function walkSync(dt){const W=WALK;if(!W.on)return;const v=walkMan();
   const dx=car.pos.x-W.pos.x,dz=car.pos.z-W.pos.z,d=Math.hypot(dx,dz);
   if(W.ph==='walk'&&d>5&&state.camMode!==2){arrow.visible=true;arrow.scale.setScalar(.7);arrow.position.copy(W.pos).add(_wa.set(0,1.25,0));arrow.quaternion.setFromUnitVectors(YAX,_wa.set(dx/d,0,dz/d))}else arrow.visible=false;
   beacon.visible=false;
+  const far=W.ph==='walk'&&d>5;if(far!==W.far){W.far=far;$('bBack').classList.toggle('far',far)}   // «Tilbake til bil» lights up when the car is out of reach
   if(state.mode==='play')$('hSpeed').textContent=Math.round(Math.abs(W.v)*UNIT_CM)}
 
 /* ---------- the others in the room (js/net.js) ---------- */
