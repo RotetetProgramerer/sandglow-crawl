@@ -39,6 +39,7 @@ js/race.js            Racene på Racerøya sett ovenfra: tegningen, kameraet, HU
 js/racenet.js         Kjør sammen på Racerøya: invitasjon, lobby, felles start, bilene til de andre og dult mellom spillerne.
 js/net.js             Flerspiller: rom, romkode og de andre bilene.
 js/gps.js             GPS-en i spillet: trykk på kartet, så viser en blå pil, piler på bakken og en linje på kartene veien dit.
+js/tips.js           Tips underveis: korte hint første gang du nærmer deg et sted, sitter fast eller står stille. ← legg til nye tips her
 js/props/             Enkeltelementer: trær, palmer, gran … én fil per element. ← finpuss elementer her
 props.html            Elementverkstedet: se og juster ett element alene (åpne i nettleseren).
 data/cars.js          Bilene.                 ← legg til nye biler her

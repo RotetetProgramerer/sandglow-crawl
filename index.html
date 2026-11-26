@@ -74,6 +74,7 @@
   <div class="toast" id="toast"></div>
   <div class="count" id="count" hidden></div>
   <div class="hint" id="hint" hidden></div>
+  <div class="tip" id="tip" role="status" aria-live="polite" hidden><span>Tips</span><p id="tipTxt"></p><button id="tipOk" aria-label="Lukk tipset">OK</button></div>
   <div class="offer" id="offer" hidden>
     <div class="ot"><span id="oKind">Løype</span><b id="oName"></b><small id="oBest"></small></div>
     <button class="go" id="oGo">START <kbd>Enter</kbd></button>
@@ -253,6 +254,7 @@
       <dt>I gruva</dt><dd>Svalbard: ← → bytter spor, ↑ hopper, ↓ dukker, mellomrom bruker det du fant i kassen. På berøringsskjerm sveiper og trykker du.</dd>
       <dt>I grotten</dt><dd>Kameløya: → eller W gass, ← eller S brems og revers. I lufta tipper gass nesa opp og brems nesa ned.</dd>
     </dl>
+    <button class="ghost" id="mHelp">Slik spiller du</button>
       </div>
     </details>
   </div>
@@ -289,6 +291,7 @@
     </div>
     <div class="row"><button class="ghost" id="pMap" hidden>Øykartet</button><button class="ghost" id="pFetch">Hent bilen (straff)</button><button class="ghost" id="pAbort" hidden>Avbryt løpet</button></div>
     <div class="row"><button class="ghost" id="pSound" aria-pressed="true">Lyd: på</button><button class="ghost" id="pHap" aria-pressed="true">Vibrasjon: på</button></div>
+    <div class="row"><button class="ghost" id="pHelp">Slik spiller du</button></div>
     <div class="pnet" id="pNet" hidden>
       <h3>Kjør sammen · <span id="pNetCode"></span></h3>
       <div class="alist" id="pNetList"></div>
@@ -366,7 +369,7 @@
 <!-- FIRST RUN (open world) -->
 <section class="overlay dialog" id="help" hidden>
   <div class="sheet">
-    <p class="eyebrow">Velkommen til skjærgården</p>
+    <p class="eyebrow">Skjærgården</p>
     <h2>Slik spiller du</h2>
     <ul class="log">
       <li><b>Kjør fritt.</b> Hele øya er din. Pilen og minikartet viser nærmeste startstrek.</li>
@@ -384,7 +387,7 @@
       <li><b>Hopp på sanddynene på Kameløya,</b> og let etter den hemmelige grotten. Der inne er hver diamant verdt 10 muttere.</li>
       <li><b>Sitter du fast?</b> Lavt gir (G), vinsj (R) eller «Hent bilen» i pausemenyen (Esc).</li>
     </ul>
-    <button class="go" id="helpOk">Kjør!</button>
+    <button class="go" id="helpOk">Lukk</button>
   </div>
 </section>
 
@@ -645,6 +648,7 @@
 <script src="js/racenet.js"></script>
 <script src="js/net.js"></script>
 <script src="js/gps.js"></script>
+<script src="js/tips.js"></script>
 <script>startGame()</script>
 <script>if('serviceWorker' in navigator&&location.protocol!=='file:')navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>

@@ -139,6 +139,14 @@ kbd{font-family:var(--f-body);font-weight:700;border:1px solid rgba(242,232,208,
 .toast.on{opacity:1}
 .toast.bad{color:var(--signal)}
 .hint{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--signal);color:var(--ink);font-weight:700;padding:8px 14px;font-size:1.05rem;text-align:center;max-width:calc(100% - 32px)}
+.tip{position:fixed;z-index:12;left:50%;top:calc(128px + env(safe-area-inset-top,0px));transform:translate(-50%,-8px);width:max-content;max-width:min(460px,calc(100% - 32px));
+  display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sand);padding:8px 8px 8px 12px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
+.tip.on{opacity:1;transform:translate(-50%,0);pointer-events:auto}
+.tip span{font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.78rem;color:var(--sand)}
+.tip p{margin:0;font-size:1.02rem;line-height:1.25;color:var(--paper);flex:1;min-width:0}
+.tip button{border:1px solid var(--line);padding:8px 12px;font-weight:700;letter-spacing:.06em;color:var(--paper);min-height:40px}
+@media (prefers-reduced-motion:reduce){.tip{transition:none}}
+@media (max-width:620px){.tip{top:calc(252px + env(safe-area-inset-top,0px))}}   /* below the minimap */
 .hint button{text-decoration:underline;font-weight:700}
 /* a start portal nearby: the car keeps driving, the player chooses to start */
 .offer{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(116px + env(safe-area-inset-bottom,0px));display:flex;align-items:center;gap:14px;
