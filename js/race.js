@@ -417,7 +417,7 @@ function rcHud(x,v,t){const c=v.car,R=RC.R,vp=v.vp,two=RC.views.length>1,s=Math.
   if(v.noticeT>0&&v.notice){const a=Math.min(1,v.noticeT*3),ns=Math.min(56,vp.w/12)*Math.max(.8,s),ny=vp.y+vp.h*(tt&&mid&&vp.h<460?.44:.3);x.globalAlpha=a;rcTxt(x,v.notice,vp.x+vp.w/2,ny,ns,v.noticeBad?'#FF6A2A':'#E5A92B','center');
     if(v.noticeSub)rcTxt(x,v.noticeSub,vp.x+vp.w/2,ny+ns*.62,Math.max(15,ns*.42),'#f2e8d0','center','600 '+RC_BODY);x.globalAlpha=1}
   // the first races: the keys, under the lights and for the first seconds
-  if(!two&&!touch&&(RC.phase==='count'||R.t<5)&&((prof.race&&prof.race.runs)||0)<3){const a=RC.phase==='count'?1:Math.max(0,Math.min(1,5-R.t));x.globalAlpha=a;rcTxt(x,'↑ gass   ← → styr   ↓ brems   SPACE håndbrekk',vp.x+vp.w/2,vp.y+vp.h-92*s,17*s,'#f2e8d0','center','600 '+RC_BODY);x.globalAlpha=1}
+  if(!two&&(RC.phase==='count'||R.t<5)&&((prof.race&&prof.race.runs)||0)<3){const a=RC.phase==='count'?1:Math.max(0,Math.min(1,5-R.t));x.globalAlpha=a;rcTxt(x,touch?'Styr til venstre · gass og brems til høyre · sladd med håndbrekket gir turbo':'↑ gass   ← → styr   ↓ brems   SPACE håndbrekk',vp.x+vp.w/2,touch?vp.y+vp.h*.3:vp.y+vp.h-92*s,17*s,'#f2e8d0','center','600 '+RC_BODY);x.globalAlpha=1}
   // the countdown lights, big
   if(RC.phase==='count'){const n=5,r=18*s,gx=vp.x+vp.w/2-(n-1)*r*1.3,gy=Math.max(vp.y+vp.h*.18,tt&&mid?by+bh+r*1.6+8:0);rcBox(x,gx-r*1.6,gy-r*1.6,(n-1)*r*2.6+r*3.2,r*3.2);
     for(let i=0;i<n;i++){x.fillStyle=i<RC.lights?'#ff2a1a':'#3a2020';x.beginPath();x.arc(gx+i*r*2.6,gy,r,0,6.283);x.fill();if(i<RC.lights){x.fillStyle='rgba(255,60,30,.3)';x.beginPath();x.arc(gx+i*r*2.6,gy,r*1.5,0,6.283);x.fill()}}}

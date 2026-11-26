@@ -602,12 +602,14 @@ function finishRun(){
   const today=new Date().toDateString();let dbl=false,dblNote='';
   if(prof.lastDay!==today){if(state.missed===0){prof.lastDay=today;dbl=true;e*=2}else dblNote='Ta alle portene for å få dagens dobbel. '}
   prof.nuts+=e;prof.runs++;saveProf();
-  $('rNuts').textContent='+'+fmtN(e);$('rNutsNote').textContent=(dbl?'Dagens første tur: dobbelt! ':dblNote)+el.join(' · ');
+  $('rNuts').textContent='+0';nutsCount=e>0?{el:$('rNuts'),n:e,t:-.9}:null;ambFanfare(p===0);$('rNutsNote').textContent=(dbl?'Dagens første tur: dobbelt! ':dblNote)+el.join(' · ');
   $('rLog').innerHTML=items.join('');
   $('rNext').textContent=state.world?'Kjør videre':state.levelIdx<LEVELS.length-1?'Neste bane':'Første bane';
   setTimeout(()=>{$('result').hidden=false;$('rNext').focus()},900);toast('Mål!');
 }
 function fmtTime(t){t=Math.round(t*10)/10;const m=Math.floor(t/60),s=t-m*60;return m+':'+(s<10?'0':'')+s.toFixed(1)}
+// the nuts on the result sheet count up from 0 (it starts when the sheet is shown)
+let nutsCount=null;function nutsTick(dt){const c=nutsCount;if(!c)return;c.t+=dt;const k=Math.max(0,Math.min(1,c.t/1.1));c.el.textContent='+'+fmtN(Math.round(c.n*(1-(1-k)*(1-k))));if(k>=1)nutsCount=null}
 let toastT=0;function toast(msg,bad){const el=$(typeof CV!=='undefined'&&CV.on?'cvToast':BT.on||(typeof FL!=='undefined'&&FL.on)?'boatToast':'toast');el.textContent=msg;el.classList.toggle('bad',!!bad);el.classList.add('on');toastT=1.6}
 
 function segX(p1,p2,a,b){const d=(p2.x-p1.x)*(b.z-a.z)-(p2.z-p1.z)*(b.x-a.x);if(Math.abs(d)<1e-9)return false;
@@ -643,6 +645,7 @@ addEventListener('keydown',e=>{
   if(state.mode==='vault'){vaultKeyDown(k);return}   // Frøhvelvet (js/frohvelv.js)
   if(MAP.open&&(k==='escape'||k==='k')){openMap(false);return}
   if(k==='escape'||k==='p'){if(state.mode==='play')pause(true);else if(state.mode==='pause')pause(false);else if(state.mode==='ask')answerAsk(false)}
+  if(state.mode==='ask'&&/^[1-9]$/.test(k)&&!$('aList').hidden){const b=$('aList').querySelectorAll('button')[+k-1];if(b&&!b.disabled){b.click();return}}
   if(state.mode==='ask'&&(k==='enter'||k==='j'))answerAsk(true);
   if(state.mode!=='play')return;
   if(k==='enter'&&state.offerK){acceptOffer();return}
@@ -842,14 +845,14 @@ function frame(now){
     // airtime
     if(car.wheels.every(w=>!w.contact)&&car.pos.y>H(car.pos.x,car.pos.z)+.3){state.air+=dt;state.fallV=Math.min(state.fallV||0,car.vel.y)}else if(state.air>0){const hit=-(state.fallV||0);if(state.air>.2&&hit>2.2){landShake=Math.min(.05,hit*.012);ambThump(Math.min(1,hit/8));for(let i=0;i<Math.min(14,hit*2|0);i++)for(const w of car.wheels)if(w.contact&&Math.random()<.5)spawnDust(w.P,w.surf,true)}state.fallV=0;if(state.air>.32&&!(state.thrown&&performance.now()-state.thrown<4000)){state.jumps++;if(state.air>.5)state.longJumps++;state.bestAir=Math.max(state.bestAir,state.air);toast('Hopp! '+state.air.toFixed(1).replace('.',',')+' s'+(state.air>.5?' · +20 ⚙':''))}state.air=0}
     // crates
-    for(const c of crateVis){if(c.taken)continue;const dx=c.cr.x-car.pos.x,dz=c.cr.z-car.pos.z;if(dx*dx+dz*dz<.42&&Math.abs(c.cr.y-car.pos.y)<.9){c.taken=true;c.g.visible=false;state.crates++;toast('Kasse '+state.crates+'/'+LV.crates.length+' · +15 ⚙');for(let i=0;i<6;i++)spawnDust(c.g.position,0,true)}}
+    for(const c of crateVis){if(c.taken)continue;const dx=c.cr.x-car.pos.x,dz=c.cr.z-car.pos.z;if(dx*dx+dz*dz<.42&&Math.abs(c.cr.y-car.pos.y)<.9){c.taken=true;c.g.visible=false;state.crates++;toast('Kasse '+state.crates+'/'+LV.crates.length+' · +15 ⚙');ambCoin();buzz(.3,40);for(let i=0;i<6;i++)spawnDust(c.g.position,0,true)}}
     if(car.pos.y<-3||Math.abs(car.pos.x)>HALF-.5||Math.abs(car.pos.z)>HALF-.5){winch();toast('Utenfor banen: vinsj',true)}
     if(state.world){updateWorld(dt);gpsUpdate(dt);updateFog(dt);saveRoam(dt)}
     updateSecrets(dt);
     if(typeof tipsUpdate==='function')tipsUpdate(dt);
     updateHUD(dt);
   }
-  if(state.mode==='done'&&toastT>0)updateHUD(dt);
+  if(state.mode==='done'&&toastT>0)updateHUD(dt);nutsTick(dt);
   if(updateBoat(dt)){if(typeof netTick==='function')netTick(dt);return}   // out at sea (js/boat.js): the boat race is drawn instead of the island
   if(updateFly(dt)){if(typeof netTick==='function')netTick(dt);return}    // in the air (js/plane.js): the same sea, seen from the plane
   if(updateCave(dt)){if(typeof netTick==='function')netTick(dt);return}   // in Diamantgrotten (js/grotte.js): the cave seen from the side
