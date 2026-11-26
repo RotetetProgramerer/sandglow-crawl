@@ -646,13 +646,17 @@ Testen lar en autopilot kjøre vogna di mot rivalene i flere hastigheter. Hver r
 
 | Felt | Hva |
 |---|---|
-| `polarbears:[{at,r,n}]` | Isbjørner. De rusler rundt og snuser når de er i ro. Kommer du innenfor 11 enheter, snur de seg mot deg, og innenfor 7,5 angriper de, som løvene på Løveøya (tallene står i `SAV_KIND.bear`). Et treff kaster bilen rundt og koster 5 straffepoeng i et løp eller 3 muttere i fri kjøring. I lavt gir tar bjørnen deg igjen; i høyt gir eller på skuter slipper du unna. |
+| `polarbears:[{at,r,n,charge}]` | Isbjørner. De rusler rundt og snuser når de er i ro. Kommer du innenfor 11 enheter, snur de seg mot deg, og innenfor 7,5 angriper de, som løvene på Løveøya (tallene står i `SAV_KIND.bear`). Et treff kaster bilen rundt og koster 5 straffepoeng i et løp eller 3 muttere i fri kjøring. I lavt gir tar bjørnen deg igjen; i høyt gir eller på skuter slipper du unna. `charge` gir én bjørn sin egen angrepsavstand. Bjørnene på Svalbard står så langt fra løypene, veiene og gruveinngangen at de bare varsler den som holder seg der; flytter du en bjørn eller en løype, så hold minst 7,5 + `r` mellom dem. |
 | `reindeer:[{at,r,n}]` | Svalbardrein: korte bein og runde kropper. De beiter i flokk og trasker unna bilen. |
 | `seals:[{at:[x,z],n}]` | Sel ved et pustehull (`at` er hullet). Kommer du nær, vrikker de seg til hullet og stuper, og titter opp igjen når det er stille. |
 | `walruses:[{at,r,n}]` | Hvalross som ligger i ro, løfter hodet og grynter. De flytter seg ikke, og dytter bilen til side. |
 | `dogs:[[x,z,retning],…]` | Sledehunder som følger bilen med hodet og logrer. |
 
 Binna med unge, fjellrevene og snøuglene står i ro og kommer fra `data/dyr.js`.
+
+**Fargene:** `paintIsland` i banefilen farger snøen, isen og fjellet selv med `setC`, rett før `c.finish()`. Lesidene blir blå og solsidene lyse (regnet ut fra `sunDir`), vinden legger skavler, veiene er hardkjørte spor med hjulspor, skuterløypene har et beltespor, breisen er blå med turkise sprekker, fjordisen er blågrå med sprekker og snøfonner, Gruvefjellet har vannrette berglag med snø på hyllene, og strendene og rabbene har snøflekker i kanten. Bare fargene endres: underlaget (`TS`) og grepet er som før. Fargene står øverst i funksjonen.
+
+**Pynten:** røde løypestikker står langs veiene (de velter om du kjører på dem), brefronten har taggete isblokker og kalvet is i sjøen foran, og drivis flyter rundt øya, unntatt i fergeleia og ved flyplassen.
 
 **Terrenget:** `glH` er breen (bredden på kanten styrer om det er snøbakke eller isvegg), `mesa` er Gruvefjellet med de to veiene i `RAMPS`, og `landExtra` lar breen og fjordisen gå helt ut i havet. Hoppene i Breløpet lages av `jump` i `build(c)`.
 
