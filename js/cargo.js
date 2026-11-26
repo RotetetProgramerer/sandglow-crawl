@@ -120,7 +120,7 @@ function cgStep(){const pl=FL.pl,S=FL.cargo,flying=FL.phase==='fly';if(!pl||!S)r
   for(const e of pl.ev){
     if(e.type==='takeoff'){FL.took=true;FL.landed=false;S.warn=false;fNotice('Du er i lufta! Kurs mot '+S.dest.name,1800)}
     else if(e.type==='land'){FL.landed=true;const ap=cargoWhere(pl.x,pl.z);fNotice(ap?'Landet på '+ap.name+' · brems':'Landet',2200);fxSplash(bV(pl.x,pl.y-PCARGO.gear,pl.z))}
-    else if(e.type==='crash'){FL.mesh.visible=false;if(e.water)fxSplash(bV(pl.x,2,pl.z));else fxHit(bV(pl.x,pl.y,pl.z),0x666666);fxHit(bV(pl.x,pl.y+2,pl.z),0xf4f2ec);fBoom();fNotice(e.water?'Plask! Du får et nytt forsøk':'Krasj! Du får et nytt forsøk',2200)}
+    else if(e.type==='crash'){FL.mesh.visible=false;if(e.water)fxSplash(bV(pl.x,2,pl.z));else fxHit(bV(pl.x,pl.y,pl.z),0x666666);fxHit(bV(pl.x,pl.y+2,pl.z),0xf4f2ec);fBoom();buzz(1,220);fNotice(e.water?'Plask! Du får et nytt forsøk':'Krasj! Du får et nytt forsøk',2200)}
     else if(e.type==='respawn')cgRespawn();
     else if(e.type==='edge')fNotice('Snu – her slutter kartet',1500)}
   pl.ev.length=0;

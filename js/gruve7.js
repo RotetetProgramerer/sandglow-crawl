@@ -215,9 +215,9 @@ function mStep(dt){const R=MN.race,c=R.P,m=MN.mine,q=MN.q,inp={left:q.left,right
     else if(e.type==='rocket'){mNotice('Flyvende start!',1300);mWhoosh(1)}
     else if(e.type==='early')mNotice('For tidlig!',1100,true);
     else if(e.type==='lane'){if(me)mNoise(.09,'bandpass',900,.12)}
-    else if(e.type==='side'){if(me){mNoise(.08,'bandpass',600,.3);MN.shake=Math.max(MN.shake,.25)}}
+    else if(e.type==='side'){if(me){buzz(.4,60);mNoise(.08,'bandpass',600,.3);MN.shake=Math.max(MN.shake,.25)}}
     else if(e.type==='jump'){if(me)mTone(260,.2,'sine',.12,-260)}
-    else if(e.type==='land'){if(me){mNoise(.16,'lowpass',260,.5);mTone(70,.14,'sine',.3,30);MN.shake=Math.max(MN.shake,.12)}}
+    else if(e.type==='land'){if(me){buzz(.3,50);mNoise(.16,'lowpass',260,.5);mTone(70,.14,'sine',.3,30);MN.shake=Math.max(MN.shake,.12)}}
     else if(e.type==='trick'){if(me){mNotice(e.perf?'Perfekt hopp!':'Fint hopp!',900);mTone(1175,.1,'triangle',.14);mTone(1568,.22,'triangle',.14,0,.08);mWhoosh(.6)}}
     else if(e.type==='pad'){if(me){mWhoosh(.8);mTone(660,.25,'sawtooth',.07,-500)}}
     else if(e.type==='draft'){if(me){mNotice('Dragsug!',900);mWhoosh(.7)}}
@@ -229,10 +229,10 @@ function mStep(dt){const R=MN.race,c=R.P,m=MN.mine,q=MN.q,inp={left:q.left,right
     else if(e.type==='shield'){if(me){mNotice('Skjoldet tok støyten',1100);mTone(1046,.25,'sine',.16,400)}mBurst(k.s,k.x*LW,1.3,10,'#6fe0ff','#ffffff')}
     else if(e.type==='smash'){const o=m.obs[e.o],g=MN.obsVis[e.o];if(g)g.visible=false;for(let L=-1;L<=1;L++)if(o.lanes[L+1])mBurst(o.s,L*LW,1,9,'#c8c0b4','#8a8278');if(Math.abs(o.s-c.s)<60)mNoise(.35,'lowpass',900,.5)}
     else if(e.type==='hit'){mBurst(k.s+1,k.x*LW,1,12,'#ffb040','#fff0c0');
-      if(me){MN.shake=1;mNoise(.6,'lowpass',520,.9);mTone(90,.4,'sine',.5,50);mNotice(M_HIT[e.kind]+(e.drop?' · mistet '+e.drop+' kull':''),1300,true)}else if(near)mNoise(.3,'lowpass',500,.35)}
+      if(me){MN.shake=1;buzz(1,180);mNoise(.6,'lowpass',520,.9);mTone(90,.4,'sine',.5,50);mNotice(M_HIT[e.kind]+(e.drop?' · mistet '+e.drop+' kull':''),1300,true)}else if(near)mNoise(.3,'lowpass',500,.35)}
     else if(e.type==='struck'){if(e.by===0)mNotice('Traff '+k.name+'!',1100)}
     else if(e.type==='trapped'){if(e.by===0&&!me)mNotice(k.name+' gikk i fella!',1100)}
-    else if(e.type==='bump'){if(me||e.o===0){mNoise(.1,'bandpass',700,.4);mTone(180,.1,'square',.1);MN.shake=Math.max(MN.shake,.3)}}
+    else if(e.type==='bump'){if(me||e.o===0){buzz(.5,70);mNoise(.1,'bandpass',700,.4);mTone(180,.1,'square',.1);MN.shake=Math.max(MN.shake,.3)}}
     else if(e.type==='back'){if(me)MN.snap=true}
     else if(e.type==='fin'){if(me){MN.phase='done';MN.doneT=0;(e.place===1?[523,659,784,1047,784,1047]:[523,659,784]).forEach((n,i,a)=>mTone(n,i===a.length-1?.9:.16,'triangle',.22,0,i*.17))}else if(near)mTone(660,.3,'triangle',.1)}}
   R.ev.length=0;

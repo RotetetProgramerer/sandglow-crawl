@@ -9,7 +9,7 @@ const store={get(k,d){try{const v=localStorage.getItem('sgc:'+k);return v==null?
 // car and level are saved by id; older saves used the list index
 const idxOf=(list,v)=>{const i=typeof v==='number'?v:list.findIndex(x=>x.id===v);return i>=0&&i<list.length?i:0};
 const state={mode:'menu',carIdx:idxOf(CARS,store.get('car',0)),levelIdx:idxOf(LEVELS,store.get('level',0)),assist:store.get('assist',true),camMode:0,lights:false,sound:store.get('sound',true),
-  speed:store.get('speed',100),gfx:store.get('gfx','hi'),volCar:store.get('volCar',70),volAmb:store.get('volAmb',70),
+  speed:store.get('speed',100),gfx:store.get('gfx','hi'),volCar:store.get('volCar',70),volAmb:store.get('volAmb',70),haptics:store.get('haptics',true),
   time:0,started:false,penalty:0,next:0,flipT:0,checkpoint:null,missed:0,touched:0,winches:0,log:[],input:{gas:0,rev:0,left:0,right:0}};
 let best=store.get('best',{});
 // player profile: currency, parts, paint
@@ -550,7 +550,7 @@ $('carSale').addEventListener('click',e=>{const b=e.target.closest('[data-buycar
 $('paintList').addEventListener('click',e=>{const b=e.target.closest('[data-paint]');if(b)pickPaint(+b.dataset.paint)});
 $('mGarage').onclick=toGarage;$('rGarage').onclick=toGarage;$('gBack').onclick=toMenu;$('gDrive').onclick=startRun;
 function pause(on){if(state.mode==='race'){if(on)raceKeyDown('escape');return}if(state.mode==='cave'){if(on)caveKeyDown('escape');return}if(state.mode==='mine'){if(on)mineKeyDown('escape');return}if(state.mode==='ski'){if(on)skiKeyDown('escape');return}if(state.mode==='boat'){if(on)boatKeyDown('escape');return}if(state.mode==='fly'){if(on)flyKeyDown('escape');return}if(state.mode!=='play'&&state.mode!=='pause')return;state.mode=on?'pause':'play';$('pause').hidden=!on;$('pAbort').hidden=!state.course;$('pMap').hidden=!state.world;$('pRestart').textContent=state.course?'Start løpet på nytt':state.world?'Tilbake til basen':'Start på nytt';if(on)$('pResume').focus();if(on&&typeof netPauseUI==='function')netPauseUI()}
-function addPenalty(n,why){state.penalty+=n;state.log.push(why);toast('+'+n+' '+why.split(':')[0],true)}
+function addPenalty(n,why){buzz(n>=5?.8:.5,n>=5?120:70);state.penalty+=n;state.log.push(why);toast('+'+n+' '+why.split(':')[0],true)}
 // auto: the flip assist in easy mode puts the car back for free; everything else costs a winch penalty
 function winch(auto){
   if(state.mode!=='play')return;walkEnd();const cp=state.checkpoint;placeCar(car,cp.x,cp.z,cp.h);   // walkEnd: a driver on foot is back behind the wheel (js/walker.js)
@@ -662,6 +662,15 @@ function setLights(on){state.lights=on;$('bLights').setAttribute('aria-pressed',
 const CAMS=['Følgekamera','Bakkekamera','Førerkamera'];
 function cycleCam(){state.camMode=(state.camMode+1)%3;tripod=null;if(state.camMode===0){orbitYaw=0;orbitPitch=0}camSnap=true;fovZoom=1;toast(CAMS[state.camMode])}
 function setSound(on){state.sound=on;store.set('sound',on);$('pSound').textContent='Lyd: '+(on?'på':'av');$('pSound').setAttribute('aria-pressed',on)}
+function setHaptics(on){state.haptics=on;store.set('haptics',on);$('hapOn').setAttribute('aria-pressed',on);$('hapOff').setAttribute('aria-pressed',!on);$('pHap').textContent='Vibrasjon: '+(on?'på':'av');$('pHap').setAttribute('aria-pressed',on)}
+// a short jolt in the phone (Android) and in a gamepad that can rumble. k: strength 0–1, ms: length, pad: which player's gamepad (split screen).
+// A weaker jolt never cuts off a stronger one that is still running.
+let buzzEnd=0,buzzK=0;
+function buzz(k,ms=70,pad=0){if(!state.haptics||!(k>.04))return;k=Math.min(1,k);const now=performance.now();if(now<buzzEnd&&k<buzzK)return;buzzEnd=now+ms;buzzK=k;
+  try{if(navigator.vibrate&&document.body.classList.contains('is-touch'))navigator.vibrate(Math.round(ms*(.35+.65*k)))}catch(e){}
+  try{const pads=navigator.getGamepads?[...navigator.getGamepads()].filter(g=>g&&g.connected):[],gp=pads[pad]||pads[0];if(!gp)return;
+    const a=gp.vibrationActuator;if(a&&a.playEffect){const p=a.playEffect('dual-rumble',{duration:ms,strongMagnitude:k,weakMagnitude:k*.6});if(p&&p.catch)p.catch(()=>{})}
+    else if(gp.hapticActuators&&gp.hapticActuators[0]&&gp.hapticActuators[0].pulse)gp.hapticActuators[0].pulse(k,ms)}catch(e){}}
 function setVol(which,v){v=Math.max(0,Math.min(100,Math.round(v)));state[which]=v;store.set(which,v);const ids=which==='volCar'?['volCar','pVolCar']:['volAmb','pVolAmb'];
   for(const id of ids){const el=$(id);if(el&&el.value!==undefined)el.value=v;const o=$(id+'Out');if(o)o.textContent=v+' %'}}
 for(const[id,w]of[['volCar','volCar'],['pVolCar','volCar'],['volAmb','volAmb'],['pVolAmb','volAmb']]){const el=$(id);if(el)el.addEventListener('input',e=>setVol(w,+e.target.value))}
@@ -670,7 +679,7 @@ $('bSlow').onclick=()=>setSpeed(state.speed-10);$('bFast').onclick=()=>setSpeed(
 $('bZoomIn').onclick=()=>zoom(-1);$('bZoomOut').onclick=()=>zoom(1);
 $('spdRange').addEventListener('input',e=>setSpeed(+e.target.value,true));
 $('gfxHi').onclick=()=>setGfx('hi');$('gfxLo').onclick=()=>setGfx('lo');$('bCam').onclick=()=>{if(state.mode==='ski')skiKeyDown('c');else cycleCam()};$('bWinch').addEventListener('pointerdown',e=>{if(hasWinch()){e.preventDefault();winchKey(true)}});$('bWinch').addEventListener('pointerup',()=>{if(hasWinch())winchKey(false)});$('bWinch').onclick=()=>{if(!hasWinch())winch()};$('pFetch').onclick=()=>{pause(false);winch()};$('bPause').onclick=()=>pause(true);
-$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);
+$('pResume').onclick=()=>pause(false);$('pRestart').onclick=()=>{if(state.world&&!state.course){pause(false);resetToStart();return}startRun()};$('pMenu').onclick=toMenu;$('pSound').onclick=()=>setSound(!state.sound);$('pHap').onclick=()=>{setHaptics(!state.haptics);buzz(.6,80)};$('hapOn').onclick=()=>{setHaptics(true);buzz(.6,80)};$('hapOff').onclick=()=>setHaptics(false);
 $('rRetry').onclick=()=>{if(!skiResultBtn('retry')&&!boatResultBtn('retry')&&!flyResultBtn('retry')&&!caveResultBtn('retry')&&!mineResultBtn('retry'))startRun()};$('rMenu').onclick=()=>{if(!skiResultBtn('car')&&!boatResultBtn('car')&&!flyResultBtn('car')&&!caveResultBtn('car')&&!mineResultBtn('car'))toMenu()};$('rNext').onclick=()=>{if(skiResultBtn('next')||boatResultBtn('next')||flyResultBtn('next')||caveResultBtn('next')||mineResultBtn('next'))return;if(state.world){endCourse();showHud();state.mode='play';return}loadLevel((state.levelIdx+1)%LEVELS.length);startRun()};
 $('bMap').onclick=()=>openMap();$('mTabIsland').onclick=()=>setMapTab('island');$('mTabArch').onclick=()=>setMapTab('arch');$('mClose').onclick=()=>openMap(false);$('pMap').onclick=()=>{$('pause').hidden=true;openMap(true)};
 $('mTow').onclick=()=>{if(prof.nuts<20){toast('Du trenger 20 muttere',true);return}prof.nuts-=20;saveProf();if(state.course)endCourse();openMap(false);const lvl=LEVELS[state.levelIdx];if(lvl.basePos)resetToStart();else if(LV.ferry){const f=LV.ferry;placeCar(car,f.pad.x,f.pad.z,Math.atan2(-f.dx,-f.dz));camSnap=true}else resetToStart();state.checkpoint={x:car.pos.x,z:car.pos.z,h:Math.atan2(car.fw.x,car.fw.z)};toast(lvl.basePos?'Tauet hjem til basen · −20 ⚙':'Tauet til kaia · −20 ⚙')};
@@ -860,7 +869,7 @@ $('modeReal').onclick=()=>{state.assist=false;store.set('assist',false);if(car)c
 function boot(){
   state.roam=false;initMaps();decalMat=new THREE.MeshStandardMaterial({map:decalTexture(),transparent:true,roughness:.5});
   if(state.carIdx>=CARS.length||!ownsCar(CARS[state.carIdx])||CARS[state.carIdx].hire)state.carIdx=0;if(state.levelIdx>=LEVELS.length)state.levelIdx=0;
-  loadLevel(state.levelIdx);setCar(state.carIdx);setSound(state.sound);setVol('volCar',state.volCar);setVol('volAmb',state.volAmb);setSpeed(state.speed,true);setGfx(state.gfx);renderMenu();
+  loadLevel(state.levelIdx);setCar(state.carIdx);setSound(state.sound);setHaptics(state.haptics);setVol('volCar',state.volCar);setVol('volAmb',state.volAmb);setSpeed(state.speed,true);setGfx(state.gfx);renderMenu();
   for(let i=0;i<240;i++)stepCar(car,FIXED);
   requestAnimationFrame(frame);
 }

@@ -212,8 +212,8 @@ function updateRace(dt){
   rcEffects(dt);rcSndUpdate(dt);rcDraw(dt);return true}
 function rcEvents(ev){const R=RC.R;
   for(const e of ev){const c=e.car,v=RC.views.find(q=>q.car===c),near=rcNearCam(e.x,e.y);
-    if(e.type==='wall'){if(near>0){rcThump(Math.min(1,e.v/14)*near);for(let i=0;i<Math.min(14,e.v);i++)rcPart(e.x,e.y,'spark')}if(v)v.shake=Math.min(1,e.v/12)}
-    else if(e.type==='bump'){if(near>0&&c.idx<e.other.idx){rcThump(Math.min(1,e.v/10)*near*.8,1);for(let i=0;i<6;i++)rcPart(e.x,e.y,'spark')}if(v)v.shake=Math.min(.8,e.v/12)}
+    if(e.type==='wall'){if(near>0){rcThump(Math.min(1,e.v/14)*near);for(let i=0;i<Math.min(14,e.v);i++)rcPart(e.x,e.y,'spark')}if(v){v.shake=Math.min(1,e.v/12);buzz(v.shake,60+80*v.shake,RC.views.indexOf(v))}}
+    else if(e.type==='bump'){if(near>0&&c.idx<e.other.idx){rcThump(Math.min(1,e.v/10)*near*.8,1);for(let i=0;i<6;i++)rcPart(e.x,e.y,'spark')}if(v){v.shake=Math.min(.8,e.v/12);buzz(v.shake,50+60*v.shake,RC.views.indexOf(v))}}
     else if(e.type==='boost'){if(v){rcNotice(v,e.charge>1.8?'SUPERTURBO!':'TURBO!',900);rcWhoosh()}}
     else if(e.type==='lap'&&c.human){const left=R.laps-e.lap;if(left===1)rcNotice(v,'Siste runde!',1600);else if(e.best&&e.lap>1)rcNotice(v,'Raskeste runde: '+fmtTime(e.t),1500);else if(left>0)rcNotice(v,'Runde '+(e.lap+1)+' av '+R.laps,1200);rcChime()}
     else if(e.type==='finish'&&c.human){rnFinish(c);rcNotice(v,e.place===1?'DU VANT!':'I mål: '+rcPlace(e.place)+' plass',3000);if(e.place===1)rcFanfare();else rcChime();RC.cheer=2.5;RC.flash=1;
