@@ -170,6 +170,8 @@ const smt01=x=>{x=x<0?0:x>1?1:x;return x*x*(3-2*x)};
 //   at:[x,z] the middle of the fill's land edge (on the beach), dir (degrees) points out to sea (default: away from the island's centre),
 //   len: how long the fill is along the coast, end: 1 or -1, which end the cargo plane stands at, road:[[x,z],…] the way there from inland,
 //   ground:'grass'|'sand'|'snow'. Local frame: f = out to sea from `at`, s = along the coast.
+// the digits of a runway's number, as seven bars each: [across, along, width, length] in island units (a digit is .6 wide and 1.4 long)
+const AP_SEG={a:[0,.63,.6,.14],g:[0,0,.6,.14],d:[0,-.63,.6,.14],b:[.23,.315,.14,.77],c:[.23,-.315,.14,.77],f:[-.23,.315,.14,.77],e:[-.23,-.315,.14,.77]},AP_DIG=['abcdef','bc','abged','abgcd','fgbc','afgcd','afgedc','abc','abcdefg','abcdfg'];
 const CARGO={half:3.6,ramp:3.8,hw:1.5,floor:.55};   // the cargo plane's hold: half its length, the ramp's length, half the width, the floor's height over the ground
 function airFrame(def){const o=def.airport;if(!o)return null;if(o._f)return o._f;
   const x0=o.at[0],z0=o.at[1],a=(o.dir??Math.atan2(z0,x0)/Math.PI*180)*Math.PI/180,dx=Math.cos(a),dz=Math.sin(a),px=-dz,pz=dx,L=o.len??46,F0=-1,F1=12,E=o.end??1,e=1.2;
@@ -364,6 +366,59 @@ function genLevel(def){
       for(let u=-10;u<=8;u+=3){const[bx,bz]=at(u,0);c.block(bx,bz,4)}
       const P=(u,v)=>{const[qx,qz]=at(u,v);return{x:qx,z:qz}};
       c.cargoDef={x,z,yaw,y,fy,ux,uz,half:K.half,hw:K.hw,ramp:K.ramp,foot:P(-K.half-K.ramp-.6,0),pad:P(-K.half-K.ramp-2.6,0)};return c.cargoDef},
+    // ---- the airport kit: what stands on an airport, built from boxes and cylinders. Used by c.airport below and by Trinnvik's own airport. ----
+    // a frame on the ground: s runs along (sx,sz), f across it to the right of that (the same as airFrame's f and s). K.box/K.cyl take (f, s, height over the ground, …)
+    apFrame(x0,z0,sx,sz,y){const yaw=Math.atan2(sx,sz),at=(f,s)=>[x0+sz*f+sx*s,z0-sx*f+sz*s];
+      return{y,yaw,sx,sz,at,box(f,s,h0,wf,h,ws,col,o){const[x,z]=at(f,s);c.box(x,y+h0,z,wf,h,ws,col,yaw,o)},cyl(f,s,h0,r,h,col,o){const[x,z]=at(f,s);return c.cyl(x,y+h0,z,r,h,col,o)},
+        lie(f,s,hc,r,len,col,along){const[x,z]=at(f,s);return c.cyl(x,y+hc-len/2,z,r,len,col,{rz:Math.PI/2,ry:yaw+(along?Math.PI/2:0)})},   // a cylinder on its side: along s, or across
+        hit(f,s,wf,ws,anchor){const[x,z]=at(f,s),q={x,z,w:wf,d:ws,ry:yaw};if(anchor){q.anchor=true;q.y=y+.6}c.colliders.push(q)},pin(f,s,r){const[x,z]=at(f,s);c.colliders.push({x,z,r})}}},
+    // the paint and the lights of a runway from s0 to s1, f0 to f1 wide: side lines, centre line, the bars at both thresholds, the runway's number (its compass heading in tens of degrees:
+    // on the islands +z is north and +x west), the aiming point, edge lights (red at the ends) and green lights across each threshold
+    apRunway(K,f0,f1,s0,s1){const fc=(f0+f1)/2,w=f1-f0,Wt='#f4f4f0',bx=(f,s,wf,ws)=>K.box(f,s,.004,wf,.012,ws,Wt);
+      for(let s=s0+5;s<s1-4;s+=3.2)bx(fc,s,.18,1.6);
+      for(const f of[f0+.14,f1-.14])bx(f,(s0+s1)/2,.07,s1-s0-.5);
+      for(const[se,d]of[[s0,1],[s1,-1]]){
+        for(let k=-3;k<=3;k++)if(k)bx(fc+k*w*.12,se+d*1.2,.3,1.8);
+        const deg=Math.atan2(-d*K.sx,d*K.sz)*180/Math.PI,num=((Math.round(deg/10)+35)%36+36)%36+1;
+        [Math.floor(num/10),num%10].forEach((n,i)=>{for(const ch of AP_DIG[n]){const[u,v,sw,sh]=AP_SEG[ch];bx(fc-d*((i-.5)*.9+u),se+d*(3.25+v),sw,sh)}});
+        for(const sd of[-1,1])bx(fc+sd*w*.27,se+d*9.2,.42,2.2);
+        for(let k=-3;k<=3;k++)K.cyl(fc+k*w*.15,se-d*.22,0,.05,.04,'#4ade80')}
+      const n=Math.round((s1-s0)/4);for(let i=0;i<=n;i++)for(const f of[f0-.28,f1+.28])K.cyl(f,s0+(s1-s0)*i/n,0,.06,.12,i===0||i===n?'#d9432f':'#fff3c0')},
+    // the approach-slope lights beside a runway: four in a row across, two white and two red
+    apPapi(K,f,s,df){for(let i=0;i<4;i++){K.cyl(f+i*df,s,0,.02,.14,'#5a6066');K.box(f+i*df,s,.14,.2,.1,.26,i<2?'#fff3c0':'#d9432f')}},
+    // the terminal: wf deep, h high, ws long, its windows and its door on the side `face` (1: towards +f)
+    apTerminal(K,f,s,wf,h,ws,face=1){const ff=f+face*(wf/2+.02);
+      K.box(f,s,0,wf,h,ws,'#e9dcb9');K.box(f,s,0,wf+.06,.14,ws+.06,'#8a8272');K.box(f,s,h,wf+.2,.12,ws+.2,'#3f4a52');K.hit(f,s,wf+.04,ws+.04,true);
+      K.box(ff,s,.5,.05,.55,ws-.8,'#1a262d');for(let q=-ws/2+.4;q<=ws/2-.39;q+=(ws-.8)/Math.round((ws-.8)/.62))K.box(ff+face*.01,s+q,.5,.05,.55,.05,'#e9dcb9');   // the windows and their posts
+      K.box(ff+face*.01,s,0,.06,.92,1,'#5a6066');K.box(ff+face*.01,s,.02,.07,.8,.05,'#e9dcb9');K.box(ff+face*.3,s,.96,.66,.06,1.5,'#3f4a52');for(const q of[-.66,.66])K.cyl(ff+face*.56,s+q,0,.025,.96,'#5a6066');   // the doors under a canopy
+      K.box(f-face*.3,s-ws*.25,h+.12,.7,.26,.9,'#8a9096');K.box(f-face*.3,s+ws*.22,h+.12,.5,.2,.5,'#8a9096');K.cyl(f+face*.4,s+ws*.36,h+.12,.015,.8,'#5a6066');   // on the roof
+      for(const q of[-ws*.3,ws*.3]){K.box(ff+face*.22,s+q,0,.08,.16,.5,'#5a6066');K.box(ff+face*.22,s+q,.16,.2,.04,.56,'#8a6a3a')}},   // benches
+    // the control tower: a shaft with a red band, a gallery, the glass cab under a red roof, and a radar, a mast and a beacon on it
+    apTower(K,f,s,h=3){K.cyl(f,s,0,.5,h,'#f2e8d0');K.cyl(f,s,0,.56,.16,'#8a8272');K.cyl(f,s,h-.75,.515,.24,'#d9432f');K.box(f+.5,s,0,.05,.62,.34,'#3f4a52');K.pin(f,s,.55);c.colliders[c.colliders.length-1].anchor=true;c.colliders[c.colliders.length-1].y=K.y+.6;
+      K.cyl(f,s,h-.06,.98,.07,'#8a9096');for(let i=0;i<8;i++){const a=i*Math.PI/4+.39;K.cyl(f+Math.cos(a)*.93,s+Math.sin(a)*.93,h,.012,.26,'#5a6066')}
+      K.box(f,s,h,1.46,.14,1.46,'#f2e8d0');K.box(f,s,h+.14,1.4,.61,1.4,'#1a262d');for(const a of[-1,1])for(const q of[-1,1])K.box(f+a*.7,s+q*.7,h+.14,.08,.61,.08,'#f2e8d0');
+      K.box(f,s,h+.75,1.66,.12,1.66,'#d9432f');K.box(f,s,h+.87,1.1,.05,1.1,'#b3372a');
+      K.cyl(f-.5,s-.5,h+.87,.02,1.1,'#e9e6df');K.box(f-.5,s-.5,h+1.97,.07,.07,.07,'#ff5040');K.cyl(f+.4,s+.4,h+.87,.03,.3,'#5a6066');K.box(f+.4,s+.4,h+1.17,.62,.3,.05,'#e9e6df',{rx:-.3});K.box(f,s,h+.92,.16,.12,.16,'#4ade80')},
+    // two fuel tanks with a pipe between them
+    apTanks(K,f,s){for(const q of[-.5,.5]){K.cyl(f,s+q,0,.42,1,'#e9e6df');K.cyl(f,s+q,.62,.425,.14,'#d9432f');K.cyl(f,s+q,1,.3,.07,'#c9cdd0');K.pin(f,s+q,.46)}K.box(f+.3,s,.3,.06,.06,1,'#8a9096');K.box(f+.62,s,0,.2,.4,.3,'#f2c230')},
+    // a fuel truck standing along s, its cab towards d (1 or −1)
+    apTruck(K,f,s,d=1){K.box(f,s,.12,.44,.08,1.5,'#3a3d40');K.box(f,s+d*.53,.2,.46,.44,.4,'#f2c230');K.box(f,s+d*.74,.4,.4,.18,.02,'#1a262d');K.box(f,s+d*.53,.64,.3,.04,.2,'#ff8a2a');
+      K.lie(f,s-d*.2,.46,.22,.98,'#c9cdd0',true);K.box(f,s-d*.2,.4,.47,.07,.9,'#d9432f');K.box(f,s-d*.2,.68,.1,.05,.6,'#8a9096');
+      for(const q of[.5,-.3,-.56])for(const a of[-.2,.2])K.lie(f+a,s+d*q,.11,.11,.09,'#1d1f22');K.hit(f,s,.52,1.56)},
+    // freight waiting for the plane: containers (one on top of another), a pallet of crates and a forklift
+    apCargo(K,f,s){K.box(f,s,0,.56,.56,1.25,'#2c6fb0');K.box(f,s+1.4,0,.56,.56,1.25,'#c8463a');K.box(f,s+1.3,.56,.56,.56,1.25,'#3f8f5a');for(const q of[0,1.4])for(const e of[-.5,0,.5])K.box(f,s+q+e,.02,.58,.52,.04,'#22303a');
+      K.box(f,s-1.2,0,.5,.07,.5,'#8a6a3a');K.box(f-.1,s-1.28,.07,.24,.24,.24,'#b08a52');K.box(f+.13,s-1.1,.07,.2,.2,.2,'#c49a5e');K.box(f-.08,s-1.03,.07,.18,.16,.18,'#a67c46');
+      K.box(f,s-2.05,.06,.3,.24,.46,'#ff8a2a');K.box(f,s-2.14,.3,.28,.3,.03,'#3a3d40');K.box(f,s-1.98,.6,.3,.03,.34,'#3a3d40');for(const a of[-.1,.1]){K.box(f+a,s-1.8,.02,.03,.62,.03,'#3a3d40');K.box(f+a,s-1.66,.04,.04,.02,.26,'#5a6066')}
+      for(const q of[-2.2,-1.9])for(const a of[-.15,.15])K.lie(f+a,s+q,.07,.07,.06,'#1d1f22');K.hit(f,s-.2,.62,4.3)},
+    // a baggage tug with two carts behind it, along s, the tug towards d
+    apCarts(K,f,s,d=1){K.box(f,s+d*.8,.05,.3,.2,.44,'#e9e6df');K.box(f,s+d*.72,.25,.28,.2,.2,'#1a262d');K.box(f,s+d*.72,.45,.3,.03,.24,'#e9e6df');
+      const bag=['#c8463a','#2c6fb0','#3f8f5a','#8a6a3a','#e5a92b','#5a3a6a'];for(const[i,q]of[[0,.12],[1,-.56]]){K.box(f,s+d*q,.1,.3,.05,.54,'#5a6066');K.box(f,s+d*(q+.33),.1,.03,.03,.14,'#3a3d40');
+        for(let k=0;k<3;k++)K.box(f+(k-1)*.06,s+d*(q-.16+k*.16),.15,.2,.1+.03*((i+k)%2),.14,bag[(i*3+k)%6])}
+      K.hit(f,s,.36,2)},
+    // a floodlight mast
+    apMast(K,f,s,h=3.4){K.cyl(f,s,0,.035,h,'#8a9096');K.cyl(f,s,0,.07,.1,'#5a6066');K.box(f,s,h,.5,.1,.16,'#fff3c0');K.box(f,s,h+.1,.54,.03,.2,'#3a3d40');K.pin(f,s,.08)},
+    // a painted line on the ground through world points
+    apLine(pts,y,col='#f2c230',w=.08){for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1],d=Math.hypot(b[0]-a[0],b[1]-a[1]);if(d>.05)c.box((a[0]+b[0])/2,y+.004,(a[1]+b[1])/2,w,.012,d+w,col,Math.atan2(b[0]-a[0],b[1]-a[1]))}},
     // an airport on a fill off the coast (def.airport, see airFrame above): the runway with its markings and lights, a terminal, a tower, a windsock,
     // the road from inland, and the cargo plane at one end of the runway with its ramp down. The terrain itself is laid in genLevel.
     airport(o){const A=airFrame(def),y=A.h,pt=A.pt,R=A.rwy,E=A.E,L=A.L,yawS=Math.atan2(A.px,A.pz),yawF=Math.atan2(A.dx,A.dz),g=o.ground||'grass';
@@ -376,15 +431,13 @@ function genLevel(def){
         if(A.inR(R,f,s)){TS[k]=S.ASPHALT;setC(k,mix('#3a3d40','#45484b',G.noise(px*2,pz*2)))}else if(A.inR(A.pad,f,s)){TS[k]=S.ASPHALT;setC(k,mix('#8a8a86','#9a9994',G.noise(px*2,pz*2)))}else{TS[k]=gs;setC(k,mix(cols[0],cols[1],G.noise(px*.6,pz*.6)))}});
       fill();const keepB=c.boxes,keepC=c.cyls;c.boxes=[];c.cyls=[];
       for(let s=-L/2+4;s<=L/2-4;s+=7)for(const f of[2,10]){const[qx,qz]=pt(f,s);c.block(qx,qz,5);c.xpts.push({x:qx,z:qz})}
-      // the markings: the centre line, the bars at both thresholds, and the edge lights (red at the ends)
-      const m=y+.004;for(let s=R.s0+5;s<R.s1-4;s+=3.2){const[qx,qz]=pt(R.fc,s);c.box(qx,m,qz,.18,.012,1.6,'#f4f4f0',yawS)}
-      for(const ss of[R.s0+1.2,R.s1-1.2])for(let k=-3;k<=3;k++)if(k){const[qx,qz]=pt(R.fc+k*.65,ss);c.box(qx,m,qz,.3,.012,1.8,'#f4f4f0',yawS)}
-      for(let s=R.s0;s<=R.s1+.01;s+=(R.s1-R.s0)/Math.round((R.s1-R.s0)/4))for(const f of[R.f0-.3,R.f1+.3]){const[qx,qz]=pt(f,s);c.cyl(qx,y,qz,.06,.12,s<R.s0+1||s>R.s1-1?'#d9432f':'#fff3c0')}
-      // the terminal with windows towards the runway, the tower and the windsock, on the half of the fill the plane does not stand on
-      {const[tx,tz]=pt(1.3,-E*6);c.box(tx,y,tz,2.4,1.5,6,'#e9dcb9',yawS);c.box(tx,y+1.5,tz,2.6,.12,6.2,'#3f4a52',yawS);const[gx,gz]=pt(2.52,-E*6);c.box(gx,y+.5,gz,.05,.55,5.2,'#1a262d',yawS);const[ex,ez]=pt(2.53,-E*6);c.box(ex,y,ez,.06,.9,1,'#5a6066',yawS);
-        c.colliders.push({x:tx,z:tz,w:2.44,d:6.04,ry:yawS,anchor:true,y:y+.6});
-        const[sx,sz]=pt(2.9,-E*1.6);c.fx.push({type:'sign',x:sx,z:sz,ang:yawF,text:(def.name||'').toUpperCase()+' LUFTHAVN',sub:'kjør om bord i lasteflyet',w:2.1})}
-      {const[tx,tz]=pt(1.2,-E*12.5);c.cyl(tx,y,tz,.5,3,'#f2e8d0');c.box(tx,y+3,tz,1.4,.75,1.4,'#1a262d',yawS);c.box(tx,y+3.75,tz,1.6,.12,1.6,'#d9432f',yawS);c.colliders.push({x:tx,z:tz,r:.55,anchor:true,y:y+.6})}
+      // the runway's paint and lights, the terminal with its sign, the tower and what stands about: on the half of the fill the plane does not stand on,
+      // and round the pad behind it (clear of the way from the road to the ramp)
+      const K=c.apFrame(A.x0,A.z0,A.px,A.pz,y);c.apRunway(K,R.f0,R.f1,R.s0,R.s1);c.apPapi(K,10.15,-E*(L/2-8),.3);
+      c.apTerminal(K,1.3,-E*6,2.4,1.5,6);c.apCarts(K,3.05,-E*8.2,E);
+      {const[sx,sz]=pt(2.9,-E*1.6);c.fx.push({type:'sign',x:sx,z:sz,ang:yawF,text:(def.name||'').toUpperCase()+' LUFTHAVN',sub:'kjør om bord i lasteflyet',w:2.1})}
+      c.apTower(K,1.2,-E*12.5,3);if(L>=40)c.apTanks(K,1.05,-E*15.3);
+      c.apTruck(K,2.3,E*(L/2-8.6),-E);c.apCargo(K,10.15,E*(L/2-4.6));for(const f of[1.25,10.75])c.apMast(K,f,E*(L/2-1.25));
       const sock=pt(1.4,-E*(L/2-3));c.cyl(sock[0],y,sock[1],.04,1.7,'#e9e6df');c.colliders.push({x:sock[0],z:sock[1],r:.08});
       // the road from inland comes onto the pad behind the plane
       const acc=pt(A.F0-.6,A.sA),in1=pt(3,A.sA),road=[...(o.road||[]),acc,in1];
@@ -397,6 +450,7 @@ function genLevel(def){
       const pc=pt(R.fc,A.sC),cg=c.cargoPlane(pc[0],pc[1],Math.atan2(-E*A.px,-E*A.pz),y);
       {const[sx,sz]=pt(1.6,E*(L/2-6.6));c.fx.push({type:'sign',x:sx,z:sz,ang:yawF,text:'LASTEFLY',sub:'kjør opp rampa'})}
       const P=q=>({x:q[0],z:q[1]}),mid=pt(R.fc-.4,A.sA+E*.4);
+      c.apLine([in1,mid,[cg.foot.x,cg.foot.z]],y);for(const sd of[-1,1]){const a=pt(R.fc+sd*2.1,E*(L/2-12.6)),b=pt(R.fc+sd*2.1,E*(L/2-7.6));c.apLine([a,b],y)}   // the way to the ramp, and the bay the ramp lies in
       c.airportDef={x:pc[0],z:pc[1],y,sock:{x:sock[0],z:sock[1]},cargo:cg,generic:true,
         from:P(road[0]),route:[...road.slice(1).map(P),P(mid),cg.foot,{x:cg.x,z:cg.z}]};
       for(const b of c.boxes)if(b.sx>=1&&b.sz>=1&&b.sy>=.8)c.footprints.push({x:b.x,z:b.z,w:b.sx,d:b.sz,ry:b.ry||0});

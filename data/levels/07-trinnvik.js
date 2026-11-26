@@ -216,14 +216,12 @@ LEVELS.push(
     // --- flyplassen (js/plane.js tegner flyet, vindposen og ser etter den blå ruta) ---
     c.road(AIRVEI,{hw:1.3,blend:2,surf:S.ASPHALT});
     cellsIn(AIR.x0,AIR.z0,AIR.x1,AIR.z1,(k,px,pz)=>{if(inR(RWY,px,pz))setC(k,mix('#3a3d40','#45484b',G.noise(px*2,pz*2)));else if(inR(APRON,px,pz)||inR(CPAD,px,pz))setC(k,mix('#8a8a86','#9a9994',G.noise(px*2,pz*2)));else if(rectIn(AIR,px,pz,.6)>.5)setC(k,mix('#6f9a48','#7fa852',G.noise(px*.6,pz*.6)))});
-    {const cx=(RWY.x0+RWY.x1)/2,y=AIRH+.004;for(let z=RWY.z0+5;z<RWY.z1-4;z+=3.2)c.box(cx,y,z,.18,.012,1.6,'#f4f4f0');   // midtlinja
-      for(const zz of[RWY.z0+1.2,RWY.z1-1.2])for(let k=-3;k<=3;k++)if(k)c.box(cx+k*.6,y,zz,.3,.012,1.8,'#f4f4f0');            // terskelfeltene i begge ender
-      for(let z=RWY.z0;z<=RWY.z1;z+=4)for(const sx of[RWY.x0-.25,RWY.x1+.25])c.cyl(sx,AIRH,z,.06,.12,z<RWY.z0+1||z>RWY.z1-1?'#d9432f':'#fff3c0')}   // kantlys
-    // terminalen med vinduer mot plassen, tårnet og hangaren med porten mot rullebanen
-    c.box(-38.9,AIRH,-9.5,2.6,1.7,7,'#e9dcb9');c.box(-38.9,AIRH+1.7,-9.5,2.8,.12,7.2,'#3f4a52');c.box(-40.22,AIRH+.55,-9.5,.05,.6,6.2,'#1a262d');c.box(-40.22,AIRH,-9.5,.06,.95,1.2,'#5a6066');
-    c.colliders.push({x:-38.9,z:-9.5,w:2.64,d:7.04,ry:0,anchor:true,y:AIRH+.6});
+    // rullebanen: maling, banenummer og lys. Så terminalen med vinduer mot plassen, tårnet og hangaren med porten mot rullebanen (byggeklossene er c.ap… i js/core.js)
+    const AK=c.apFrame(0,0,0,1,AIRH);c.apRunway(AK,RWY.x0,RWY.x1,RWY.z0,RWY.z1);c.apPapi(AK,-53.8,5,-.3);
+    c.apTerminal(AK,-38.9,-9.5,2.6,1.7,7,-1);c.apCarts(AK,-40.75,-7.4,1);
     c.fx.push({type:'sign',x:-40.4,z:-13.6,ang:-Math.PI/2,text:'TRINNVIK LUFTHAVN',sub:'rundflyging over skjærgården',w:2.1});
-    c.cyl(-44.5,AIRH,-21,.5,3.2,'#f2e8d0');c.box(-44.5,AIRH+3.2,-21,1.4,.75,1.4,'#1a262d');c.box(-44.5,AIRH+3.95,-21,1.6,.12,1.6,'#d9432f');c.colliders.push({x:-44.5,z:-21,r:.55,anchor:true,y:AIRH+.6});
+    c.apTower(AK,-44.5,-21,3.2);c.apTanks(AK,-41,12.3);c.apTruck(AK,-39.5,-3.6,1);
+    c.apCargo(AK,-54.3,-39.4);for(const mx of[-45.8,-54.6])c.apMast(AK,mx,-45);c.apLine([[-47.4,-37.5],[-49.6,-41.4],[-50.8,-36.2]],AIRH);for(const sd of[-1,1])c.apLine([[-50.8+sd*2.1,-40.4],[-50.8+sd*2.1,-35.4]],AIRH);
     c.box(-42.4,AIRH,6.5,5.4,2.3,6,'#8a9096');for(const sd of[-1,1])c.box(-42.4+sd*1.4,AIRH+2.55,6.5,3.0,.1,6.3,'#5a6066',0,{rz:sd*.33});c.box(-45.12,AIRH,6.5,.05,1.9,4.4,'#3a3f44');c.box(-45.15,AIRH+1.95,6.5,.07,.12,4.6,'#e5a92b');
     c.colliders.push({x:-42.4,z:6.5,w:5.44,d:6.04,ry:0,anchor:true,y:AIRH+.6});
     c.cyl(-55.4,AIRH,-6,.04,1.7,'#e9e6df');c.colliders.push({x:-55.4,z:-6,r:.08});c.colliders.push({x:-43.6,z:-8.4,r:1.3});   // vindposen, flyet
