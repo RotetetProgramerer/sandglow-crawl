@@ -179,14 +179,7 @@ function netDrawRemote(p,now){const V=p.vis;if(!V)return;const b=p.buf,here=LEVE
   const d=camera.position.distanceTo(_nP),s=Math.max(1,Math.min(3,d/10));V.tag.position.copy(_nP).add(_nL.set(0,1.0+.12*s,0));V.tag.scale.set(1.5*s,.375*s,1)}
 
 /* ---------- remote car models: the garage model with their car, paint and parts, merged into a few meshes ---------- */
-function netMerge(root){root.updateMatrixWorld(true);const by=new Map(),olds=[];
-  root.traverse(o=>{if(!o.isMesh)return;olds.push(o.geometry);const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);if(!by.has(o.material))by.set(o.material,[]);by.get(o.material).push({g,cs:o.castShadow})});
-  const out=new THREE.Group();
-  for(const[mat,list]of by){let n=0;for(const e of list)n+=e.g.attributes.position.count;const P=new Float32Array(n*3),N=new Float32Array(n*3),U=new Float32Array(n*2);let o=0;
-    for(const e of list){const a=e.g.attributes;P.set(a.position.array,o*3);if(a.normal)N.set(a.normal.array,o*3);if(a.uv)U.set(a.uv.array,o*2);o+=a.position.count;e.g.dispose()}
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setAttribute('uv',new THREE.BufferAttribute(U,2));g.computeBoundingSphere();
-    const m=new THREE.Mesh(g,mat);m.castShadow=list.some(e=>e.cs)&&!mat.transparent;m.receiveShadow=true;out.add(m)}
-  for(const g of new Set(olds))g.dispose();return out}
+// netMerge (all the meshes of a model merged into one per material) is in js/carmodel.js
 function netMats(info){const own=m=>{const c=m.clone();if(Object.prototype.hasOwnProperty.call(c,'onBeforeCompile'))delete c.onBeforeCompile;return c};   // no mud shader: that one follows your own car
   const mats={yel:own(M.yel),blkC:own(M.blkC),tire:own(M.tire),rim:own(M.rim),lamp:own(M.lamp),tail:own(M.tail),beam:own(M.beam)};
   const cc=CARS.find(c=>c.id===info.car);mats.yel.color.set(!info.paint&&cc&&cc.col||(PAINTS[info.paint]||PAINTS[0]).c).convertSRGBToLinear();const heavy=(info.parts.weight|0)>=2;mats.rim.color.set(heavy?'#b08a3a':'#e3a62a').convertSRGBToLinear();mats.rim.metalness=heavy?.6:.2;

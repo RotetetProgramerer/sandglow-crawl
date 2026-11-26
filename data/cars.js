@@ -15,6 +15,7 @@
 //             style 'trophy' tegner en trophy truck (js/carmodel.js buildTrophy)   damp støtdempere (1 = som de andre, mer demper hopp og humper)
 //             hire:true bilen vises ikke i menyen (snøskuteren leies på Svalbard)   trackR sporvidde bak (standard som foran)
 //             belt:{snow,ice,bare,drag} snøskuter: ski foran og belte bak. Grep ganges med snow/ice/bare etter underlaget, drag bremser på bar bakke
+//             style 'open' | 'van' | 'truck' | 'rally' | 'buggy' tegner de fem nyeste bilene (se nederst i js/carmodel.js)
 //             stab bilen retter seg selv opp (som vekt-delen i verkstedet, legges til den)   air bilen flyr rett i lufta, og gass/brems styrer nesen
 CARS.push(
 {id:'kobbe',name:'Kobbe',kind:'Kort 2-dørs',L:1.62,wb:1.08,mass:9.2,gh:.31,hood:.42,win:1,style:'box',snorkel:true,spare:'rear',stats:[3,5,3],extras:['spade','axe','cans2'],
@@ -40,6 +41,21 @@ CARS.push(
 {id:'trophy',name:'Trophy Truck',kind:'Ørkenracer 4WD',L:2.7,wb:1.62,mass:10.4,gh:.2,hood:.62,win:1,style:'trophy',spare:'none',stats:[3,4,5],
    wr:.29,track:1.34,tireW:.25,susp:1.7,damp:1.5,stab:2,air:1,top:1.4,pow:1.3,col:'#1f5fc4',
    desc:'Ørkenracer med enorm fjæring, store dekk og bred sporvidde. Svært stødig, lander mykt etter store hopp og er rask i terrenget. I lufta løfter gass nesen og brems senker den. Ingen vinsj, og den er ingen klatrer i bratt stein.'},
+// fem nye biler (js/carmodel.js: buildOpen, buildVan, buildTruck, buildRally, buildBuggy)
+//   style 'open' åpen veteranjeep · 'van' bobil · 'truck' ekspedisjonslastebil · 'rally' rallybil · 'buggy' strandbuggy
+{id:'rusken',name:'Rusken',kind:'Åpen veteranjeep',L:1.5,wb:1.0,mass:8.2,gh:.16,hood:.5,win:2,style:'open',spare:'none',stats:[3,5,2],stab:1.2,col:'#5f7a3c',
+   desc:'Liten, åpen veteranjeep med veltebøyle og frontrute i ramme. Lett og smidig mellom steiner og trær, men kort og smal: ta det rolig i bratte bakker og i fart.'},
+{id:'sandloppe',name:'Sandloppe',kind:'Strandbuggy',L:1.75,wb:1.25,mass:7.2,gh:.12,hood:.4,win:2,style:'buggy',spare:'none',stats:[2,5,3],price:300,
+   wr:.23,track:1.0,trackR:1.06,tireW:.15,tireWr:.27,susp:1.25,damp:1.4,stab:1.6,air:1,top:1.3,pow:1.25,col:'#f08a1c',
+   desc:'Rørramme, to skålseter og motoren åpent bak. Lett og kvikk, og best av alle i løs sand. Den veier lite, så den spretter på humper og blir fort kastet rundt.'},
+{id:'snegla',name:'Snegla',kind:'Bobil 4x4',L:2.25,wb:1.42,mass:11.8,gh:.48,hood:.22,win:3,style:'van',spare:'none',stats:[3,2,4],price:500,col:'#3f8f8a',
+   desc:'Bobil med firehjulstrekk, løftetak, markise og solceller. Lang og rolig, med huset på ryggen. Høyt tyngdepunkt: kjør pent i skrå bakker.'},
+{id:'gaupe',name:'Gaupe',kind:'Rallybil 4WD',L:2.0,wb:1.25,mass:9.4,gh:.1,hood:.55,win:2,style:'rally',spare:'none',stats:[2,5,4],price:700,
+   wr:.2,track:.9,tireW:.15,ride:.02,susp:.85,damp:1.25,stab:1.2,air:1,top:1.45,pow:1.5,col:'#2c63c9',
+   desc:'Rallybil med firehjulstrekk, fire ekstralys og stor vinge. Rask på grus, vei og hardpakket sand, og tåler humper og hopp bedre enn sportsbilen. Lav under magen: store steiner må du rundt.'},
+{id:'bamse',name:'Bamse',kind:'Ekspedisjonslastebil',L:2.6,wb:1.6,mass:13.5,gh:.5,hood:.2,win:1,style:'truck',snorkel:true,spare:'none',stats:[5,1,4],price:900,
+   wr:.31,track:1.02,tireW:.23,top:.85,pow:1.25,col:'#c9722b',
+   desc:'Ekspedisjonslastebil med høyt førerhus og bokasse bak. Enorme hjul og bakkeklaring: den klatrer over det meste og tåler dypt vann. Tung, treg og trenger mye plass i svingene.'},
 // snøskuteren på Svalbard: leies på Skuterutleia (den blå ruta), og skuterløypene låner deg en ved start. Ski foran og belte bak:
 // rask og med godt grep på snø og is, treg og sliten på bar bakke. Den vises ikke i menyen (hire) og tar ikke deler fra verkstedet.
 {id:'skuter',name:'Snøskuter',kind:'Leieskuter',hire:true,L:1.9,wb:1.2,mass:7.5,gh:.04,hood:.6,win:0,style:'skuter',spare:'none',stats:[2,4,3],

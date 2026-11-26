@@ -106,6 +106,12 @@ function rcCarSprite(col,num,stripe){const key=col+'/'+num+'/'+stripe;if(RC.spri
   x.fillStyle='#1d2630';rr(.15,-.72,.85,1.44,.25);x.fill();x.fillStyle='rgba(160,200,230,.35)';rr(.3,-.6,.35,1.2,.15);x.fill();
   x.fillStyle=col;rr(-1.0,-.7,1.15,1.4,.2);x.fill();x.fillStyle='rgba(255,255,255,.12)';rr(-1.0,-.7,1.15,1.4,.2);x.fill();
   x.fillStyle='#1d2630';rr(-1.45,-.62,.45,1.24,.15);x.fill();
+  // details: door mirrors, door seams, vents and a centre line on the hood, a glint on the windscreen, roof rails
+  x.fillStyle=col;x.strokeStyle='rgba(0,0,0,.55)';x.lineWidth=.05;for(const sy of[-1,1]){rr(.5,sy*(W/2+.1)-.09,.26,.18,.07);x.fill();x.stroke()}
+  x.strokeStyle='rgba(0,0,0,.4)';x.lineWidth=.04;x.beginPath();for(const sy of[-1,1]){x.moveTo(.3,sy*.74);x.lineTo(.3,sy*(W/2-.08));x.moveTo(-.95,sy*.72);x.lineTo(-.95,sy*(W/2-.08))}x.moveTo(1.1,0);x.lineTo(L/2-.15,0);x.stroke();
+  x.fillStyle='rgba(0,0,0,.5)';for(const sy of[-1,1])for(let i=0;i<3;i++)x.fillRect(1.25+i*.14,sy*.45-.13,.07,.26);
+  x.fillStyle='rgba(255,255,255,.45)';x.beginPath();x.moveTo(.86,-.58);x.lineTo(.96,-.5);x.lineTo(.62,-.16);x.lineTo(.5,-.24);x.closePath();x.fill();
+  x.fillStyle='rgba(0,0,0,.35)';for(const sy of[-1,1])x.fillRect(-.95,sy*.6-.03,1.05,.06);
   // the number on the roof
   x.fillStyle='#f2e8d0';x.beginPath();x.arc(-.42,0,.46,0,6.283);x.fill();x.strokeStyle='#14120E';x.lineWidth=.06;x.stroke();
   x.save();x.translate(-.42,0);x.rotate(Math.PI/2);x.fillStyle='#14120E';x.font='700 .62px '+RC_BODY;x.textAlign='center';x.textBaseline='middle';x.fillText(String(num),0,.04);x.restore();
