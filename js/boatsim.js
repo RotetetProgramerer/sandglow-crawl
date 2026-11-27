@@ -75,7 +75,7 @@ function boatProgress(b,route){const t=boatTarget(b,route);return(b.done?1e7:0)+
 /* ---------- turbo barrels: two on every leg of the route, a little to the side ---------- */
 function makeBarrels(route,rng){const out=[],isl=seaIslands(),P=route.pts;
   for(let s=0;s<P.length-1;s++){const a=P[s],c=P[s+1],nl=Math.hypot(c.x-a.x,c.z-a.z)||1,nx=-(c.z-a.z)/nl,nz=(c.x-a.x)/nl;
-    for(const f of[.33,.68]){let x,z,tries=0;do{const off=(rng()*2-1)*70;x=a.x+(c.x-a.x)*f+nx*off;z=a.z+(c.z-a.z)*f+nz*off;tries++}while(tries<20&&isl.some(o=>Math.hypot(o.x-x,o.z-z)<o.r+30));
+    for(const f of(s===P.length-2?[.33]:[.33,.68])){let x,z,tries=0;do{const off=(rng()*2-1)*70;x=a.x+(c.x-a.x)*f+nx*off;z=a.z+(c.z-a.z)*f+nz*off;tries++}while(tries<20&&isl.some(o=>Math.hypot(o.x-x,o.z-z)<o.r+30));
       out.push({x,z,on:true,back:0,phase:rng()*10})}}return out}
 // t: the race's step counter. A barrel taken comes back BCFG.barrelRespawn steps later
 function stepBarrels(L,boats,t){const ev=[];

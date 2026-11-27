@@ -31,6 +31,8 @@ function buildPortals(lv){portals=[];if(!lv.courses||!lv.courses.length)return;
     const b=new THREE.Mesh(new THREE.PlaneGeometry(1.2,.6),new THREE.MeshBasicMaterial({map:portalSign(k),side:THREE.DoubleSide}));b.position.set(sx,sy+1.25,sz);b.rotation.y=Math.atan2(-tn.x,-tn.z);g.add(b);
     levelGroup.add(g);portals.push({k,g,x:p.x,z:p.z,lights:g.children.filter(o=>o.isSprite)})}}
 function nearestPortal(){let b=null;for(const p of portals){const d=Math.hypot(p.x-car.pos.x,p.z-car.pos.z);if(!b||d<b.d)b={k:p.k,d}}return b}
+// where the arrow points in free driving: the easiest course you have not finished (the nearest of those), or the nearest when all are done
+function guidePortal(){const lvl=LEVELS[state.levelIdx];let b=null;for(const p of portals){if(best[courseKey(lvl,p.k)])continue;const d=Math.hypot(p.x-car.pos.x,p.z-car.pos.z),df=p.k.diff||2;if(!b||df<b.df||(df===b.df&&d<b.d))b={k:p.k,d,df}}return b||nearestPortal()}
 function openAsk(k){state.mode='ask';state.askK=k;if(typeof tipDone==='function')tipDone(k);$('aList').hidden=true;$('aList').classList.remove('two');$('aYes').hidden=false;
   if(typeof k==='string'&&k.startsWith('ski')){skiAsk(k);return}   // Gautefall: the ski trip (js/ski.js)
   if(typeof k==='string'&&k.startsWith('boat')){boatAsk(k);return}
@@ -40,11 +42,11 @@ function openAsk(k){state.mode='ask';state.askK=k;if(typeof tipDone==='function'
   if(k==='cargo'){cargoAsk();return}   // every island: the cargo plane at the airport (js/cargo.js)
   if(typeof k==='string'&&k.startsWith('race')){raceAsk(k);return}   // Racerøya: the race from above (js/race.js)
   if(k==='fly'){flyAsk(k);return}   // Trinnvik: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
-  if(k==='ferry'){const here=LEVELS[state.levelIdx];$('aName').textContent='Fergen';$('aKind').textContent='Kaia på '+here.name;$('aDesc').textContent='Hvor vil du reise? Overfarten koster 5 muttere. Du har '+fmtN(prof.nuts)+'.';$('aBest').textContent='';$('aQ').textContent='';
+  if(k==='ferry'){const here=LEVELS[state.levelIdx];$('aName').textContent='Fergen';$('aKind').textContent='Kaia på '+here.name;const poor=prof.nuts<5;$('aDesc').textContent=poor?'Overfarten koster 5 muttere, og du har '+fmtN(prof.nuts)+'. Kjør en løype for å tjene muttere, eller ta lasteflyet fra flyplassen: det er gratis.':'Hvor vil du reise? Overfarten koster 5 muttere. Du har '+fmtN(prof.nuts)+'.';$('aBest').textContent='';$('aQ').textContent='';
     const dests=ROUTES.filter(r=>r.includes(here.id)).map(r=>r[0]===here.id?r[1]:r[0]).map(id=>LEVELS.find(l=>l.id===id)).filter(Boolean);
-    $('aList').innerHTML=dests.map(l=>`<button data-dest="${l.id}"><span><span class="nm">${l.name}</span><span class="sub">${l.desc}</span></span><span class="pr">5 ⚙</span></button>`).join('');$('aList').hidden=false;$('aYes').hidden=true;$('aNo').textContent='Bli her';$('ask').hidden=false;return}
+    $('aList').innerHTML=dests.map(l=>`<button data-dest="${l.id}"${poor?' disabled':''}><span><span class="nm">${l.name}</span><span class="sub">${l.desc}</span></span><span class="pr">5 ⚙</span></button>`).join('');$('aList').hidden=false;$('aYes').hidden=true;$('aNo').textContent='Bli her';$('ask').hidden=false;return}
   $('aQ').textContent='Vil du starte denne utfordringen?';$('aNo').textContent='NEI, kjør videre';
-  if(k==='garage'){$('aName').textContent='Verkstedet';$('aKind').textContent='Basen';$('aDesc').textContent='Mekanikerne står klare. Her bruker du mutterne på dekk, fjæring, motor, vekt, utstyr og lakk.';$('aBest').textContent='Du har '+fmtN(prof.nuts)+' muttere.';$('ask').hidden=false;$('aYes').focus();return}
+  if(k==='garage'){$('aQ').textContent='Vil du kjøre inn i verkstedet?';$('aName').textContent='Verkstedet';$('aKind').textContent='Basen';$('aDesc').textContent='Mekanikerne står klare. Her bruker du mutterne på dekk, fjæring, motor, vekt, utstyr og lakk.';$('aBest').textContent='Du har '+fmtN(prof.nuts)+' muttere.';$('ask').hidden=false;$('aYes').focus();return}
   const key=courseKey(LEVELS[state.levelIdx],k),b=best[key];
   $('aName').textContent=k.name;$('aDesc').textContent=k.desc;$('aKind').textContent=['','Lett løype','Middels løype','Vanskelig løype'][k.diff]+' · '+k.gates.length+' porter';
   $('aBest').textContent=b?'Din beste: '+fmtTime(b.t)+' med '+b.p+' straffepoeng, '+b.s+' av 3 stjerner.':'Ikke kjørt ennå. Første gang i mål gir banebonus.';
@@ -67,7 +69,7 @@ function answerAsk(yes){if(state.mode!=='ask')return;$('ask').hidden=true;const 
   if(k==='garage'){state.askCool='garage';if(yes){state.mode='play';toGarage()}else{state.mode='play';toast('Kjør videre når du vil')}return}
   if(k==='ferry'){state.askCool='ferry';state.mode='play';if(yes&&yes.dest)startFerry(yes.dest);return}
   if(yes)startCourse(k);else{state.mode='play';state.askCool=k.id;toast('Kjør videre når du vil')}}
-function startCourse(k){setOffer(null);if(LV.skuterDef)skuterSet(!!k.def.skuter);   // Svalbard: the scooter courses lend you a snowmobile, the others are driven by car
+function startCourse(k){setOffer(null);if(typeof tipHide==='function'&&TIP.cur)tipHide();if(LV.skuterDef)skuterSet(!!k.def.skuter);   // Svalbard: the scooter courses lend you a snowmobile, the others are driven by car
   placeCar(car,k.start.p.x,k.start.p.z,Math.atan2(k.start.tan.x,k.start.tan.z));camSnap=true;state.course=k;state.free=false;resetRunState();LV.gates=k.gates;LV.crates=k.crates;buildGates(LV);buildCrates(LV);resetCrates();
   gateVis.forEach((g,i)=>{g.touched=false;setGateState(i,'pending')});gateWake={i:0,t:0};buildCourseArrows(k);
   if(k.def.night)setNight(true);
@@ -105,7 +107,7 @@ function updateWorld(dt){
     const sk=LV.skuterDef;if(sk){const d=Math.hypot(sk.ask.x-car.pos.x,sk.ask.z-car.pos.z);if(d<1.6&&state.askCool!=='skuter'){openAsk('skuter');return}if(d>3.5&&state.askCool==='skuter')state.askCool=null}   // Svalbard: the blue square at the snowmobile hire
     if(typeof vaultWorld==='function'&&vaultWorld())return;   // Svalbard: stop on the blue square by the door of the seed vault (js/frohvelv.js)
     if(typeof pirWorld==='function'&&pirWorld())return;   // Piratøya: stop by the table at Skumkroa or by the sword master
-    const ga=LEVELS[state.levelIdx].garageAt;if(ga){const d=Math.hypot(ga[0]-car.pos.x,ga[1]-car.pos.z);if(d<2.4&&state.askCool!=='garage'){openAsk('garage');return}if(d>4.5&&state.askCool==='garage')state.askCool=null}}
+    const ga=LEVELS[state.levelIdx].garageAt;if(ga){const d=Math.hypot(ga[0]-car.pos.x,ga[1]-car.pos.z);if(d<2.4&&state.askCool!=='garage'&&(prof.nuts>0||prof.runs>0)){openAsk('garage');return}if(d>4.5&&state.askCool==='garage')state.askCool=null}}
   else{setOffer(null);const ng=LV.gates[state.next];if(ng&&Math.hypot(ng.c.x-car.pos.x,ng.c.z-car.pos.z)>30){endCourse();toast('For langt fra løypa: løpet er avbrutt',true)}}
   const tm=performance.now()*.001;for(const p of portals){if(Math.abs(p.x-car.pos.x)+Math.abs(p.z-car.pos.z)>40)continue;p.lights.forEach((l,i)=>l.material.opacity=.6+.4*Math.sin(tm*5+i*1.3))}
   updateBreakables(dt)}

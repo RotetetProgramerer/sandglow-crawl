@@ -47,7 +47,7 @@ function stepPlane(pl,inp,W){const C=pl.cfg||PCFG;
     else{pl.ev.push({type:'crash',water:g.water});pl.crash=C.crashFrames;pl.crashes++;pl.y=g.h+1}}}
 // the rings of a flight: fly through them in order; the last one is the finish
 function planeRing(pl,course){if(pl.done||pl.crash||pl.ring>=course.rings.length)return null;const q=course.rings[pl.ring];
-  if(Math.hypot(pl.x-q.x,pl.y-q.y,pl.z-q.z)>PCFG.ringR)return null;pl.ring++;if(pl.ring>=course.rings.length){pl.done=true;return{type:'finish'}}return{type:'ring',i:pl.ring-1}}
+  if(Math.hypot(pl.x-q.x,pl.y-q.y,pl.z-q.z)>PCFG.ringR*(pl.easy?1.5:1))return null;pl.ring++;if(pl.ring>=course.rings.length){pl.done=true;return{type:'finish'}}return{type:'ring',i:pl.ring-1}}
 // the airport at sea: AIRPORT (data/flights.js) moved out to where Trinnvik lies
 let AIRSEA=null;
 function airSea(){if(AIRSEA)return AIRSEA;const I=seaIslands().find(i=>i.id===AIRPORT.island),A=AIRPORT,o=(p)=>({x:I.x+p[0],z:I.z+p[1]});
