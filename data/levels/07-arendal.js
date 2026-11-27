@@ -1,8 +1,10 @@
-// Trinnvik: en liten, fargerik by på en flat øy der alt har kanter. Fortauskanter, rådhustrapp, skatepark, stadion,
+// Arendal: en liten, fargerik sørlandsby på en flat øy der alt har kanter. Fortauskanter, rådhustrapp, skatepark, stadion,
 // parkeringshus med spiral opp til taket, og en liten byggetomt. Byen ligger på to terrasser (Nedre by 1,2 og Øvre by 2,39)
 // med utsiktstoppen (3,59) øverst. Terrassene, bollen, amfiet og P-huskjeglen ligger i base(); trapper, gater og kanter
+// Stedene har navn fra byen: Torvet, Tyholmen med rådhuset og Trefoldighetskirken, Fløyheia med glassheisen, Pollen, Langbrygga,
+// Knubben, Lille Torungen, Bjønnes stadion og stasjonen.
 // stemples absolutt med c.stairs/c.street/shape(...,level). Sju løyper testes hver for seg:
-//   node tools/test-levels.js trinnvik
+//   node tools/test-levels.js arendal
 (function(){
 const DEG=Math.PI/180;
 const smt=x=>{x=Math.max(0,Math.min(1,x));return x*x*(3-2*x)};
@@ -49,7 +51,7 @@ const tribRow=b=>b<-1.6?-1:b<.5?Math.floor((b+1.6)/.525):4;   // fire rader à 0
 const tribH=(a,b)=>{const aa=Math.abs(a);if(aa>5)return .9*clamp((7.5-aa)/2.5)*(b<-1.6?clamp((b+2.5)/.9):1);const i=tribRow(b);return i<0?0:.18*(i+1)};
 // ---------- løypene (bench:false der bakken er stemplet by) ----------
 const CH=[
- {id:'torget',name:'Torgrunden',diff:1,gates:8,bench:false,desc:'Én runde på Ringveien rundt Torget: fortauskanter, fartsdumper, gangfelt, Tretrinnet og kjegler som velter.',
+ {id:'torget',name:'Torgrunden',diff:1,gates:8,bench:false,desc:'Én runde på Ringveien rundt Torvet: fortauskanter, fartsdumper, gangfelt, Tretrinnet og kjegler som velter.',
   path:[[-6,-14],[0,-14],[8,-14],[12,-13],[12,-8],[12,-4],[12,0],[11,3],[4,3],[-4,3],[-11,2],[-11,-6],[-11,-13],[-8,-14]]},
  {id:'park',name:'Parkstien',diff:1,gates:9,hw:1.1,surf:S.GRAVEL,desc:'Grusstier gjennom Byparken: sandkassa, opp stigen og ned sklia, trappepyramiden og rundt dammen.',
   path:[[-15,2.8],[-19,2.8],[-22,4],[-26,4.5],[-28.6,5.5],[-29.6,7.5],[-29.6,10],[-29.6,13],[-29.4,16],[-28,18.5],[-25.5,19.5],[-23.6,17.5],[-23.5,14.5],[-23.5,11],[-23.5,8],[-21.5,6.5],[-18.5,7.5],[-14,11.5],[-11.8,14],[-11.8,17.5],[-12,21],[-14.5,23.5],[-18,23],[-20.5,20.5],[-20.5,17],[-19,13.5],[-16.5,9.5],[-15.5,5.5],[-15,3.2]]},
@@ -59,9 +61,9 @@ const CH=[
   path:[[17,2.5],[22,2.5],[28,2.5],[30.5,3.8],[31.5,5.6],[30.8,6.85],[28,6.85],[22,6.85],[18,6.85],[16.2,6.85],[14.8,6.6],[14.4,8.5],[14.4,12],[14.4,16],[15.5,19.8],[18,21.1],[22,21.1],[26.5,21.1],[29.3,21.1],[30.3,19.5],[29.5,18.4],[28,17.2],[26,15.9],[24,14.7],[20.5,14.7],[18.4,13.5],[18.4,11],[18.4,8.5],[18.4,7],[20,6.85],[22,6.85],[26,6.85],[28.5,6.85],[30.8,6.85],[31.5,5.6],[30.5,3.8],[28,2.6],[24,2.5],[20,2.5]]},
  {id:'spiral',name:'Spiraltoppen',diff:2,gates:8,bench:false,desc:'Inn under bommen og én omgang opp spiralrampen i P-huset. Mål på takdekket.',
   path:[...SPIRAL.filter((_,i)=>i%2===0),[20.5,-9.6],[22.3,-8.2]]},
- {id:'trapp',name:'Trappeløpet',diff:3,gates:12,bench:false,desc:'Byens trappemaraton: Rådhustrappa opp, Trappegata opp til Utsikten, ned Utsiktsveien, gjennom Smauet og Bibliotekstrappa ned.',
+ {id:'trapp',name:'Trappeløpet',diff:3,gates:12,bench:false,desc:'Byens trappemaraton: Rådhustrappa opp til Tyholmen, Trappegata opp til Fløyheia, ned Utsiktsveien, gjennom Smauet og Bibliotekstrappa ned.',
   path:[[-3,-9],[-2.5,-5],[-2,-1],[-2,2.8],[-2,6],[-2,10],[-2,13],[-2,16.5],[-2,19.5],[-2,23],[-2,26.5],[-2,28.8],[-2.8,30.5],[-2,32.4],[-.2,33],[1.6,32.2],[2.3,30.4],[2.1,28.5],[2.9,27.5],[4.7,25.7],[6.5,23.9],[6.4,21.8],[6,19.8],[6,16.5],[6,13.5],[6,10.8],[6,8],[6,4.8],[6,1.5],[5,-2.5],[2.5,-6.5],[-1,-9.5]]},
- {id:'natt',name:'Nattbyen',diff:2,gates:8,bench:false,night:true,desc:'Byen etter mørkets frembrudd: Ringveien, ut Havnegata og langs Kaiveien til containerkaia med lyskasterne.',
+ {id:'natt',name:'Nattbyen',diff:2,gates:8,bench:false,night:true,desc:'Byen etter mørkets frembrudd: Ringveien, ut Havnegata forbi stasjonen og langs Kaiveien til containerkaia med lyskasterne.',
   path:[[-8,3],[0,3],[8,3],[11.6,1.5],[12,-5],[12,-9],[12.5,-12],[13.8,-14.2],[15.6,-16.4],[17.5,-18.3],[22,-18.3],[27,-18.3],[31,-18.3]]},
 ];
 // ---------- hjelpere for stempler ----------
@@ -69,20 +71,22 @@ const rectCells=(x0,z0,x1,z1,fn)=>cellsIn(x0,z0,x1,z1,(k,px,pz)=>{if(px<x0||px>x
 const stripe=(a,w,c0,c1)=>(Math.floor(a/w)%2===0)?c0:c1;
 // fartsdump på en gate: 0,12 høy sinushump, gule og svarte striper. level = gatenivået
 const bump=(x,z,ang,level,h=.12)=>shape(x,z,ang,.9,3.2,(a,b)=>h*(1-Math.cos(2*Math.PI*(a+.45)/.9))/2,S.ASPHALT,(a,b)=>stripe(b+1.6,.4,'#e5c13a','#2a2a2a'),level);
+// benk: sete på to bein, med kollisjon
+const bench=(c,bx,bz,ry,y)=>{c.box(bx,y+.3,bz,1.1,.06,.34,'#8a6a3a',ry);for(const sd of[-.42,.42])c.box(bx+Math.cos(ry)*sd,y,bz-Math.sin(ry)*sd,.08,.3,.3,'#3a3a3a',ry);c.colliders.push({x:bx,z:bz,r:.45})};
 // bytre (js/props/tre-by.js): plasseres nå, bygges av c.plants() etter c.finish, så stamme og krone står på ferdig bakke
 const tree=(c,x,z,s=1)=>c.plant('bytre',x,z,{s});
 
 LEVELS.push(
-{ id:'trinnvik', name:'Trinnvik', diff:2, seed:7171, size:120, coast:42, world:true,
-  desc:'En by der alt har kanter: trapper, fortauskanter, skatepark, stadion og et parkeringshus med spiral. Sju løyper.',
+{ id:'arendal', name:'Arendal', diff:2, seed:7171, size:120, coast:42, world:true,
+  desc:'Sørlandsbyen der alt har kanter: Torvet, Tyholmen, Pollen og Fløyheia, med trapper, skatepark, stadion og P-hus med spiral. Sju løyper.',
   start:[2,-11.5,Math.PI/2],
   sky:['#4a9be0','#eaf2f7'], fog:0xe3ecf2, fogNear:30, fogFar:110, sun:0xfff0d8, sunI:.95, hemi:[0xcfe4f7,0x7a7f70,.5], sunDir:[-18,22,14], rockCol:'#8f8b83',
-  water:.3, waterCol:'#2f7a96', waterOpacity:.85, ambience:'town', bellAt:[-7.2,14.3],
+  water:.3, waterCol:'#2f7a96', waterOpacity:.85, ambience:'town', bellAt:[-7.6,21.2],
   dark:(x,z)=>smt(1-Math.hypot((x-26.5)/2.6,(z-21.1)/1.7)),
   biome:(x,z)=>{const R=Math.hypot(x,z),park=smt((10-Math.hypot(x+23,z-9))/6),city=smt((22-Math.hypot(x,z+4))/9)*(1-park);
     return{beach:smt((R-30)/5),city,stadium:rectIn(PITCH,x,z,2.5),site:smt((6-Math.hypot(x-15.5,z-25.5))/3),jungle:park*.25,swamp:0,snow:0}},
   path:[[0,-13],[2,-11],[0,-9],[-2,-11],[0,-13]], challenges:CH, village:{at:[26.2,-26.2]}, landExtra:airLand,
-  mapLabels:[[0,-5,'Torget'],[-2,18,'Øvre by'],[-2,32,'Utsikten'],[-20,-19,'Skateparken'],[-24,9,'Byparken'],[21.5,15,'Stadion'],[22,-8,'P-huset'],[15,25.5,'Byggetomta'],[27,-25,'Havna'],[2,-31,'Promenaden'],[31,-14,'Kaia'],[-47,-3,'Flyplassen']],
+  mapLabels:[[0,-5,'Torvet'],[-2,17,'Tyholmen'],[-7.6,25,'Kirken'],[-2,32,'Fløyheia'],[-20,-19,'Skateparken'],[-24,9,'Byparken'],[21.5,15,'Bjønnes stadion'],[22,-8,'P-huset'],[15,25.5,'Byggetomta'],[27,-25,'Havna'],[16.6,-23.6,'Stasjonen'],[5,-30.5,'Langbrygga'],[-4,-35.5,'Pollen'],[2.5,-38,'Knubben'],[-8,-41.5,'Lille Torungen'],[31,-14,'Kaia'],[-47,-3,'Gullknapp']],
   animals:{pigeons:14,gulls:{at:[4,-35.5],n:7},crabs:6,crabsAt:[3.5,-36],fish:[{at:[-16.5,19],r:2,n:2},{at:[-4,-42],r:5,n:3},{at:[36,-30],r:4,n:2}],
     rabbits:[{at:[-22,10],r:6,n:5}],butterflies:20,rats:[{at:[32,-10.5],r:1.5,n:3},{at:[14,25],r:3,n:3}],cats:[{at:[-4,-18.5],r:5,n:2},{at:[-13,-5],r:4,n:1}]},
   boulder:{trigger:[22.5,14.7],from:[17,16.4],to:[28,13],speed:4.5,r:.35,col:'#f4f4f0',msg:'⚽ Ballen!'},
@@ -131,11 +135,14 @@ LEVELS.push(
     // Tretrinnet: opphøyd kryss på østgata, 3 trinn à 0,14 opp og ned
     shape(12,-4,0,4.6,3.2,(a,b)=>{const u=a+2.3;return u<1.8?(Math.floor(u/.6)+1)*.14:u<2.8?.42:(Math.floor((4.6-u)/.6)+1)*.14},S.ROCK,(a,b)=>{const u=a+2.3,st=u<1.8?Math.floor(u/.6):u<2.8?3:Math.floor((4.6-u)/.6);return st===3?'#a9a59c':(st%2?'#9f9b92':'#8a867e')},L0-.12);
     bump(4,-14,Math.PI/2,L0-.12);bump(-11,-9,0,L0-.12);bump(24,2.5,Math.PI/2,L0-.12);bump(8,-27.2,Math.atan2(-6,-7),L0-.12);
-    // --- Torget: fontene, kiosk, benker, boder, kjegler, trær ---
-    c.pond(0,-5,1.5,.3,{fill:.6,bed:S.ROCK});disc(0,-5,.45,.3,S.ROCK,'#a7a39a',L0);c.cyl(0,L0+.3,-5,.1,.9,'#8d8984');c.cyl(0,L0+1.2,-5,.56,.07,'#8d8984');for(let i=0;i<4;i++){const a=i*Math.PI/2;c.fall(Math.sin(a)*.58,-5+Math.cos(a)*.58,a,.42,L0+1.2,L0-.18,{spray:false})}   // vannet faller fra skålkanten, utenfor sokkelenc.colliders.push({x:0,z:-5,r:.5});
+    // --- Torvet: fontene, kiosk, benker, boder, statue, kjegler, trær ---
+    c.pond(0,-5,1.5,.3,{fill:.6,bed:S.ROCK});disc(0,-5,.45,.3,S.ROCK,'#a7a39a',L0);c.cyl(0,L0+.3,-5,.1,.9,'#8d8984');c.cyl(0,L0+1.2,-5,.56,.07,'#8d8984');for(let i=0;i<4;i++){const a=i*Math.PI/2;c.fall(Math.sin(a)*.58,-5+Math.cos(a)*.58,a,.42,L0+1.2,L0-.18,{spray:false})}c.colliders.push({x:0,z:-5,r:.5});   // vannet faller fra skålkanten, utenfor sokkelen
     c.box(4.6,L0,-9,1.6,1.1,1.2,'#e76f51');c.box(4.6,L0+1.1,-9,2.0,.08,1.6,'#f2e8d0');c.box(4.6,L0+.6,-9.62,1.2,.4,.03,'#1a262d');c.colliders.push({x:4.6,z:-9,w:1.7,d:1.3,ry:0});   // kiosken
-    for(const[bx,bz,ry]of[[-4.5,-9,0],[-6.2,-2,Math.PI/2],[6.6,-2.5,Math.PI/2],[-4.2,0,0]]){c.box(bx,L0+.3,bz,1.1,.06,.34,'#8a6a3a',ry);for(const sd of[-.42,.42])c.box(bx+Math.cos(ry)*sd,L0,bz-Math.sin(ry)*sd,.08,.3,.3,'#3a3a3a',ry);c.colliders.push({x:bx,z:bz,r:.45})}   // benker
-    for(const[sx,sz]of[[-5.2,-7],[-5.2,-3.5]]){for(const[dx,dz]of[[-.6,-.45],[.6,-.45],[-.6,.45],[.6,.45]])c.cyl(sx+dx,L0,sz+dz,.03,1.4,'#8a8a88');c.box(sx,L0+.85,sz,1.4,.05,1.1,'#8a6a3a');c.box(sx,L0+1.4,sz,1.6,.06,1.3,'#d9432f');c.box(sx,L0+1.46,sz,1.6,.06,.4,'#f4f4f0');c.colliders.push({x:sx,z:sz,w:1.5,d:1.2,ry:0})}   // markedsboder
+    for(const[bx,bz,ry]of[[-4.5,-9,0],[-6.2,-2,Math.PI/2],[6.6,-2.5,Math.PI/2],[-4.2,0,0]])bench(c,bx,bz,ry,L0);   // benker
+    for(const[sx,sz,tc]of[[-5.2,-7,'#d9432f'],[-5.2,-3.5,'#d9432f'],[2.6,-.6,'#2c4a6b']]){for(const[dx,dz]of[[-.6,-.45],[.6,-.45],[-.6,.45],[.6,.45]])c.cyl(sx+dx,L0,sz+dz,.03,1.4,'#8a8a88');c.box(sx,L0+.85,sz,1.4,.05,1.1,'#8a6a3a');c.box(sx,L0+1.4,sz,1.6,.06,1.3,tc);c.box(sx,L0+1.46,sz,1.6,.06,.4,'#f4f4f0');c.colliders.push({x:sx,z:sz,w:1.5,d:1.2,ry:0})}   // markedsboder
+    {const sx=6.2,sz=-5.6,br='#4d6a5a';c.box(sx,L0,sz,.8,.12,.8,'#8f8b83');c.box(sx,L0+.12,sz,.56,.7,.56,'#a29e95');c.box(sx,L0+.5,sz-.285,.36,.16,.02,'#3a3a3a');   // statuen: sokkel med plate, og en mann i frakk av irret bronse
+      for(const sd of[-.07,.07])c.cyl(sx+sd,L0+.82,sz,.05,.42,br);c.box(sx,L0+1.2,sz,.3,.46,.2,br);c.cyl(sx,L0+1.66,sz,.035,.08,br);c.box(sx,L0+1.72,sz,.15,.17,.15,br);c.box(sx-.2,L0+1.3,sz,.08,.36,.1,br,0,{rz:-.25});c.box(sx+.2,L0+1.3,sz,.08,.36,.1,br,0,{rz:.25});
+      c.colliders.push({x:sx,z:sz,w:.84,d:.84,ry:0});P.push({x:sx,y:L0+1.9,z:sz,kind:'post'})}
     for(const[cx,cz]of[[2,-12.6],[5,-15.4],[8,-12.6],[13.3,-8],[10.7,-9.5]])c.cone(cx,cz);
     for(const[tx,tz]of[[-6.8,-9.5],[6.8,-9.5],[-6.8,.5]])tree(c,tx,tz,1.1);
     for(let i=0;i<10;i++){const a=i/10*6.28;c.flowers.push({x:Math.cos(a)*2.4,y:L0+.2,z:-5+Math.sin(a)*2.4})}
@@ -147,22 +154,62 @@ LEVELS.push(
     for(let i=0;i<8;i++){const hx=-9.1+i*2.6,hh=2.2+(i%3)*.6;c.building(hx,L0,-18.2,2.4,hh,2.4,PAST[i%PAST.length],0,{fh:1.15,sign:i===3?'#d9432f':null})}    // sør
     for(let i=2;i<4;i++){const hz=-9.8+i*2.6,hh=2.4+(i%2)*.6;c.building(-15.2,L0,hz,2.4,hh,2.4,PAST[(i+4)%PAST.length],Math.PI/2,{fh:1.15})}                 // vest
     c.building(-8.6,L0,6.6,2.6,1.7,2.0,'#f2e8d0',Math.PI,{fh:1.3,sign:'#2c4a6b',roofBox:false});c.building(9.3,L0,7.2,1.9,1.6,1.9,'#e76f51',Math.PI,{fh:1.3,roofBox:false});   // kafé og kiosk ved trappene
-    // --- Øvre by: rådhus med klokketårn, Smauets husrekker (det første østhuset er biblioteket) ---
-    c.building(-7.2,L1,14.3,6.4,2.6,2.8,'#f2e8d0',Math.PI,{fh:1.3,roof:'#6b3a2a',roofBox:false,sign:'#2c4a6b'});c.box(-7.2,L1+2.6,15.2,1.4,2.2,1.4,'#f2e8d0');c.box(-7.2,L1+4.8,15.2,1.6,.5,1.6,'#6b3a2a');c.box(-7.2,L1+3.9,14.48,.7,.7,.03,'#1a262d');c.box(-7.2,L1+3.95,14.46,.06,.4,.02,'#d9432f');   // rådhuset med ur på tårnet
-    for(const[hz,i]of[[14.7,0],[17.3,1]]){c.building(2.95,L1,hz,2.4,2.4+i*.5,2.4,PAST[(i+1)%PAST.length],Math.PI/2,{fh:1.15});c.building(9.05,L1,hz,2.4,2.2+i*.7,2.4,PAST[(i+6)%PAST.length],-Math.PI/2,{fh:1.15,sign:i===0?'#2c4a6b':null})}   // Smauet
-    for(const[tx,tz]of[[-6,20],[1.6,20.5],[-12.5,8],[-12.5,21]])tree(c,tx,tz,1.0);
-    c.cyl(-4.2,L2,30.5,.05,2.0,'#9a9a96');c.box(-3.9,L2+1.7,30.5,.5,.3,.02,'#d9432f');c.cyl(-3.2,L2,32.8,.06,.9,'#5a5a58');c.cyl(-3.2,L2+.9,32.8,.14,.3,'#2a2a2a',{rx:1.2});c.colliders.push({x:-4.2,z:30.5,r:.08},{x:-3.2,z:32.8,r:.1});   // flagg og kikkert på Utsikten
+    // --- Tyholmen (Øvre by): det hvite rådhuset av tre med ur i tårnet, hvite trehus med røde tak i Smauet (det første østhuset er biblioteket) ---
+    const TRE=['#f4f1e8','#efe6cf','#e9e2d3','#f1ead9','#dfe6e4'],TAK='#8a4a36';
+    c.building(-7.2,L1,14.3,6.4,3.1,2.8,'#f4f1e8',Math.PI,{fh:1.45,roof:TAK,roofBox:false,sign:'#2c4a6b',plinth:'#8f8b83'});for(const sd of[-3.24,3.24])c.box(-7.2+sd,L1,14.3,.1,3.1,2.9,'#d9d5cc');
+    c.box(-7.2,L1+3.22,14.3,6.0,.3,2.2,TAK);c.box(-7.2,L1+3.5,14.3,5.2,.26,1.4,TAK);                                    // valmet tak i to trinn
+    c.box(-7.2,L1+3.1,15.0,1.4,2.3,1.4,'#f4f1e8');c.box(-7.2,L1+5.4,15.0,1.6,.14,1.6,TAK);c.box(-7.2,L1+5.54,15.0,1.0,.4,1.0,TAK);c.cyl(-7.2,L1+5.94,15.0,.025,.8,'#3a3a3a');
+    c.box(-7.2,L1+4.4,14.28,.7,.7,.03,'#1a262d');c.box(-7.2,L1+4.45,14.26,.06,.4,.02,'#d9432f');                           // uret på tårnet
+    for(const[hz,i]of[[14.7,0],[17.3,1]]){c.building(2.95,L1,hz,2.4,2.4+i*.5,2.4,TRE[i+1],Math.PI/2,{fh:1.15,roof:TAK,roofBoxCol:'#a29e95',plinth:'#8f8b83'});c.building(9.05,L1,hz,2.4,2.2+i*.7,2.4,TRE[i+3],-Math.PI/2,{fh:1.15,roof:TAK,roofBoxCol:'#a29e95',plinth:'#8f8b83',sign:i===0?'#2c4a6b':null})}   // Smauet
+    c.building(-8.3,L1,18,2.6,2.3,2.0,TRE[1],-Math.PI/2,{fh:1.15,roof:TAK,roofBoxCol:'#a29e95',plinth:'#8f8b83'});c.building(9.0,L1,26.9,2.2,2.4,2.4,TRE[0],-Math.PI/2,{fh:1.15,roof:TAK,roofBoxCol:'#a29e95',plinth:'#8f8b83'});   // to trehus til: ved kirkebakken og øverst mot Fløyheia
+    // Trefoldighetskirken: rød tegl, spisse vinduer, skifertak og et høyt spir i irret kobber. Kirkeklokka (bellAt) henger i tårnet.
+    {const kx=-7.6,TEGL='#a5503c',SKIFER='#4a5258',IRR='#5f8f7c',kz0=22,kz1=27.4,kz=(kz0+kz1)/2,kl=kz1-kz0;
+      c.building(kx,L1,kz,3.2,2.6,kl,TEGL,Math.PI,{fh:2.2,roof:SKIFER,roofBox:false,plinth:'#7d7974',win:'#e5c13a',door:TEGL});
+      for(let i=0;i<4;i++)c.box(kx,L1+2.72+i*.3,kz,2.9-i*.76,.3,kl+.1,SKIFER);                                                // saltaket i trinn
+      for(const sd of[-1,1])for(let i=0;i<4;i++)c.box(kx+sd*1.66,L1,kz0+.7+i*1.33,.14,2.2,.3,mix(TEGL,'#000',.15));          // støttepilarer
+      c.box(kx,L1,kz1+.5,2.0,2.0,1.0,TEGL);c.box(kx,L1+2.0,kz1+.5,2.1,.3,1.1,SKIFER);                                          // koret
+      const tz=21.2;c.box(kx,L1,tz,1.7,4.6,1.7,TEGL);c.box(kx,L1,tz-.86,.6,1.0,.04,'#3a2a22');c.box(kx,L1+1.5,tz-.86,.34,.8,.03,'#e5c13a');
+      for(const[dx,dz,w,d]of[[0,-.86,.5,.03],[0,.86,.5,.03],[-.86,0,.03,.5],[.86,0,.03,.5]])c.box(kx+dx,L1+3.5,tz+dz,w,.7,d,'#1a262d');   // lydglugger
+      c.box(kx,L1+4.6,tz,1.9,.14,1.9,'#d9d5cc');let y=L1+4.74;for(const[w,h]of[[1.5,.7],[1.2,.8],[.92,.9],[.66,.9],[.42,.9],[.22,.8]]){c.box(kx,y,tz,w,h,w,IRR);y+=h}
+      c.cyl(kx,y,tz,.02,.5,'#e5c13a');c.box(kx,y+.28,tz,.22,.03,.03,'#e5c13a');for(const[dx,dz]of[[-.72,-.72],[.72,-.72],[-.72,.72],[.72,.72]])c.box(kx+dx,L1+4.74,tz+dz,.2,.6,.2,IRR);   // kors og småspir
+      c.colliders.push({x:kx,z:tz,w:1.74,d:1.74,ry:0,anchor:true,y:L1+.5},{x:kx,z:kz1+.5,w:2.0,d:1.0,ry:0,anchor:true,y:L1+.5});P.push({x:kx,y:L1+2.4,z:kz1+.5,kind:'post'});
+      c.fx.push({type:'sign',x:-4.6,z:20.6,ang:Math.PI/2,text:'TREFOLDIGHETSKIRKEN',sub:'Tyholmen',w:2.1})}
+    for(const[tx,tz]of[[-5.3,17.6],[1.6,20.5],[-12.5,8],[-12.5,21]])tree(c,tx,tz,1.0);
+    c.cyl(-4.2,L2,30.5,.05,2.0,'#9a9a96');c.box(-3.9,L2+1.7,30.5,.5,.3,.02,'#d9432f');c.cyl(-3.2,L2,32.8,.06,.9,'#5a5a58');c.cyl(-3.2,L2+.9,32.8,.14,.3,'#2a2a2a',{rx:1.2});c.colliders.push({x:-4.2,z:30.5,r:.08},{x:-3.2,z:32.8,r:.1});   // flagg og kikkert på Fløyheia
+    // glassheisen opp til Fløyheia: et tårn av stål og glass fra bakken til platået, med gangbro inn
+    {const gx=6.1,gz=31.4,gb=H(gx,gz)-.05,top=L2+1.5;c.box(gx,gb,gz,1.0,top-gb,1.0,'#9ec6e0');for(const[dx,dz]of[[-.52,-.52],[.52,-.52],[-.52,.52],[.52,.52]])c.box(gx+dx,gb,gz+dz,.09,top-gb+.1,.09,'#5a6066');
+      for(let yy=gb+1.1;yy<top;yy+=1.1)c.box(gx,yy,gz,1.12,.06,1.12,'#5a6066');c.box(gx,top,gz,1.3,.12,1.3,'#3a3f44');c.box(gx,gb+1.4,gz,.7,.9,.7,'#e5a92b');   // heiskurven
+      const ex=UTS[0]+Math.sqrt(UTS_R*UTS_R-(gz-UTS[1])**2)-.3,bl=gx-.5-ex;c.box(ex+bl/2,L2-.1,gz,bl,.1,.9,'#5a6066');for(const sd of[-.45,.45])c.box(ex+bl/2,L2,gz+sd,bl,.34,.04,'#9ec6e0');
+      c.colliders.push({x:gx,z:gz,w:1.1,d:1.1,ry:0},{x:ex,z:gz,w:.12,d:1.0,ry:0,anchor:true,y:L2+.5});c.fx.push({type:'sign',x:7.9,z:31.4,ang:Math.PI/2,text:'GLASSHEISEN',sub:'til Fløyheia'})}
     // --- Havna: lasterampe, containerkai, jernbanespor med planovergang, promenade med molo og badebrygge ---
     shape(17.5,-26.5,0,7,3,(a)=>{const u=a+3.5;return u<2.4?u/2.4*.3:u<5.4?.3:u<6.1?.15:0},S.ROCK,(a,b)=>{const u=a+3.5;return Math.abs(b)>1.3?'#e5c13a':u<2.4?'#8f8b83':mix('#a29e95','#8a867e',u<5.4?.2:.8)},L0);
     for(let i=0;i<2;i++)for(let j=0;j<2;j++){const cx=30.3+j*2.6,cz=-15.8+i*2.6,cy=Math.min(H(cx-1.2,cz-.5),H(cx+1.2,cz-.5),H(cx-1.2,cz+.5),H(cx+1.2,cz+.5))-.02,col=['#c8463a','#2c4a6b','#4a7a3a','#a86a3a'][(i*2+j)%4];c.box(cx,cy,cz,2.4,1.0,1.0,col);for(let s=0;s<4;s++)c.box(cx-.9+s*.6,cy,cz,.03,1.0,1.04,mix(col,'#000',.25));if((i+j)%2)c.box(cx,cy+1.0,cz,2.4,1.0,1.0,['#e5a92b','#8ecae6'][j]);c.colliders.push({x:cx,z:cz,w:2.44,d:1.04,ry:0,anchor:true,y:cy+.5})}
     for(const rz of[-20.3,-21.0])log(15,rz,22.5,rz,.035,S.ROCK,(u,d)=>d<.3?'#9a9a9c':'#5a5a58');for(let x=15.2;x<22.5;x+=.5)c.box(x,Math.min(H(x,-20.2),H(x,-20.65),H(x,-21.1))-.015,-20.65,.12,.03,1.1,'#5a4330');
     for(const[bx,bz]of[[18.9,-22.1]]){c.cyl(bx,L0,bz,.06,1.1,'#5a5a58');c.box(bx,L0+1.0,bz,.06,.5,.06,'#f4f4f0',0,{rz:.6});c.box(bx,L0+1.0,bz,.06,.5,.06,'#f4f4f0',0,{rz:-.6});c.box(bx,L0+.5,bz,2.0,.07,.07,'#d9432f',Math.PI/4);c.colliders.push({x:bx,z:bz,r:.1,anchor:true,y:L0+.5})}   // andreaskors og åpne bomarmer
+    // Arendal stasjon: gult trehus med rødt tak og en lav plattform mot sporet
+    c.building(16.6,L0,-22.7,3.0,1.4,1.5,'#e2b44c',0,{fh:1.4,roof:TAK,roofBox:false,sign:'#2c4a6b',plinth:'#8f8b83'});c.box(16.6,L0+1.52,-22.7,2.6,.24,1.0,TAK);c.box(16.6,L0+1.4,-21.6,3.4,.06,.8,TAK);for(const sd of[-1.5,1.5])c.cyl(16.6+sd,L0,-21.3,.04,1.4,'#f4f1e8');
+    c.box(16.6,L0,-21.55,3.6,.07,.6,'#a29e95');c.box(16.6,L0+.07,-21.3,3.6,.012,.08,'#e5c13a');c.fx.push({type:'sign',x:14.4,z:-22.3,ang:0,text:'ARENDAL',sub:'stasjon'});
     for(const[px2,pz2]of[[35,-20],[35.4,-17],[35.2,-14],[34.6,-11.5]])c.cyl(px2,H(px2,pz2)-.02,pz2,.1,.35,'#2a2a2a');                                       // pullerter mot sjøen
-    {const B={x0:-8.6,x1:.6,z0:-42.5,z1:-33.9},deep=def.water-.45;   // havnebassenget
+    {const B={x0:-8.6,x1:.6,z0:-42.5,z1:-33.9},deep=def.water-.45;   // Pollen: havnebassenget
       cellsIn(B.x0-1,B.z0-1,B.x1+1,B.z1+1,(k,px,pz)=>{const f=rectIn(B,px,pz,.9);if(f<=0)return;const t=deep;if(t<TH[k]){TH[k]+=(t-TH[k])*f;if(f>.3)TS[k]=S.SAND}})}
     c.bridge(-7,-32.5,-7,-39.2,.9,{sag:0,y0:L0,y1:L0,pier:true});c.bridge(-1,-32.5,-1,-37,.9,{sag:0,y0:L0,y1:L0,pier:true});c.bridge(-7,-37,-1,-37,.9,{sag:.22,y0:L0,y1:L0,pier:true});   // moloen og badebrygga som sløyfe
     for(const[qx,qz,ax]of[[-7,-34.5,1],[-7,-36.5,1],[-7,-38.6,1],[-1,-34.5,1],[-1,-36.5,1],[-3,-37,0],[-5,-37,0]])for(const sd of[-.97,.97]){const px=qx+(ax?sd:0),pz=qz+(ax?0:sd),top=H(qx,qz)+.2,bottom=Math.min(Hterr(px,pz),def.water-.3)-.05;c.cyl(px,bottom,pz,.07,top-bottom,'#4a3a2a')}   // pælene langs kantene av dekket
-    {const fb=Math.min(Hterr(-7,-40.4),def.water-.4)-.05;c.cyl(-7,fb,-40.4,.42,def.water+1.4-fb,'#f4f4f0')}c.cyl(-7,def.water+1.4,-40.4,.46,.3,'#d9432f');c.box(-7,def.water+1.7,-40.4,.4,.3,.4,'#1a262d');c.box(-7,def.water+1.74,-40.4,.42,.18,.42,'#fff3c0');c.fx.push({type:'lamp',x:-7,y:def.water+1.75,z:-40.4});c.cyl(-7,def.water+2.0,-40.4,.3,.12,'#d9432f');c.colliders.push({x:-7,z:-40.4,r:.45});   // fyrlykta
+    // Lille Torungen: hvitt fyrtårn som smalner oppover, rødt galleri og rød hette
+    {const fx=-7,fz=-40.4,w=def.water,fb=Math.min(Hterr(fx,fz),w-.4)-.05;c.cyl(fx,fb,fz,.62,w+.25-fb,'#8f8b83');let y=w+.25;for(const[r,h]of[[.46,.8],[.4,.8],[.34,.8]]){c.cyl(fx,y,fz,r,h,'#f4f4f0');y+=h}
+      c.box(fx,w+.25,fz-.46,.22,.42,.03,'#3a2a22');c.box(fx,w+1.5,fz-.4,.14,.2,.03,'#1a262d');c.cyl(fx,y,fz,.5,.08,'#d9432f');c.cyl(fx,y+.08,fz,.24,.36,'#fff3c0');for(let i=0;i<6;i++){const a=i/6*6.28;c.cyl(fx+Math.cos(a)*.25,y+.08,fz+Math.sin(a)*.25,.02,.36,'#1a262d')}
+      c.cyl(fx,y+.44,fz,.32,.1,'#d9432f');c.cyl(fx,y+.54,fz,.16,.14,'#d9432f');c.cyl(fx,y+.68,fz,.015,.3,'#3a3a3a');c.fx.push({type:'lamp',x:fx,y:y+.3,z:fz});c.colliders.push({x:fx,z:fz,r:.62});P.push({x:fx,y:y+.7,z:fz,kind:'post'})}
+    // Pollen: småbåter fortøyd ved bryggene (snekker med hvitt skrog), og skiltet til gjestehavna
+    for(const[bx,bz,ry,col]of[[-5.3,-38.75,0,'#f4f4f0'],[-3.1,-38.75,0,'#e9e2d3'],[-5.6,-35.7,Math.PI/2,'#f4f4f0'],[.25,-34.9,0,'#8ecae6']]){const by=def.water-.1,cs=Math.cos(ry),sn=Math.sin(ry);
+      c.box(bx,by,bz,.56,.3,1.4,col,ry);c.box(bx,by+.3,bz,.6,.04,1.44,'#8a6a3a',ry);c.box(bx,by+.26,bz,.44,.06,1.2,'#c9b48a',ry);c.box(bx+sn*.1,by+.34,bz+cs*.1,.4,.3,.5,'#f4f1e8',ry);c.box(bx+sn*.1,by+.64,bz+cs*.1,.46,.04,.56,'#8a4a36',ry);
+      c.cyl(bx-sn*.75,Math.min(Hterr(bx-sn*.75,bz-cs*.75),def.water-.3)-.05,bz-cs*.75,.04,1.4,'#4a3a2a');c.colliders.push({x:bx,z:bz,r:.6})}
+    c.fx.push({type:'sign',x:-4,z:-33.4,ang:0,text:'POLLEN',sub:'gjestehavn'});
+    // Knubben: stupetårnet ved enden av badebrygga, to avsatser og stige
+    {const kx=.55,kz=-37,w=def.water;for(const[dx,dz]of[[-.4,-.4],[.4,-.4],[-.4,.4],[.4,.4]]){const b=Math.min(Hterr(kx+dx,kz+dz),w-.3)-.05;c.cyl(kx+dx,b,kz+dz,.04,L0+2.3-b,'#f4f4f0')}
+      c.box(kx+.2,L0+1.1,kz,1.4,.06,.9,'#c9b48a');c.box(kx+.35,L0+2.2,kz,1.7,.06,.9,'#c9b48a');for(let i=0;i<8;i++)c.box(kx-.46,L0+.25+i*.26,kz,.03,.03,.4,'#8a8a88');c.colliders.push({x:kx,z:kz,r:.6});P.push({x:kx+.9,y:L0+2.26,z:kz,kind:'post'})}
+    // Langbrygga: fiskemottaket (rød sjøbu) og benker med utsikt mot Pollen
+    {const ry=-.359;c.building(7.1,L0,-33.1,2.6,1.5,1.6,'#a33b2e',ry,{fh:1.5,roof:'#3f3d3a',roofBox:false,sign:'#f4f1e8',plinth:'#8f8b83',win:'#f4f1e8'});
+      for(const[kx,kz]of[[8.9,-32.9],[9.3,-33.4]]){const ky=H(kx,kz)-.02;c.box(kx,ky,kz,.5,.3,.4,'#4f7bb5',.4);c.box(kx,ky+.3,kz,.5,.3,.4,'#e9e2d3',.2)}   // fiskekasser
+      bench(c,3.8,-32.9,ry,H(3.8,-32.9)-.02);bench(c,5.4,-32.3,ry,H(5.4,-32.3)-.02);c.fx.push({type:'sign',x:9.6,z:-27.6,ang:0,text:'LANGBRYGGA',sub:'fersk fisk'})}
     for(const[bx,bz,col]of[[-4.5,-34.8,'#c8463a'],[2,-34.8,'#4f7bb5']]){const by=Math.max(H(bx,bz)-.04,def.water-.14);c.box(bx,by,bz,1.5,.34,.6,col,.3);c.box(bx,by+.33,bz,1.1,.04,.4,'#8a6a3a',.3);c.colliders.push({x:bx,z:bz,r:.8})}   // båter på stranda
     // --- Byparken: sandkasse, sklie, trappepyramide, dam, lekeplass ---
     shape(-19,2,0,4,4,(a,b)=>Math.max(Math.abs(a),Math.abs(b))>1.75?.16:.04,null,(a,b)=>Math.max(Math.abs(a),Math.abs(b))>1.75?'#8a6a3a':'#d2ab66',L0);paint(-19,2,1.7,S.SAND);
@@ -189,6 +236,10 @@ LEVELS.push(
     for(let i=0;i<16;i++){const a=i/16*6.28;c.box(cx+Math.cos(a)*1.3,L0-.1,cz+Math.sin(a)*1.3,.52,.02,.1,'#f4f4f0',Math.PI/2-a)}
     for(const gx of[PITCH.x0+.6,PITCH.x1-.6]){for(const gz of[cz-.9,cz+.9]){c.cyl(gx,L0-.1,gz,.035,.8,'#f4f4f0');c.colliders.push({x:gx,z:gz,r:.06})}c.cyl(gx,L0+.7-.95,cz,.035,1.9,'#f4f4f0',{rx:1.57});c.box(gx+(gx<cx?-.3:.3),L0-.1,cz,.02,.8,1.86,'#d9d9d6')}}   // linjer og mål
     c.building(26.5,L0,19.0,5,2.2,1.2,'#8a8f96',Math.PI,{fh:1.1,roofBox:false});c.building(26.5,L0,23.2,5,2.2,1.2,'#8a8f96',0,{fh:1.1,roofBox:false});c.box(26.5,L0+1.9,21.1,5,.18,4.6,'#55534f');c.fx.push({type:'sign',x:22.6,z:22.6,ang:Math.PI/2,text:'SPILLER-',sub:'tunnelen'});   // garderobebyggene med tunnelen mellom
+    // resultattavla på nordsiden av banen, og skiltet ved Stadionveien
+    {const tx=21.2,tz=19.4;for(const sd of[-1.1,1.1]){const b=H(tx+sd,tz)-.05;c.cyl(tx+sd,b,tz,.06,L0+3.9-b,'#5a5a58');c.colliders.push({x:tx+sd,z:tz,r:.1,anchor:true,y:L0+.6})}
+      c.box(tx,L0+2.6,tz,2.6,1.3,.12,'#1d1c1a');c.box(tx,L0+3.9,tz,2.7,.08,.2,'#5a5a58');for(const[dx,w,col]of[[-.8,.5,'#e5a92b'],[0,.12,'#f4f4f0'],[.8,.5,'#e5a92b']])c.box(tx+dx,L0+3.0,tz-.07,w,.6,.02,col);c.box(tx,L0+2.72,tz-.07,2.2,.14,.02,'#3fae3a');
+      c.fx.push({type:'sign',x:18.6,z:4.5,ang:Math.PI,text:'BJØNNES',sub:'stadion'})}
     for(const[lx,lz]of[[13.3,16],[31.8,15],[13.4,21.6]]){{const fb=H(lx,lz)-.05;c.cyl(lx,fb,lz,.08,L0+5.2-fb,'#5a5a58')}c.box(lx,L0+5.1,lz,.9,.3,.4,'#2a2a2a');c.box(lx,L0+5.05,lz,.8,.08,.3,'#fff3c0');c.colliders.push({x:lx,z:lz,r:.12,anchor:true,y:L0+.6});c.fx.push({type:'lamp',x:lx,y:L0+5.0,z:lz})}
     // --- P-huset: brystning, søyler, bom, takdekke med striper, lekebiler og heissjakt ---
     for(let i=0,d=SP0+7;d<=SP1-4;d+=5.5,i++){const p=spP(d),q=spP(d+1),ang=Math.atan2(q[0]-p[0],q[1]-p[1]),ox=Math.cos(d*DEG),oz=Math.sin(d*DEG),bx=p[0]+ox*1.5,bz=p[1]+oz*1.5;
@@ -219,7 +270,7 @@ LEVELS.push(
     // rullebanen: maling, banenummer og lys. Så terminalen med vinduer mot plassen, tårnet og hangaren med porten mot rullebanen (byggeklossene er c.ap… i js/core.js)
     const AK=c.apFrame(0,0,0,1,AIRH);c.apRunway(AK,RWY.x0,RWY.x1,RWY.z0,RWY.z1);c.apPapi(AK,-53.8,5,-.3);
     c.apTerminal(AK,-38.9,-9.5,2.6,1.7,7,-1);c.apCarts(AK,-40.75,-7.4,1);
-    c.fx.push({type:'sign',x:-40.4,z:-13.6,ang:-Math.PI/2,text:'TRINNVIK LUFTHAVN',sub:'rundflyging over skjærgården',w:2.1});
+    c.fx.push({type:'sign',x:-40.4,z:-13.6,ang:-Math.PI/2,text:'ARENDAL LUFTHAVN',sub:'Gullknapp · rundflyging',w:2.1});
     c.apTower(AK,-44.5,-21,3.2);c.apTanks(AK,-41,12.3);c.apTruck(AK,-39.5,-3.6,1);
     c.apCargo(AK,-54.3,-39.4);for(const mx of[-45.8,-54.6])c.apMast(AK,mx,-45);c.apLine([[-47.4,-37.5],[-49.6,-41.4],[-50.8,-36.2]],AIRH);for(const sd of[-1,1])c.apLine([[-50.8+sd*2.1,-40.4],[-50.8+sd*2.1,-35.4]],AIRH);
     c.box(-42.4,AIRH,6.5,5.4,2.3,6,'#8a9096');for(const sd of[-1,1])c.box(-42.4+sd*1.4,AIRH+2.55,6.5,3.0,.1,6.3,'#5a6066',0,{rz:sd*.33});c.box(-45.12,AIRH,6.5,.05,1.9,4.4,'#3a3f44');c.box(-45.15,AIRH+1.95,6.5,.07,.12,4.6,'#e5a92b');
@@ -234,7 +285,7 @@ LEVELS.push(
     c.airportDef={x:-42.5,z:-9,y:AIRH,ask:{x:-41.8,z:-12.9},plane:{x:-43.6,z:-8.4,yaw:-Math.PI/2},sock:{x:-55.4,z:-6},rwy:RWY,cargo:CG,
       route:[...AIRVEI.slice(1).map(p=>({x:p[0],z:p[1]})),{x:-41.8,z:-12.9}],from:{x:AIRVEI[0][0],z:AIRVEI[0][1]}};
     // --- gullmutterne ---
-    c.secret(25.6,-5.3,'På taket av P-huset');c.secret(BOWL[0],BOWL[1],'Bunnen av Bollen');c.secret(1,30.5,'Utsikten');c.secret(AMF[0],AMF[1],'På scenen i Amfiet');c.secret(-7,-38.6,'Ytterst på moloen');
+    c.secret(25.6,-5.3,'På taket av P-huset');c.secret(BOWL[0],BOWL[1],'Bunnen av Bollen');c.secret(1,30.5,'Fløyheia');c.secret(AMF[0],AMF[1],'På scenen i Amfiet');c.secret(-7,-38.6,'Ytterst på moloen');
     c.finish();
     c.plants();   // bytrærne
     c.props();

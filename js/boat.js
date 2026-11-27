@@ -56,7 +56,7 @@ function buildSea(){if(BT.built)return;BT.built=true;if(!BTEX)BTEX=bMakeTex();
   for(const id in SEA.docks)BT.docks[id]=bDock(seaDock(id));
   bTreasure();
   for(let i=0;i<24;i++)bCloud(R);for(let i=0;i<16;i++)bGull(R);
-  if(typeof fAirportSea==='function')fAirportSea();   // Trinnvik's airport (js/plane.js)
+  if(typeof fAirportSea==='function')fAirportSea();   // Arendal's airport (js/plane.js)
   BT.W={islands:seaIslands(),hulls:BT.pir,bound:SEA.bound}}
 // a smaller shadow map with low graphics (the setting in the menu)
 function bShadowSize(){const sz=state.gfx==='hi'?2048:1024,sh=BT.dir.shadow;if(sh.mapSize.x===sz)return;sh.mapSize.set(sz,sz);if(sh.map){sh.map.dispose();sh.map=null}}
@@ -499,7 +499,7 @@ function bPause(on){if(!BT.on||BT.result||!['intro','count','race'].includes(BT.
 function boatKeyDown(k){if(BT.fade||!BT.on||BT.result)return;
   if(BT.phase==='menu'||BT.phase==='lobby'){if(k==='escape')boatExit();else if(k==='enter'&&document.activeElement===document.body&&!$('bmGo').hidden)$('bmGo').click();return}
   if(k==='escape'||k==='p'){bPause($('boatPause').hidden);return}if(!$('boatPause').hidden)return;
-  if((k==='enter'||k===' ')&&BT.phase==='intro'&&!(BT.net&&BT.net.racing)){BT.goAt=Math.min(BT.goAt,performance.now()+2400);BT.introAt=Math.min(BT.introAt,BT.goAt-2401)}   // skip the swoop
+  if((k==='enter'||k===' '||k==='tap')&&BT.phase==='intro'&&!(BT.net&&BT.net.racing)){BT.goAt=Math.min(BT.goAt,performance.now()+2400);BT.introAt=Math.min(BT.introAt,BT.goAt-2401)}   // skip the swoop
   if(k==='m')setSound(!state.sound)}
 
 /* ---------- every frame (from game.js): the fades, the 60 Hz steps, effects, cameras, HUD, sound, drawing ---------- */
@@ -656,6 +656,7 @@ function bMarinaAnim(){const M=BT.marina;if(!M)return;const t=performance.now()*
   if(M.paint!==prof.paint){M.paint=prof.paint;const c=LIN((PAINTS[prof.paint]||PAINTS[0]).c);for(const mat of M.boat.userData.paint)mat.color.copy(c)}}
 
 function initBoat(){
+  $('boatHud').addEventListener('pointerdown',e=>{if(BT.on&&BT.phase==='intro'&&!e.target.closest('button'))boatKeyDown('tap')});   // a tap on the screen skips the intro swoop
   $('bmRaces').addEventListener('click',e=>{const b=e.target.closest('[data-race]');if(!b||b.disabled)return;const r=BOAT_RACES.find(q=>q.id===b.dataset.race);if(!r)return;
     if(BT.net){BT.net.race=r.id;bNetList()}else store.set('boatRace',r.id);bSetup(r);bMenuRender()});
   $('bm1').onclick=()=>{BT.two=false;store.set('boatTwo',false);bSetup(bSelRace());bMenuRender()};$('bm2').onclick=()=>{BT.two=true;store.set('boatTwo',true);bSetup(bSelRace());bMenuRender()};

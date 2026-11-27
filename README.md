@@ -31,7 +31,7 @@ js/racesim.js         Fysikken i racene på Racerøya: bilene sett ovenfra, slad
 js/grottesim.js       Fysikken i Diamantgrotten: bilen sett fra siden, diamanter, bensin og sjekkpunkter (ingen DOM, testes uten nettleser).
 js/gruvesim.js        Kappløpet i Gruve 7: vognene på tre spor, hindringene, kullet, kassene, utstyret og rivalene (ingen DOM, testes uten nettleser).
 js/gpsroute.js        GPS-en: finner en vei bilen kan kjøre mellom to steder på øya (ingen DOM, testes uten nettleser).
-js/plane.js           Flyturene fra flyplassen på Trinnvik: flyet, flyplassen ute på havet, HUD, lyd, og båtene og flyene til de andre i rommet.
+js/plane.js           Flyturene fra flyplassen i Arendal: flyet, flyplassen ute på havet, HUD, lyd, og båtene og flyene til de andre i rommet.
 js/cargo.js           Lasteflyet som flyr bilen mellom øyene: modellen, spørsmålet i lasterommet, flyturen, landingen og flyplassene på havet.
 js/grotte.js          Diamantgrotten på Kameløya: grotten sett fra siden som i Hill Climb Racing, bilen, bensin, pedaler, lyd, inn og ut.
 js/gruve7.js          Gruve 7 på Svalbard: gruvegangen sett bakfra, gruvearbeiderne i vognene, hindringene, HUD, lyd og musikk, inn og ut.
@@ -301,9 +301,9 @@ Slik virker det i spillet: Kjør bort til en startstrek (flagg, dekk og festival
 
 Testen kjører hver løype for seg: `node tools/test-levels.js verden`.
 
-## En by (Trinnvik)
+## En by (Arendal)
 
-`data/levels/07-trinnvik.js` er en verden som er en by: to flate terrasser (Nedre by 1,2 og Øvre by 2,39) med utsiktstoppen øverst, gater med fortauskant, trapper, en skatepark, et stadion, et parkeringshus med spiral og en liten byggetomt. Terrassene, bollen, amfiet og P-huskjeglen ligger i `base()`; alt annet stemples oppå med verktøyene under. Trapper på løypene er 0,15–0,18 høye (det klarer alle biler i begge gir), de bratteste (0,24) ligger utenfor løypene.
+`data/levels/07-arendal.js` er en verden som er en by, med stedsnavn fra Arendal (Torvet, Tyholmen med rådhuset og Trefoldighetskirken, Fløyheia med glassheisen, Pollen, Langbrygga, Knubben, Lille Torungen, Bjønnes stadion og stasjonen). Byen het Trinnvik før; `js/game.js` flytter rekorder, spøkelser og gullmuttere som er lagret under den gamle ID-en, én gang ved oppstart. Den er bygget slik: to flate terrasser (Nedre by 1,2 og Øvre by 2,39) med utsiktstoppen øverst, gater med fortauskant, trapper, en skatepark, et stadion, et parkeringshus med spiral og en liten byggetomt. Terrassene, bollen, amfiet og P-huskjeglen ligger i `base()`; alt annet stemples oppå med verktøyene under. Trapper på løypene er 0,15–0,18 høye (det klarer alle biler i begge gir), de bratteste (0,24) ligger utenfor løypene.
 
 Verktøy for byer i `build(c)`:
 
@@ -320,7 +320,7 @@ Verktøy for byer i `build(c)`:
 
 Dyr i en by: `pigeons:14` (duer på lykter og hustak), `rats:[{at,r,n}]`, `cats:[{at,r,n}]`. Lydsoner: `biome(x,z)` kan gi `city` (trafikkdur, duer, fjern biltut, rådhusklokke ved `bellAt:[x,z]`), `stadium` (publikumsmumling) og `site` (generator og hammerslag). `ambience:'town'` slår lyden på. En `boulder` med `col:'#f4f4f0'` er en ball (fotballen på stadion).
 
-Testen: `node tools/test-levels.js trinnvik` kjører landsbytesten og alle sju løypene i begge gir.
+Testen: `node tools/test-levels.js arendal` kjører landsbytesten og alle sju løypene i begge gir.
 
 ## Gautefall: vinterøya og skianlegget
 
@@ -431,12 +431,12 @@ Muttere: 5 per bøye, 3 per turbotønne, 20 for å fortøye, 15 hvis du aldri bl
 
 ## Flyplassen og flyturene
 
-Øst på Trinnvik ligger Trinnvik lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør (18/36) med kantlys, terminal, tårn, hangar, drivstofftanker og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved småflyet, så kommer spørsmålet «Vil du fly?». (Lasteflyet som flyr bilen til de andre øyene står sør på rullebanen, se neste avsnitt.) JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
+Øst i Arendal ligger Arendal lufthavn, på en fylling ut i sjøen. Der er det rullebane nord–sør (18/36) med kantlys, terminal, tårn, hangar, drivstofftanker og vindpose, og et småfly i samme farge som bilen. Flyplassveien går fra enden av Promenaden langs stranda. Kjør inn på den blå ruta ved småflyet, så kommer spørsmålet «Vil du fly?». (Lasteflyet som flyr bilen til de andre øyene står sør på rullebanen, se neste avsnitt.) JA: bilen blir stående, og flyet står klart på rullebanen ute i skjærgården. Det er det samme havet, de samme øyene og den samme skalaen som i båtløpet.
 
 | Tur | Vanskelighet | Ringer |
 |---|---|---|
 | Fly fritt | – | Ingen. Fly dit du vil og land når du er ferdig. |
-| Rundt Trinnvik | Lett | 7 i en runde rundt byøya |
+| Rundt Arendal | Lett | 7 i en runde rundt byøya |
 | Over Tromøya | Middels | 9, nordover rundt snøfjellet og hjem |
 | Vulkanflyget | Vanskelig | 10, helt nord til Hisøya og hjem forbi Skilsø |
 
@@ -450,11 +450,11 @@ Muttere: 5 per bøye, 3 per turbotønne, 20 for å fortøye, 15 hvis du aldri bl
 
 På mobil og nettbrett er det sving nede til venstre og stig, synk og full fart (⚡) nede til høyre. Lander du rolig med vingene vannrett, ruller flyet videre, og du kan ta av igjen. Treffer du sjøen eller en øy, starter du på nytt ved siste ring (eller på rullebanen). Bakken under flyet finnes ved å sende en stråle rett ned gjennom øyene, så husene og fjellene er like harde som de ser ut.
 
-Muttere: 5 per ring, 20 for å komme i mål, 15 uten krasj, 60 første gang og 20 for ny rekord. Beste tid lagres i `best['trinnvik/fly/…']`.
+Muttere: 5 per ring, 20 for å komme i mål, 15 uten krasj, 60 første gang og 20 for ny rekord. Beste tid lagres i `best['arendal/fly/…']`.
 
-**Banefelt:** Flyplassen bygges i `build(c)` i `data/levels/07-trinnvik.js`, som setter `c.airportDef` (den blå ruta, flyet, vindposen og veien dit). `landExtra(x,z)` på banen (0–1) sier hvor det er fylt ut land utenfor kysten, så sjøen ikke tar det. Testen kjører flyplassveien inn på den blå ruta.
+**Banefelt:** Flyplassen bygges i `build(c)` i `data/levels/07-arendal.js`, som setter `c.airportDef` (den blå ruta, flyet, vindposen og veien dit). `landExtra(x,z)` på banen (0–1) sier hvor det er fylt ut land utenfor kysten, så sjøen ikke tar det. Testen kjører flyplassveien inn på den blå ruta.
 
-**Havet og turene (`data/flights.js`):** `AIRPORT` er flyplassen sett fra sjøen, målt fra midten av Trinnvik. En tur har `rings:[[x,høyde,z],…]` (nord er −z), `par:[tre stjerner, to stjerner]`. Kjør `node tools/test-flights.js` etter endringer. Den sjekker at ringene og etappene holder høyde over øyene, lar en autopilot fly hver tur, og lander på rullebanen.
+**Havet og turene (`data/flights.js`):** `AIRPORT` er flyplassen sett fra sjøen, målt fra midten av Arendal. En tur har `rings:[[x,høyde,z],…]` (nord er −z), `par:[tre stjerner, to stjerner]`. Kjør `node tools/test-flights.js` etter endringer. Den sjekker at ringene og etappene holder høyde over øyene, lar en autopilot fly hver tur, og lander på rullebanen.
 
 ## Lasteflyet: fly bilen mellom øyene
 
@@ -481,11 +481,11 @@ Du flyr selv, over det samme havet som båtløpet og rundflygingen, med de samme
 | `road` | Veien dit fra øya. Det siste stykket bygges opp som en molo der det er sjø mellom øya og fyllingen. |
 | `ground` | `'grass'` (standard), `'sand'` eller `'snow'`. |
 
-Fyllingen legges i `genLevel` (`airFrame` i `js/core.js`), og `c.airport` bygger resten før `build(c)`, som landsbyen. `c.cargoPlane(x,z,yaw,y)` lager selve flyet: rampa og gulvet er kjørbare dekk, veggene og skottet foran stopper bilen. Målene står i `CARGO` øverst i samme fil. Trinnvik har sin egen flyplass i banefila og kaller `c.cargoPlane` selv. Modellen tegnes av `cgMesh` i `js/cargo.js`.
+Fyllingen legges i `genLevel` (`airFrame` i `js/core.js`), og `c.airport` bygger resten før `build(c)`, som landsbyen. `c.cargoPlane(x,z,yaw,y)` lager selve flyet: rampa og gulvet er kjørbare dekk, veggene og skottet foran stopper bilen. Målene står i `CARGO` øverst i samme fil. Arendal har sin egen flyplass i banefila og kaller `c.cargoPlane` selv. Modellen tegnes av `cgMesh` i `js/cargo.js`.
 
 **Flymodellen** er en Antonov An-124: høy pilvinge som henger ned mot tuppene, fire turbofanmotorer på pyloner foran vingen, cockpit høyt over en rund nese (hele nesa er et visir), radom under haka, to doble nesehjul ved siden av hverandre, fem hjulpar på rad under en kul på hver side, hekk som sveiper opp over rampa, én høy finne og haleflaten lavt på kroppen. Kroppen er kortere og tjukkere enn på det ekte flyet, for bilen skal få plass i lasterommet. Kropp, vinger og hale er skall trukket over tverrsnitt (`cgLoft`), og alle delene slås sammen til ett nett per materiale (`cgBucket`), så flyet er et dusin tegnekall uansett hvor mange detaljer det har. Nye deler legges i `Bb` (kroppen), `Bt` (det som blir gjennomsiktig når bilen er inne), `Br` (rampa) eller `Bd` (dørene som er lukket i lufta).
 
-**Det som står på flyplassene** bygges av `c.ap…` i `js/core.js` (`apRunway`, `apTerminal`, `apTower`, `apTanks`, `apTruck`, `apCargo`, `apCarts`, `apMast`, `apPapi`, `apLine`), og brukes både av `c.airport` og av Trinnvik. De tar en ramme fra `c.apFrame`, så tingene kan stå langs rullebanen uansett hvilken vei den ligger. Banenummeret regnes ut fra kompassretningen. Sett fra lufta bygges de samme tingene av `cgSeaKit` i `js/cargo.js`.
+**Det som står på flyplassene** bygges av `c.ap…` i `js/core.js` (`apRunway`, `apTerminal`, `apTower`, `apTanks`, `apTruck`, `apCargo`, `apCarts`, `apMast`, `apPapi`, `apLine`), og brukes både av `c.airport` og av Arendal. De tar en ramme fra `c.apFrame`, så tingene kan stå langs rullebanen uansett hvilken vei den ligger. Banenummeret regnes ut fra kompassretningen. Sett fra lufta bygges de samme tingene av `cgSeaKit` i `js/cargo.js`.
 
 **På havet:** `seaAirports()` i `js/planesim.js` legger en rullebane ved hver øy på samme side som øyas egen flyplass, og `PCARGO` er tallene for lasteflyet (tyngre, lengre rullestrekning, slakere svinger enn småflyet). `cargoFinal` velger enden med lengst fri innflyging, og `cargoAssist` er landingshjelpen (`approach`, `landR` og `landP` i `PCARGO` er farten på vei inn og hvor skjevt flyet tåler å sette seg).
 
@@ -555,7 +555,7 @@ Kjør inn den smale kløfta og helt inn i den mørke åpningen (merket «FARE �
 | ← eller S (↓), eller BREMS-pedalen | Brems og revers. I lufta tipper bremsen nesa ned. |
 | Esc eller P | Pause: tilbake til sjekkpunktet, start ved inngangen, kjør ut, lyd. |
 
-- **Diamanter:** 1 diamant er 10 muttere, og de legges til med en gang du tar dem. Diamantene er tilbake neste gang du kjører inn.
+- **Diamanter:** en diamant er 10 muttere første gang du tar den, og de legges til med en gang. Diamantene er tilbake neste gang du kjører inn, men de du har tatt før, er blekere og gir 2 muttere (`prof.cave.gems`).
 - **Bensin:** tanken går mest etter hvor langt du kjører (litt også når du står stille). De røde kannene fyller tanken. Er tanken tom og bilen står, blir du tauet ut. I Lett modus rekker tanken en tredjedel lenger.
 - **Sjekkpunkter:** lyktene. Velter du (taket i bakken, eller bilen blir liggende på siden) eller faller ned i et juv, starter du ved siste lykt.
 - **Lett modus:** bilen lander alltid på hjulene, og motoren slipper litt når forhjulene letter i en bratt bakke. **Ekte modus:** du styrer selv i lufta, og hver hele salto gir 5 muttere.
@@ -611,9 +611,9 @@ Koden ligger i `js/world.js` («the snowmobile hire»). Banen setter `c.skuterDe
 | Du gjør | Taster | Berøring | Til hva |
 |---|---|---|---|
 | Bytter spor | ← →, A D | Sveip til siden | Forbi steinras, parkerte kullvogner, stengte spor, spor som ender i veggen, og rivaler |
-| Hopper | ↑, W | Sveip opp | Over brudd i skinnene og steinfeller |
-| Dukker | ↓, S | Sveip ned | Under lave bjelker og istapper |
-| Bruker utstyret | Mellomrom, Enter, X | Trykk, eller knappen nede til høyre | Det du fant i en kasse |
+| Hopper | ↑, W | Sveip opp, eller trykk | Over brudd i skinnene og steinfeller |
+| Dukker | ↓, S | Sveip ned (hold fingeren nede for å bli nede) | Under lave bjelker og istapper |
+| Bruker utstyret | Mellomrom, Enter, X | Knappen nede til høyre | Det du fant i en kasse |
 
 - **Krasj:** vogna snurrer rundt, mister farten og to kullklumper, og ruller videre. Faller du ned i en sjakt, settes vogna på skinnene igjen på den andre siden. Ingen blir satt tilbake, og ingen ryker ut.
 - **Kull er fart:** hver klump du har om bord (opptil 20), gjør vogna 0,4 % raskere. Hver klump du plukker, er også 3 muttere.
@@ -779,7 +779,7 @@ Koden er MIT-lisensiert (se `LICENSE`). Skriftene Barlow Condensed og Saira Sten
 
 ## Piratøya: sjørøverøya og de tre prøvene
 
-`data/levels/14-pirat.js` er en sjørøverøy i evig solnedgang, sørvest for Tromøya i skjærgården. Fergen går dit fra Tromøya, Bykkevika, Trinnvik og Løveøya. Øya er inspirert av de gamle pek-og-klikk-eventyrene om sjørøvere, men stedene, figurene og replikkene er våre egne. Husk at på øyene er +x vest og +z nord.
+`data/levels/14-pirat.js` er en sjørøverøy i evig solnedgang, sørvest for Tromøya i skjærgården. Fergen går dit fra Tromøya, Bykkevika, Arendal og Løveøya. Øya er inspirert av de gamle pek-og-klikk-eventyrene om sjørøvere, men stedene, figurene og replikkene er våre egne. Husk at på øyene er +x vest og +z nord.
 
 | Sted | Hva |
 |---|---|
@@ -816,7 +816,7 @@ Testen: `node tools/test-levels.js pirat`. Sjørøverne og prøvene er ikke med 
 
 ## Racerøya: racerbanen og racet sett ovenfra
 
-`data/levels/15-racer.js` er øya med racerbanen: en asfaltert runde midt på øya med tribune, depot og startportal, palmer og hvite strender. Fergen går fra Tromøya, Trinnvik, Spornes og Gautefall. Banerunden (en vanlig løype med porter rundt asfalten) og Palmestranda er løypene på øya.
+`data/levels/15-racer.js` er øya med racerbanen: en asfaltert runde midt på øya med tribune, depot og startportal, palmer og hvite strender. Fergen går fra Tromøya, Arendal, Spornes og Gautefall. Banerunden (en vanlig løype med porter rundt asfalten) og Palmestranda er løypene på øya.
 
 Kjør inn på den blå ruta foran depotet, så kommer spørsmålet «Vil du kjøre race?». JA: bilen blir stående, og bildet skifter til racet sett rett ovenfra (2D, tegnet på et eget lerret).
 

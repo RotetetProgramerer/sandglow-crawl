@@ -169,9 +169,10 @@ function updateNpcs(dt){for(const o of RS.npcs){const k=o.k;if(o.down>0){o.down-
   if(l>1e-4&&l<1){const h=Math.atan2(dx,dz);let dh=h-o.head;dh=Math.atan2(Math.sin(dh),Math.cos(dh));o.inc+=(Math.max(-.7,Math.min(.7,dh/dt*o.sp/SKI_G))-o.inc)*Math.min(1,dt*5);o.head=h;o.vx=dx/dt;o.vz=dz/dt}else{o.head=Math.atan2(k.T(o.t).x,k.T(o.t).z);o.vx=o.vz=0}
   o.x=x;o.z=z;o.y=H(x,z);const fx=Math.sin(o.head),fz=Math.cos(o.head),slope=Math.atan2(H(x+fx*.3,z+fz*.3)-H(x-fx*.3,z-fz*.3),.6);
   o.m.position.set(x,o.y,z);o.m.rotation.set(-slope,o.head,-o.inc);o.m.visible=Math.abs(x-camera.position.x)+Math.abs(z-camera.position.z)<75}}
-// the player's skier against the others: a light touch pushes you apart, a real collision takes you both down (returns true)
-function resortHit(s){if(s.air)return false;for(const o of RS.npcs){if(o.down>0)continue;const dx=s.pos.x-o.x,dz=s.pos.z-o.z,d=Math.hypot(dx,dz);if(d>.38||Math.abs(s.pos.y-o.y)>.6||d<1e-4)continue;
-  const rv=Math.hypot(s.vel.x-o.vx,s.vel.z-o.vz);if(rv>2.4){o.down=1.6;return true}s.pos.x+=dx/d*(.38-d);s.pos.z+=dz/d*(.38-d)}return false}
+// the player's skier against the others: a light touch pushes you apart, a real collision takes you both down (returns true).
+// easy: no fall, a real collision only pushes you aside and slows you a little (once a second per skier)
+function resortHit(s,easy){if(s.air)return false;for(const o of RS.npcs){if(o.down>0)continue;const dx=s.pos.x-o.x,dz=s.pos.z-o.z,d=Math.hypot(dx,dz);if(d>.38||Math.abs(s.pos.y-o.y)>.6||d<1e-4)continue;
+  const rv=Math.hypot(s.vel.x-o.vx,s.vel.z-o.vz);if(rv>2.4){if(!easy){o.down=1.6;return true}const t=performance.now();if(!(o.bumpT>t)){o.bumpT=t+1000;s.vel.x*=.75;s.vel.z*=.75;toast('Oi! Pass på de andre i bakken')}}s.pos.x+=dx/d*(.38-d);s.pos.z+=dz/d*(.38-d)}return false}
 function buildRiders(){if(!LIFT)return;const r=mulberry32(33),mat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.6}),geos=NPC_COLS.slice(0,state.gfx==='hi'?4:2).map(c=>figureGeo(c,{seated:true}));
   LIFT.chairs.forEach((c,i)=>{if(i===0||r()>.45)return;for(const x of r()<.4?[.24,-.24]:[r()<.5?.24:-.24]){const m=new THREE.Mesh(geos[Math.floor(r()*geos.length)],mat);m.position.set(x,-LIFT.L.hang+.03,.06);m.castShadow=true;c.sw.add(m)}})}
 

@@ -11,9 +11,13 @@
    Loaded after js/world.js; buildAnimals, updateAnimals, updateWorld, openAsk and answerAsk call in here.
    ================================================================= */
 const PIR={def:null,folk:[],walker:null,ghost:null,cannons:[],balls:[],puffs:[],skull:null,marks:[],sky:null,chest:null,cross:null,lights:[],
-  fireT:5,tuneT:6,booT:0,digT:0,dustT:0,missT:0,bumpT:0,duel:null,flag:null};
+  fireT:5,tuneT:6,booT:0,digT:0,dustT:0,missT:0,bumpT:0,stopT:0,duel:null,flag:null};
 const pirProf=()=>prof.pirat||(prof.pirat={});
 const pirDone=()=>{const p=pirProf();return(p.x?1:0)+(p.duel?1:0)+(p.boo?1:0)};
+// what comes after «prøve n av 3»: with all three done, and no flag yet, send the player back to the inn
+const pirNext=()=>pirDone()===3&&!pirProf().kap?' Kjør tilbake til Skumkroa!':'';
+// a toast for a trial that is done: it stays longer than the usual 1.6 s when it also says where to go (toastT is the timer in js/game.js)
+function pirToast(msg){toast(msg+pirNext());if(pirNext()&&typeof toastT!=='undefined')toastT=4.5}
 const PIR_GEO={tri:new THREE.CylinderGeometry(1,1,1,3),ball:new THREE.SphereGeometry(1,8,6),sail:new THREE.PlaneGeometry(1,1,4,1)};
 
 /* ---------- textures ---------- */
@@ -117,7 +121,7 @@ function makeChest(){const g=new THREE.Group(),G=ANIMAL_GEO,wood=amat('#6a4226')
   const gl=pirGlow('#ffd36a',1.6,.6);gl.position.y=.5;g.add(gl);return g}
 
 /* ---------- build ---------- */
-function buildPirates(lv,def){Object.assign(PIR,{def:lv.piratDef||null,folk:[],walker:null,ghost:null,cannons:[],balls:[],puffs:[],skull:null,marks:[],sky:null,chest:null,cross:null,lights:[],fireT:5,tuneT:6,booT:0,digT:0,duel:null});
+function buildPirates(lv,def){Object.assign(PIR,{def:lv.piratDef||null,folk:[],walker:null,ghost:null,cannons:[],balls:[],puffs:[],skull:null,marks:[],sky:null,chest:null,cross:null,lights:[],fireT:5,tuneT:6,booT:0,digT:0,stopT:0,duel:null});
   const D=PIR.def;if(!D)return;const R=mulberry32(def.seed+31),P=pirProf();
   // the moon and the stars of the everlasting sunset (they follow the camera, see updatePirates)
   {const sky=new THREE.Group(),moon=new THREE.Sprite(new THREE.SpriteMaterial({map:pirMoonTex(),transparent:true,depthWrite:false,fog:false}));moon.scale.set(30,30,1);moon.position.set(-108,92,78);sky.add(moon);
@@ -141,9 +145,10 @@ function buildPirates(lv,def){Object.assign(PIR,{def:lv.piratDef||null,folk:[],w
   // the X on the beach (two red planks), and the chest if it has been dug up
   {const x=D.dig.x,z=D.dig.z,y=H(x,z)+.03,g=new THREE.Group();for(const a of[.785,-.785]){const m=new THREE.Mesh(ANIMAL_GEO.box,new THREE.MeshBasicMaterial({color:LIN('#c4281c')}));m.scale.set(1.5,.02,.22);m.rotation.y=a;g.add(m)}g.position.set(x,y,z);levelGroup.add(g);PIR.cross=g;
     if(P.x)pirChest(1)}
-  // a «!» over the ones who have something to say
-  const mark=(x,z,h,key)=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:pirMarkTex(),transparent:true,depthWrite:false}));s.scale.set(.5,.5,1);s.position.set(x,H(x,z)+h,z);levelGroup.add(s);PIR.marks.push({s,key,y:H(x,z)+h})};
-  mark(D.inn.x,D.inn.z,1.5,'inn');mark(D.duel.x,D.duel.z,1.45,'duel')}
+  // a «!» over the ones who have something to say, and over the two trials you drive to: the X on the beach and the mouth of the skull (see updatePirates for when each one shows)
+  const mt=pirMarkTex(),mark=(x,z,h,key,y0=H(x,z))=>{const s=new THREE.Sprite(new THREE.SpriteMaterial({map:mt,transparent:true,depthWrite:false}));s.scale.set(.5,.5,1);s.position.set(x,y0+h,z);levelGroup.add(s);PIR.marks.push({s,key,y:y0+h})};
+  mark(D.inn.x,D.inn.z,1.5,'inn');mark(D.duel.x,D.duel.z,1.45,'duel');mark(D.dig.x,D.dig.z,1.5,'x');
+  {const S=D.skull;mark(S.x+Math.sin(S.dir)*3.4,S.z+Math.cos(S.dir)*3.4,1.9,'boo',S.y)}}   // just in front of the dome, over the teeth
 function pirChest(k){const D=PIR.def,x=D.dig.x-1.15,z=D.dig.z-.9,g=makeChest();g.position.set(x,H(x,z)-.6*(1-k),z);g.rotation.y=.5;levelGroup.add(g);PIR.chest={g,k,y:H(x,z)};G.colliders.push({x,z,r:.42})}
 
 /* ---------- sounds ---------- */
@@ -200,7 +205,7 @@ function updatePirates(dt,tm){pirFlag(tm);const D=PIR.def;if(!D||!car)return;con
   // lanterns flicker, the eyes of the skull glow, and the marks bob
   for(const o of PIR.lights)o.l.material.opacity=.6+.2*Math.sin(tm*9+o.ph)*Math.sin(tm*2.3+o.ph);
   if(PIR.skull)PIR.skull.userData.eyes.forEach((e,i)=>e.material.opacity=.55+.4*Math.sin(tm*2.2+i*.4)**2);
-  for(const m of PIR.marks){m.s.visible=m.key==='inn'?!P.kap:!P.duel;m.s.position.y=m.y+.06*Math.sin(tm*3)}
+  for(const m of PIR.marks){m.s.visible=m.key==='inn'?!P.kap:m.key==='duel'?!P.duel:m.key==='x'?!P.x:!P.boo;m.s.position.y=m.y+.06*Math.sin(tm*3)}
   // the cannons: one fires now and then, more often when the ghost ship is in front of them
   if(PIR.cannons.length){PIR.fireT-=dt;if(PIR.fireT<=0){PIR.fireT=5+Math.random()*7;if(Math.hypot(cx-D.cannons[0].x,cz-D.cannons[0].z)<70)pirFire()}
     for(const k of PIR.cannons){k.rec=Math.max(0,k.rec-dt*1.6);k.g.userData.barrel.position.z=-.22*k.rec}}
@@ -218,11 +223,11 @@ function updatePirates(dt,tm){pirFlag(tm);const D=PIR.def;if(!D||!car)return;con
 // the trials you do by driving: the dig at the X and the ghost in the skull
 function pirTrials(dt,tm,P){const D=PIR.def,cx=car.pos.x,cz=car.pos.z,S=D.skull;
   if(PIR.booT<=0&&Math.hypot(cx-S.boo.x,cz-S.boo.z)<S.boo.r){PIR.booT=12;pirWail(S.x,S.z);if(typeof ambThump==='function')ambThump(.8);const ox=Math.sin(S.dir),oz=Math.cos(S.dir);car.vel.x+=ox*4.5;car.vel.z+=oz*4.5;car.vel.y+=1.2;
-    if(!P.boo){P.boo=1;prof.nuts+=60;saveProf();toast('👻 «BØØØ!» Du turte! +60 ⚙ · prøve '+pirDone()+' av 3');ambChime(cx,cz)}else toast('👻 «BØØØ! Ut av hodet mitt!»')}
-  if(!P.x){const d=Math.hypot(cx-D.dig.x,cz-D.dig.z);
+    if(!P.boo){P.boo=1;prof.nuts+=60;saveProf();pirToast('👻 «BØØØ!» Du turte! +60 ⚙ · prøve '+pirDone()+' av 3.');ambChime(cx,cz)}else toast('👻 «BØØØ! Ut av hodet mitt!»')}
+  if(!P.x){const d=Math.hypot(cx-D.dig.x,cz-D.dig.z);PIR.stopT-=dt;
     if(d<1.6&&car.vel.lengthSq()<1.6){if(PIR.digT===0)toast('⛏ Du graver under krysset …');PIR.digT+=dt;PIR.dustT-=dt;if(PIR.dustT<=0){PIR.dustT=.12;_pv.set(D.dig.x+(Math.random()-.5)*1.4,H(D.dig.x,D.dig.z),D.dig.z+(Math.random()-.5)*1.4);spawnDust(_pv,S_SAND,true)}
-      if(PIR.digT>1.5){P.x=1;prof.nuts+=80;saveProf();pirChest(0);ambChime(cx,cz);toast('💰 Sjørøverskatten! +80 ⚙ · prøve '+pirDone()+' av 3')}}
-    else PIR.digT=0}}
+      if(PIR.digT>1.5){P.x=1;prof.nuts+=80;saveProf();pirChest(0);ambChime(cx,cz);pirToast('💰 Sjørøverskatten! +80 ⚙ · prøve '+pirDone()+' av 3.')}}
+    else{PIR.digT=0;if(d<1.6&&PIR.stopT<=0){PIR.stopT=3;toast('⛏ Stopp helt på krysset')}}}}   // on the X, but too fast to dig: say so, at most every 3 s
 const _pv=new THREE.Vector3(),S_SAND=0;
 // the captain's flag on the car: a pole at the back with the black flag, on every island once you are a captain
 function pirFlag(tm){if(typeof carVis==='undefined'||!carVis||!carVis.body||!prof.pirat||!prof.pirat.kap)return;const b=carVis.body;let f=b.userData.pirFlag;
@@ -248,7 +253,8 @@ const PIR_WRONG=['«Det … det var ikke snilt sagt.»','«Eh … du er dum!»',
 const PIR_LAUGH=['«Ha! Var det alt? Bestemoren min biter hardere, og hun har ikke tenner!»','«Det trikset er eldre enn skjegget til kaptein Gråskjegg!»','«Ho ho! Det svaret sank som en stein.»'];
 const pirShuffle=L=>{const a=L.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]]}return a};
 function pirShow(o){$('aKind').textContent=o.kind;$('aName').textContent=o.name;$('aDesc').textContent=o.desc;$('aBest').textContent=o.best||'';$('aQ').textContent=o.q||'';
-  if(o.list){$('aList').innerHTML=o.list.map((t,i)=>`<button data-pir="${i}"><span class="nm" style="font-size:1rem">${t}</span></button>`).join('');$('aList').hidden=false}else $('aList').hidden=true;
+  // the answers are direct button children of #aList, in order: js/game.js lets the keys 1–9 click them. o.num: show the key in front (hidden on touch screens, see .pir-n in css/style.css)
+  if(o.list){$('aList').innerHTML=o.list.map((t,i)=>`<button data-pir="${i}"><span class="nm" style="font-size:1rem">${o.num?`<b class="pir-n">${i+1}</b>`:''}${t}</span></button>`).join('');$('aList').hidden=false}else $('aList').hidden=true;
   $('aYes').hidden=!o.yes;$('aNo').textContent=o.no||'NEI, kjør videre';$('ask').hidden=false;(o.yes?$('aYes'):$('aNo')).focus()}
 function pirAsk(k){const P=pirProf();
   if(k==='pirat:kro'){const n=pirDone(),ok=b=>b?'✔':'✘';
@@ -262,7 +268,7 @@ function pirAsk(k){const P=pirProf();
   PIR.duel=null;pirShow({kind:'Ordduell',name:'Sverdmester Smilla',desc:'«Sverd er for pyser. En ekte sjørøver slåss med ORD! Jeg sier noe frekt, og du svarer noe som biter enda bedre. Første til tre vinner.»',
     best:P.duel?'Du har vunnet før. Nå gjelder det bare æren.':'Vinner du, har du klart en av de tre prøvene. +60 ⚙',q:'Tør du å duellere?',yes:true})}
 function pirRound(msg){const D=PIR.duel,k='pirat:duell';state.mode='ask';state.askK=k;const r=PIR_DUEL[D.order[D.i%D.order.length]];D.opts=pirShuffle([r.a,...pirShuffle(PIR_WRONG).slice(0,2)]);D.right=D.opts.indexOf(r.a);
-  pirShow({kind:'Ordduell · du '+D.score+' – Smilla '+D.miss,name:'Sverdmester Smilla',desc:r.q,best:msg||'',q:'Hva svarer du?',list:D.opts,no:'Jeg gir meg!'})}
+  pirShow({kind:'Ordduell · du '+D.score+' – Smilla '+D.miss,name:'Sverdmester Smilla',desc:r.q,best:msg||'',q:'Hva svarer du?',list:D.opts,num:true,no:'Jeg gir meg!'})}
 function pirAnswer(k,yes){const P=pirProf(),close=()=>{state.mode='play';state.askCool=k;PIR.duel=null};
   if(k==='pirat:kro'){close();return}
   const D=PIR.duel;
@@ -272,7 +278,7 @@ function pirAnswer(k,yes){const P=pirProf(),close=()=>{state.mode='play';state.a
   if(yes.pir===D.right){D.score++;D.msg='Den satt! Smilla blir rød i toppen.';if(typeof ambChime==='function')ambChime(car.pos.x,car.pos.z)}else{D.miss++;D.msg=PIR_LAUGH[Math.floor(Math.random()*PIR_LAUGH.length)];if(typeof ambThump==='function')ambThump(.5)}
   D.i++;
   if(D.score>=3){D.over=true;const first=!P.duel;if(first){P.duel=1;prof.nuts+=60;saveProf()}state.mode='ask';state.askK=k;
-    pirShow({kind:'Ordduell · du vant '+D.score+' – '+D.miss,name:'Du vant ordduellen!',desc:'Smilla slenger sverdet i sanda. «Arr! Den tunga di er skarpere enn sabelen min. Hils de gamle på Skumkroa og si at du slo meg!»',best:first?'+60 ⚙ · prøve '+pirDone()+' av 3 er klart.':'',no:'Arr!'});return}
+    pirShow({kind:'Ordduell · du vant '+D.score+' – '+D.miss,name:'Du vant ordduellen!',desc:'Smilla slenger sverdet i sanda. «Arr! Den tunga di er skarpere enn sabelen min. Hils de gamle på Skumkroa og si at du slo meg!»',best:first?'+60 ⚙ · prøve '+pirDone()+' av 3 er klart.'+pirNext():'',no:'Arr!'});return}
   if(D.miss>=3){D.over=true;state.mode='ask';state.askK=k;pirShow({kind:'Ordduell · du tapte '+D.score+' – '+D.miss,name:'Smilla vant denne gangen',desc:'«Ha ha! Gå og øv deg på måkene, landkrabbe. Du kan prøve igjen når du vil.»',no:'Jeg kommer tilbake!'});return}
   pirRound(D.msg)}
 if(typeof document!=='undefined'&&document.getElementById('aList'))document.getElementById('aList').addEventListener('click',e=>{const b=e.target.closest('[data-pir]');if(b)answerAsk({pir:+b.dataset.pir})});

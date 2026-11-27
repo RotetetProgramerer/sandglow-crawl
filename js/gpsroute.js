@@ -22,7 +22,7 @@ function gpsPlaces(def,lv,o={}){const P=[],has=new Set();
   if(lv.ferry)add('ferry','Fergekaia',lv.ferry.x,lv.ferry.z,2.4,'ferry');
   const ga=def.garageAt||def.basePos;if(ga)add('base','Basen',ga[0],ga[1],2.8,'base');
   if(lv.marinaDef)add('marina','Marinaen',lv.marinaDef.ask.x,lv.marinaDef.ask.z,2,'marina');
-  {const A=lv.airportDef;if(A&&A.ask)add('air','Flyplassen',A.ask.x,A.ask.z,2,'air');   // Trinnvik: the blue square by the small plane
+  {const A=lv.airportDef;if(A&&A.ask)add('air','Flyplassen',A.ask.x,A.ask.z,2,'air');   // Arendal: the blue square by the small plane
     if(A&&A.cargo)add('cargo',A.ask?'Lasteflyet':'Flyplassen',A.cargo.foot.x,A.cargo.foot.z,1.6,A.ask?'cargo':'air')}   // every island: the foot of the cargo plane's ramp
   if(def.skiAt&&lv.liftDef)add('ski','Skiheisen',def.skiAt[0],def.skiAt[1],2,'ski');
   if(lv.raceDef)add('race','Racerbanen',lv.raceDef.ask.x,lv.raceDef.ask.z,2,'race');

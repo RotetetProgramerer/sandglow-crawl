@@ -165,18 +165,19 @@ function figureGeo(col,P,o={}){const v=makeSkierModel(col,o);poseSkier(v,P);v.ro
 function fadeTo(cb,hold=.15){$('fade').classList.add('on');SKI.fade={t:0,cb,hold}}
 function skiStart(){if(!LIFT)return;SKI.on=true;state.mode='ski';buildSkierVis();applySkierColor();skiBib(1+Math.floor(Math.random()*79));car.vel.set(0,0,0);car.w.set(0,0,0);car.throttle=0;
   $('hud').classList.add('ski');$('sName').textContent='Stolheisen';$('sTime').textContent='–';$('sGate').textContent='–';$('sPen').textContent='–';$('sPenL').textContent='Straff';
-  SKI.phase='board';fadeTo(()=>{SKI.phase='lift';LIFT.u=-.3;SKI.ride=-.3;SKI.lastNode=0;SKI.vis.root.visible=true;SKI.camSnap=true;showHelp('Stolheisen tar deg til toppen · <kbd>Enter</kbd> hopper over turen',4)})}
+  SKI.phase='board';fadeTo(()=>{SKI.phase='lift';LIFT.u=-.3;SKI.ride=-.3;SKI.lastNode=0;SKI.vis.root.visible=true;SKI.camSnap=true;skiHint(document.body.classList.contains('is-touch')?'Stolheisen tar deg til toppen · trykk på hoppknappen for å hoppe over turen':'Stolheisen tar deg til toppen · <kbd>Enter</kbd> hopper over turen',4)})}
 // at the top: the skier steps off beside the top station and picks a piste
 function skiToTop(){SKI.phase='top';SKI.run=null;SKI.k=null;fadeTo(()=>{const L=LIFT.L,x=L.bx+L.ux*1.6,z=L.bz+L.uz*1.6;placeSkier(SKI.s,x,z,Math.atan2(L.ux,L.uz));SKI.vis.root.visible=true;SKI.camSnap=true;
   $('sName').textContent='Toppen';openAsk('skiPick')})}
 // the run starts when the skier pushes through the start wand; the clock (and the ghost of your best run) starts with it
-function skiPick(id){const k=(LV.pistes||[]).find(p=>p.id===id);if(!k)return;SKI.k=k;SKI.phase='count';SKI.run=Object.assign(makeSkiRun(k),{started:false,splits:[],turnT:0,carveT:0,pops:0});SKI.rec=[];SKI.recT=0;SKI.ghost=state.ghost?skiLoadGhost(k):null;
-  fadeTo(()=>{const s=SKI.s;placeSkier(s,k.start.p.x-k.start.tan.x*.3,k.start.p.z-k.start.tan.z*.3,Math.atan2(k.start.tan.x,k.start.tan.z));SKI.count=3.2;SKI.beat=4;SKI.camSnap=true;SKI.vis.root.visible=true;gearReset();resortRun(k);
+// quick: a restart of the same piste gets a short countdown (2, 1, go)
+function skiPick(id,quick){const k=(LV.pistes||[]).find(p=>p.id===id);if(!k)return;SKI.k=k;SKI.phase='count';SKI.run=Object.assign(makeSkiRun(k),{started:false,splits:[],turnT:0,carveT:0,pops:0});SKI.rec=[];SKI.recT=0;SKI.ghost=state.ghost?skiLoadGhost(k):null;
+  fadeTo(()=>{const s=SKI.s;placeSkier(s,k.start.p.x-k.start.tan.x*.3,k.start.p.z-k.start.tan.z*.3,Math.atan2(k.start.tan.x,k.start.tan.z));SKI.count=quick?1.7:3.2;SKI.beat=4;SKI.camSnap=true;SKI.vis.root.visible=true;gearReset();resortRun(k);
     $('sName').textContent=k.name;$('sGate').textContent='0/'+(k.gates.length-1);$('sTime').textContent='0:00.0';$('sPenL').textContent=k.kind==='hopp'?'Poeng':'Straff';$('sPen').textContent=k.kind==='hopp'?'0':'0 s';$('sSplit').hidden=true;
-    showHelp((k.kind==='hopp'?'<kbd>←</kbd> <kbd>→</kbd> sving, og snurr i lufta · <kbd>mellomrom</kbd> akkurat på hoppkanten gir ekstra høyde · land med skiene rett fram':'<kbd>←</kbd> <kbd>→</kbd> sving: jevnt for carving · <kbd>↓</kbd> plog, med sving en hockeystopp · <kbd>↑</kbd> stavtak og hockestilling · <kbd>C</kbd> kamera')+(SKI.ghost?' · den lyse skiløperen er din beste tur':''),6)})}
+    skiHint((document.body.classList.contains('is-touch')?(k.kind==='hopp'?'Sving med pilene, og snurr i lufta · hoppknappen akkurat på hoppkanten gir ekstra høyde · land med skiene rett fram':'Sving jevnt med pilene for carving · pil ned er plog · pil opp er stavtak og hockestilling'):k.kind==='hopp'?'<kbd>←</kbd> <kbd>→</kbd> sving, og snurr i lufta · <kbd>mellomrom</kbd> akkurat på hoppkanten gir ekstra høyde · land med skiene rett fram':'<kbd>←</kbd> <kbd>→</kbd> sving: jevnt for carving · <kbd>↓</kbd> plog, med sving en hockeystopp · <kbd>↑</kbd> stavtak og hockestilling · <kbd>C</kbd> kamera')+(SKI.ghost?' · den lyse skiløperen er din beste tur':''),6)})}
 function skiExit(){SKI.phase='exit';fadeTo(()=>{SKI.on=false;SKI.phase='';SKI.run=null;SKI.k=null;SKI.ghost=null;gearReset();resortRun(null);if(SKI.vis){SKI.vis.root.visible=false;scene.add(SKI.vis.root)}$('hud').classList.remove('ski');$('count').hidden=true;$('sHelp').hidden=true;$('sSplit').hidden=true;beacon.visible=false;
   state.mode='play';state.askCool='ski';camSnap=true;showHud();toast('Tilbake ved bilen');skiSoundOff()})}
-function showHelp(html,sec){const el=$('sHelp');el.innerHTML=html;el.hidden=false;SKI.help=sec}
+function skiHint(html,sec){const el=$('sHelp');el.innerHTML=html;el.hidden=false;SKI.help=sec}
 function skiBib(n){SKI.bib=n;const m=SKI.vis&&SKI.vis.bibM;if(!m||!m.map)return;m.map.dispose();m.map=bibTexture(n);m.needsUpdate=true}
 // split times: at every gate, ahead of (green) or behind (red) your best run
 function showSplit(d){const el=$('sSplit');el.textContent=(d<=0?'−':'+')+Math.abs(d).toFixed(2).replace('.',',');el.className='ski-split '+(d<=0?'ahead':'behind');el.hidden=false;SKI.splitT=2.4}
@@ -206,7 +207,7 @@ function skiAnswer(k,yes){
   if(k==='ski'){if(yes)skiStart();else{state.mode='play';state.askCool='ski';toast('Kjør videre når du vil')}return}
   state.mode='ski';const a=yes&&yes.ski;
   if(k==='skiPick'){if(a&&a.startsWith('pick:'))skiPick(a.slice(5));else skiExit();return}
-  if(k==='skiPause'){if(a==='restart')skiPick(SKI.k.id);else if(a==='pick')skiToTop();else if(a==='car')skiExit()}}
+  if(k==='skiPause'){if(a==='restart')skiPick(SKI.k.id,true);else if(a==='pick')skiToTop();else if(a==='car')skiExit()}}
 
 /* ---------- the result ---------- */
 function skiFinish(){const k=SKI.k,run=SKI.run,hopp=k.kind==='hopp',t=run.time,tt=t+run.pen,par=k.def.par||[1e9,1e9];SKI.phase='done';SKI.t=0;
@@ -222,7 +223,7 @@ function skiFinish(){const k=SKI.k,run=SKI.run,hopp=k.kind==='hopp',t=run.time,t
   $('rLevel').textContent=LEVELS[state.levelIdx].name+' · '+k.name;$('rTitle').textContent=hopp?(run.points>=par[0]?'Storslått!':'I mål!'):(!run.missed&&!run.crashes?'Feilfri tur!':'I mål!');
   $('rTime').textContent=fmtTime(tt);$('rPenL').textContent=hopp?'Poeng':'Straff';$('rPen').textContent=hopp?run.points:'+'+run.pen+' s';$('rGatesL').textContent='Porter';$('rGates').textContent=run.passed+'/'+(k.gates.length-1);
   $('rStars').innerHTML=[0,1,2].map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z" fill="${i<stars?'#E5A92B':'rgba(242,232,208,.15)'}"/></svg>`).join('');$('rStars').setAttribute('aria-label',stars+' av 3 stjerner');
-  const items=[];if(run.missed)items.push(`<li><b>${run.missed} bom:</b> +${run.missed*5} sekunder</li>`);if(run.crashes)items.push(`<li><b>${run.crashes} fall</b></li>`);
+  const items=[];if(run.missed)items.push(hopp?`<li><b>${run.missed} bom</b> (teller ikke i hoppløypa)</li>`:`<li><b>${run.missed} bom:</b> +${run.pen} sekunder</li>`);if(run.crashes)items.push(`<li><b>${run.crashes} fall</b></li>`);
   if(run.turnT>1)items.push(`<li><b>Carving:</b> ${Math.round(100*run.carveT/run.turnT)} % av svingene på kanten${run.carveT/run.turnT<.4?'. Sving jevnere, så holder kantene og du mister mindre fart':''}</li>`);
   if(run.pops)items.push(`<li><b>${run.pops} perfekt${run.pops>1?'e':''} sats</b> på hoppkanten</li>`);
   if(run.jumps.length)items.push(`<li><b>${run.jumps.length} hopp,</b> lengste ${Math.max(...run.jumps.map(j=>j.air)).toFixed(1).replace('.',',')} s i lufta${run.jumps.some(j=>j.spins)?', '+run.jumps.filter(j=>j.spins).map(j=>j.spins*360+'°').join(' og '):''}</li>`);
@@ -233,7 +234,7 @@ function skiFinish(){const k=SKI.k,run=SKI.run,hopp=k.kind==='hopp',t=run.time,t
   $('rNext').textContent='Velg ny nedfart';$('rRetry').textContent='Prøv igjen';$('rMenu').textContent='Tilbake til bilen';$('rGarage').hidden=true;
   SKI.result=true;setTimeout(()=>{if(SKI.result&&SKI.phase==='done'){$('result').hidden=false;$('rRetry').focus()}},1100);toast('Mål! '+fmtTime(tt))}
 function skiCloseResult(){SKI.result=false;$('result').hidden=true;$('rGarage').hidden=false;$('rMenu').textContent='Til menyen';$('rPenL').textContent='Straff';$('rGatesL').textContent='Porter'}
-function skiResultBtn(b){if(!SKI.result)return false;skiCloseResult();if(b==='next')skiToTop();else if(b==='retry')skiPick(SKI.k.id);else skiExit();return true}
+function skiResultBtn(b){if(!SKI.result)return false;skiCloseResult();if(b==='next')skiToTop();else if(b==='retry')skiPick(SKI.k.id,true);else skiExit();return true}
 
 /* ---------- grooves the skis cut in the snow ---------- */
 // thin lines when the skis carve, wide smears when they skid, deep and wide in powder; a V behind a snowplough
@@ -269,6 +270,7 @@ const _sp=new V3(),_sq=new Q4(),_se=new THREE.Euler(),_gh={};
 function updateSki(dt){if(!SKI.on)return;
   // fades: dark, then the change, then light again
   if(SKI.fade){const f=SKI.fade;f.t+=dt;if(f.t>.9&&!f.done){f.done=true;f.cb()}if(f.t>.9+f.hold){$('fade').classList.remove('on');SKI.fade=null}}
+  if(SKI.phase==='lift'&&state.inp&&state.inp.jump&&!SKI.fade){SKI.phase='skip';fadeTo(()=>skiArrive())}   // the jump button on a phone and the gamepad skip the lift, as Enter does
   if(SKI.help>0){SKI.help-=dt;if(SKI.help<=0)$('sHelp').hidden=true}
   if(SKI.splitT>0){SKI.splitT-=dt;if(SKI.splitT<=0)$('sSplit').hidden=true}
   const s=SKI.s,v=SKI.vis,inp=state.inp||{gas:0,rev:0,steer:0,jump:false},act=state.mode==='ski',now=performance.now()*.001;
@@ -281,16 +283,16 @@ function updateSki(dt){if(!SKI.on)return;
   if((SKI.phase==='run'||SKI.phase==='done')&&act){const run=SKI.run,k=SKI.k,jump=inp.jump&&!SKI.jumpPrev;SKI.jumpPrev=inp.jump;
     const auto=SKI.phase==='done',I={steer:auto?0:inp.steer,gas:auto?0:inp.gas,brake:auto?1:inp.rev,jump:!auto&&jump},st=k.start;
     SKI.acc+=dt;let n=0;const p1={x:s.pos.x,z:s.pos.z};
-    while(SKI.acc>=FIXED&&n<20){stepSkier(s,I,FIXED,{assist:state.assist});I.jump=false;SKI.acc-=FIXED;n++;
+    while(SKI.acc>=FIXED&&n<20){stepSkier(s,I,FIXED,{assist:state.assist,tricks:k.kind==='hopp'});I.jump=false;SKI.acc-=FIXED;n++;
       for(const e of s.ev)skiEvent(e);s.ev.length=0;
       if(!auto&&!run.started&&(s.pos.x-st.p.x)*st.tan.x+(s.pos.z-st.p.z)*st.tan.z>0){run.started=true;skiStartWand()}
-      if(!auto)for(const e of skiGates(run,p1,s.pos))skiGateEvent(e);p1.x=s.pos.x;p1.z=s.pos.z;if(SKI.phase!=='run'&&!auto)break}
+      if(!auto)for(const e of skiGates(run,p1,s.pos,state.assist?2:5))skiGateEvent(e);p1.x=s.pos.x;p1.z=s.pos.z;if(SKI.phase!=='run'&&!auto)break}
     if(n>=20)SKI.acc=0;
     if(!auto&&run.started){run.time+=dt;run.top=Math.max(run.top||0,s.speed);if(Math.abs(s.inc)>.15&&!s.air&&s.crashT===0){run.turnT+=dt;if(s.carve>.6)run.carveT+=dt}
       // record the run for the ghost
       SKI.recT-=dt;if(SKI.recT<=0&&SKI.rec.length<7*15*240){SKI.recT=1/15;SKI.rec.push(+run.time.toFixed(2),+s.pos.x.toFixed(2),+s.pos.y.toFixed(2),+s.pos.z.toFixed(2),+s.head.toFixed(2),+s.inc.toFixed(2),s.tuck>.5?1:0)}}
-    // other skiers on the piste: run into one and you both go down
-    if(!auto&&s.crashT===0&&typeof resortHit==='function'&&resortHit(s))skiCrash(s,'Krasjet med en skiløper');
+    // other skiers on the piste: run into one and you both go down (in the easy mode you are only pushed aside)
+    if(!auto&&s.crashT===0&&typeof resortHit==='function'&&resortHit(s,state.assist))skiCrash(s,'Krasjet med en skiløper');
     // a fall: tumble and slide, lie still a moment, get up
     if(s.crashT>(auto?1.3:2.1)){if(!auto)skiResume();else{s.crashT=0;s.vel.set(0,0,0)}}
     // snow spray when the edges bite, skid or plough, a cloud in powder; tracks in the snow
@@ -334,7 +336,7 @@ function skiEvent(e){const run=SKI.run,s=SKI.s;if(!run)return;
 function skiGateEvent(e){const run=SKI.run,k=SKI.k;
   if((e.type==='gate'||e.type==='miss')&&run.splits){run.splits[e.i]=+(run.time+run.pen).toFixed(2);const b=best[skiKey(k)];if(k.kind!=='hopp'&&b&&b.sp&&b.sp[e.i]!=null)showSplit(run.splits[e.i]-b.sp[e.i])}
   if(e.type==='gate'){ambGate();if(k.kind!=='slalom')toast('Port '+(e.i+1)+' ✓')}
-  if(e.type==='miss'){toast('Bom på port '+(e.i+1)+' · +5 s',true);skiBeep(180,.25)}
+  if(e.type==='miss'){toast('Bom på port '+(e.i+1)+(k.kind==='hopp'?'':' · +'+(state.assist?2:5)+' s'),true);skiBeep(180,.25)}
   if(e.type==='finish'){skiBeep(1180,.25);setTimeout(()=>skiBeep(1480,.4),180);skiFinish()}}
 
 /* ---------- the ski camera ---------- */
@@ -380,7 +382,7 @@ function skiSound(){if(SKI.snd||!AC||typeof noiseBuf!=='function')return SKI.snd
   SKI.snd={swish:mk('bandpass',900,.9),scrape:mk('highpass',2800,.8),wind:mk('lowpass',420,.6),carve:mk('bandpass',2200,2.2),powder:mk('lowpass',320,.7),crowd:mk('bandpass',850,.5)}}catch(e){SKI.snd=null}return SKI.snd}
 function updateSkiSound(dt){const S_=skiSound();if(!S_)return;const t=AC.currentTime,s=SKI.s,on=state.sound&&SKI.on&&state.mode==='ski'&&(SKI.phase==='run'||SKI.phase==='done'),vol=state.volCar/70,set=(g,v)=>g.gain.setTargetAtTime(v,t,.08);
   // the crowd at the finish: louder the closer you come, a cheer when you cross the line
-  let crowd=0;const k=SKI.k;if(state.sound&&SKI.on&&k&&(SKI.phase==='run'||SKI.phase==='done')){const f=k.gates[k.gates.length-1].c;crowd=(1-sm1((Math.hypot(f.x-s.pos.x,f.z-s.pos.z)-3)/16))*.035+SKI.cheer*.025}
+  let crowd=0;const k=SKI.k;if(state.sound&&SKI.on&&state.mode==='ski'&&k&&(SKI.phase==='run'||SKI.phase==='done')){const f=k.gates[k.gates.length-1].c;crowd=(1-sm1((Math.hypot(f.x-s.pos.x,f.z-s.pos.z)-3)/16))*.035+SKI.cheer*.025}
   set(S_.crowd.g,crowd*state.volAmb/70*(.75+.25*Math.sin(t*2.3)*Math.sin(t*.7)));if(crowd>.005&&Math.random()<dt*crowd*70)skiCowbell(crowd);
   if(!on){for(const n of['swish','scrape','carve','powder'])set(S_[n].g,0);set(S_.wind.g,SKI.on&&state.sound&&SKI.phase==='lift'?.03*vol:0);return}
   const sp=s.speed,gnd=!s.air&&s.crashT===0,deep=!s.groomed&&s.surf===S.SNOW,hard=s.surf===S.SNOW&&s.groomed,ah=Math.abs(s.hock);

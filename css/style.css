@@ -136,10 +136,11 @@ kbd{font-family:var(--f-body);font-weight:700;border:1px solid rgba(242,232,208,
 .incl .lbl{display:flex;flex-direction:column;gap:2px;font-size:.78rem;color:var(--muted);font-variant-numeric:tabular-nums}
 .incl .lbl b{font-size:.98rem;color:var(--paper)}
 .incl.warn .lbl b{color:var(--signal)}
-.toast{position:fixed;z-index:12;left:50%;top:calc(76px + env(safe-area-inset-top,0px));transform:translateX(-50%);font-family:var(--f-display);font-size:clamp(1.3rem,4vw,2rem);
+.toast{position:fixed;z-index:30;left:50%;top:calc(76px + env(safe-area-inset-top,0px));transform:translateX(-50%);font-family:var(--f-display);font-size:clamp(1.3rem,4vw,2rem);
   color:var(--sand);text-shadow:0 2px 0 var(--ink),0 0 18px rgba(0,0,0,.7);pointer-events:none;opacity:0;transition:opacity .25s;text-align:center;white-space:nowrap}
 .toast.on{opacity:1}
 .toast.bad{color:var(--signal)}
+@media (max-width:620px){.toast{top:calc(340px + env(safe-area-inset-top,0px));white-space:normal;width:calc(100% - 32px)}}   /* a narrow phone: below the buttons, the minimap and the hint, and on two lines if it must */
 .hint{position:fixed;z-index:12;left:50%;transform:translateX(-50%);bottom:calc(96px + env(safe-area-inset-bottom,0px));background:var(--signal);color:var(--ink);font-weight:700;padding:8px 14px;font-size:1.05rem;text-align:center;max-width:calc(100% - 32px)}
 .tip{position:fixed;z-index:12;left:50%;top:calc(128px + env(safe-area-inset-top,0px));transform:translate(-50%,-8px);width:max-content;max-width:min(460px,calc(100% - 32px));
   display:flex;align-items:center;gap:12px;background:var(--panel);border:1px solid var(--line);border-left:4px solid var(--sand);padding:8px 8px 8px 12px;opacity:0;pointer-events:none;transition:opacity .3s,transform .3s}
@@ -172,7 +173,12 @@ body.is-touch .touch{display:block}
 .tb.on{background:var(--sand);border-color:var(--sand)}.tb.on svg{stroke:var(--ink)}
 .tb.big{width:84px;height:84px}
 .tcol{display:flex;flex-direction:column;gap:10px}
-body.is-touch .gauges{bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+/* the gauges sit between the two thumb pads: the gear button and − used to lie under the steering buttons and could not be pressed */
+body.is-touch .gauges{bottom:calc(16px + env(safe-area-inset-bottom,0px));left:calc(184px + env(safe-area-inset-left,0px));right:calc(112px + env(safe-area-inset-right,0px));transform:none;justify-content:center}
+body.is-touch .gauges .incl{display:none}
+@media (max-width:900px){body.is-touch .gauges .nxt{display:none}}
+@media (max-width:760px){body.is-touch .gauges .g{min-width:60px;padding:6px 8px}}
+@media (max-width:620px){body.is-touch .gauges{left:0;right:0;bottom:calc(206px + env(safe-area-inset-bottom,0px))}body.is-touch .hint{bottom:calc(276px + env(safe-area-inset-bottom,0px))}}
 body.is-touch .hint{bottom:calc(120px + env(safe-area-inset-bottom,0px))}
 
 @media (max-width:760px){
@@ -604,3 +610,11 @@ body.is-touch .rc-touch{display:block}
 .dbb li b{color:var(--paper);font-size:1rem}
 .dbb li.got{opacity:1;border-color:var(--sand)}.dbb li.got b{color:var(--sand)}
 @media (max-width:520px){.res.four{grid-template-columns:repeat(2,minmax(0,1fr))}.dbb{grid-template-columns:1fr}}
+
+/* ---------- additions: Frøhvelvet without a Norwegian voice, the answer being read, the way out; the number keys in the pirates' war of words ---------- */
+.vt-novoice{flex:0 0 auto;margin:0 16px 8px;padding:8px 14px;border-radius:12px;background:#f2c230;color:#1d1a14;font-size:1.05rem;font-weight:700;line-height:1.25;text-align:center}
+.vt-novoice[hidden]{display:none}
+.vt-opt.say{border-color:#f2c230;box-shadow:0 6px 0 rgba(0,0,0,.28),0 0 0 6px rgba(242,194,48,.35);transform:scale(1.05)}
+.pir-n{display:inline-block;min-width:1.5em;margin-right:8px;padding:0 4px;border:1px solid currentColor;border-radius:4px;text-align:center;font-weight:400;opacity:.75}
+body.is-touch .pir-n{display:none}
+.alist button:disabled{opacity:.5}   /* the ferry with too few nuts */
