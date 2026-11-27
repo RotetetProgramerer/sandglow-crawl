@@ -56,7 +56,7 @@ function updateAmbience(dt){if(!AC||!LV)return;initAmbience();if(!AMB)return;con
   // cicadas: louder in the jungle, swelling and fading
   insT+=dt;S_(AMB.ins.out,.028*jungle*(.6+.4*Math.sin(insT*.5)));
   // birds
-  birdT-=dt*(0.4+jungle);if(birdT<=0){birdT=1.2+Math.random()*3.5;if(Math.random()<.85*jungle+.1)ambChirp()}
+  birdT-=dt*(0.4+jungle);if(birdT<=0){birdT=1.2+Math.random()*3.5;if(Math.random()<.85*jungle+.1*Math.max(0,1-1.25*snowW))ambChirp()}   // no songbirds over the snow
   // waterfall: by distance to the nearest fall
   // waterfall: you hear it from far away, it swells as you come closer and roars when you drive behind it
   let wv=0,wf=null;for(const f of fxAnim.falls){const d=Math.hypot(f.x-car.pos.x,f.z-car.pos.z),v=Math.pow(Math.max(0,1-d/34),2.2);if(v>wv){wv=v;wf=f}}

@@ -9,6 +9,7 @@
 const GPS_STEP=2;          // terrain cells per route cell
 const GPS_WADE=.2;         // deeper water than this is not driven through
 const GPS_STEPUP=.42;      // a step this high between two neighbouring cells (a wall, a quay edge) can't be driven
+const GPS_GRIP=.95;         // the grip (GRIP in core.js) the slope prices are made for: grass. On snow, ice, sand and mud a slope counts as steeper (half of what the grip is short)
 const GPS_KEEP=.5;         // how far the middle of the car keeps from houses, trees and posts (the car is pushed off at .62)
 // price per unit on each surface (S in core.js); a missing surface costs 1
 const GPS_SURF={[S.SAND]:1.15,[S.ROCK]:1.3,[S.MUD]:2.2,[S.BOG]:4.5,[S.ICE]:3,[S.SNOW]:1.25,[S.REDROCK]:1.2,[S.GRAVEL]:.9,[S.ASPHALT]:.85,[S.WOOD]:.9,[S.ASH]:1.1};
@@ -36,7 +37,7 @@ function gpsPlaces(def,lv,o={}){const P=[],has=new Set();
 // cost: the price per unit through each cell before the slope (Infinity: can't be driven); gx, gz: the slope, priced by gpsPrice for the way the car drives.
 function gpsGrid(lv){
   const st=GPS_STEP,M=Math.floor((N-1)/st)+1,d=st*CELL,K=M*M,x0=-HALF,lim=HALF-1.2,cost=new Float32Array(K),hgt=new Float32Array(K),gx=new Float32Array(K),gz=new Float32Array(K),
-    rough=new Float32Array(K),road=new Uint8Array(K),wet=new Float32Array(K);
+    rough=new Float32Array(K),road=new Uint8Array(K),wet=new Float32Array(K),slip=new Float32Array(K).fill(1);
   for(let j=0;j<M;j++)for(let i=0;i<M;i++)hgt[j*M+i]=H(x0+i*d,x0+j*d);   // H includes bridges and piers
   const each=(x,z,r,fn)=>{const i0=Math.max(0,Math.floor((x-r-x0)/d)),i1=Math.min(M-1,Math.ceil((x+r-x0)/d)),j0=Math.max(0,Math.floor((z-r-x0)/d)),j1=Math.min(M-1,Math.ceil((z+r-x0)/d));
     for(let j=j0;j<=j1;j++)for(let i=i0;i<=i1;i++)fn(j*M+i,x0+i*d,x0+j*d)};
@@ -52,7 +53,7 @@ function gpsGrid(lv){
     const i2=Math.min(2,i,M-1-i),j2=Math.min(2,j,M-1-j);gx[k]=(hgt[k+i2]-hgt[k-i2])/(2*i2*d);gz[k]=(hgt[k+j2*M]-hgt[k-j2*M])/(2*j2*d);
     const sx=(hgt[k+1]-hgt[k-1])/(2*d),sz=(hgt[k+M]-hgt[k-M])/(2*d);let r=0;
     for(const a of[-c,0,c])for(const b of[-c,0,c]){if(!a&&!b)continue;const e=Math.abs(H(x+a,z+b)-(h+sx*a+sz*b));if(e>r)r=e}
-    rough[k]=r;cost[k]=GPS_SURF[surfAt(x,z)]??1}
+    rough[k]=r;const sf=surfAt(x,z);cost[k]=GPS_SURF[sf]??1;slip[k]=1+Math.max(0,GPS_GRIP/(GRIP[sf]||1)-1)*.5}
   // houses, trees, posts and fences: the car can't drive where its middle would be inside them. Cacti and the like snap, so they only cost a bit.
   const soft=new Set((lv.breakables||[]).map(b=>b.col)),snap=new Float32Array(K);
   for(const cl of G.colliders){
@@ -68,13 +69,14 @@ function gpsGrid(lv){
     if(wet[k]>0)f+=1.5+wet[k]*10;                     // shallow water: slow, and the engine can drown
     f+=8*Math.max(0,r-.06)+(r>.32?30:0);              // rough: rocks and steps
     f+=.6*n1+.25*n2;                                  // close to the edge
+    if(n1>1){const B=q=>!isFinite(cost[q]);if(B(k-1)&&B(k+1)||B(k-M)&&B(k+M))f+=90}   // a gap one cell wide (between two trees): the car only just fits, so go round if there is another way
     out[k]=road[k]?f*.6:f}
-  return{M,d,x0,cost:out,hgt,gx,gz,lv}}
+  return{M,d,x0,cost:out,hgt,gx,gz,slip,lv}}
 
 // the price per unit of driving through cell k in the direction (ux,uz): the cell's own price, and the slope. Climbing straight up is fine up to a point,
-// but across a slope the car tips over, so that costs much more.
-function gpsPrice(gr,k,ux,uz){const sx=gr.gx[k],sz=gr.gz[k],al=Math.abs(sx*ux+sz*uz),cr=Math.abs(sx*uz-sz*ux);
-  return gr.cost[k]+2*Math.max(0,al-.15)+10*Math.max(0,al-.45)**2+(al>.8?30:0)+4*Math.max(0,cr-.1)+30*Math.max(0,cr-.3)**2+(cr>.55?30:0)}
+// but across a slope the car tips over, so that costs much more. Where the ground is slippery (slip > 1) the car spins or slides sooner, so the slope counts as steeper.
+function gpsPrice(gr,k,ux,uz){const sx=gr.gx[k],sz=gr.gz[k],sl=gr.slip[k],al=Math.abs(sx*ux+sz*uz)*sl,cr=Math.abs(sx*uz-sz*ux)*sl;
+  return gr.cost[k]+2*Math.max(0,al-.15)+10*Math.max(0,al-.45)**2+(al>.8?30:0)+4*Math.max(0,cr-.1)+60*Math.max(0,cr-.25)**2+(cr>.55?30:0)}
 
 const gpsIdx=(gr,x,z)=>{const i=Math.round((x-gr.x0)/gr.d),j=Math.round((z-gr.x0)/gr.d);return i<0||j<0||i>=gr.M||j>=gr.M?-1:j*gr.M+i};
 const gpsPt=(gr,k)=>({x:gr.x0+(k%gr.M)*gr.d,z:gr.x0+Math.floor(k/gr.M)*gr.d});
@@ -85,8 +87,9 @@ function gpsNear(gr,x,z,r){const k0=gpsIdx(gr,x,z);if(k0>=0&&isFinite(gr.cost[k0
   return best}
 
 // the price of driving straight from a to b ({x,z}), or Infinity if something is in the way
-function gpsLineCost(gr,a,b){const L=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(1,Math.ceil(L/(gr.d*.45))),ux=(b.x-a.x)/(L||1),uz=(b.z-a.z)/(L||1);let s=0,ph=null;
+function gpsLineCost(gr,a,b){const L=Math.hypot(b.x-a.x,b.z-a.z),n=Math.max(1,Math.ceil(L/(gr.d*.45))),ux=(b.x-a.x)/(L||1),uz=(b.z-a.z)/(L||1),M=gr.M;let s=0,ph=null,pk=-1;
   for(let i=0;i<=n;i++){const u=i/n,k=gpsIdx(gr,a.x+(b.x-a.x)*u,a.z+(b.z-a.z)*u);if(k<0||!isFinite(gr.cost[k]))return Infinity;
+    if(pk>=0&&k!==pk){const ci=k%M,cj=(k/M)|0,qi=pk%M,qj=(pk/M)|0;if(ci!==qi&&cj!==qj&&(!isFinite(gr.cost[qj*M+ci])||!isFinite(gr.cost[cj*M+qi])))return Infinity}pk=k;   // no squeezing diagonally between two trees (as in the search)
     const h=gr.hgt[k];if(ph!==null&&Math.abs(h-ph)>GPS_STEPUP)return Infinity;ph=h;s+=gpsPrice(gr,k,ux,uz)*(i===0||i===n?.5:1)}
   return s*L/n}
 

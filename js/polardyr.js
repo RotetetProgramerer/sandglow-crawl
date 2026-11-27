@@ -7,7 +7,7 @@
    Svalbard reindeer (short legs, round bodies) graze in herds and trot away from the car (updateGrazers in js/animals.js).
    Seals lie by their breathing holes in the ice: drive near and they wriggle to the hole and dive, then peek up again when it is quiet.
    Walruses lie on the beach and lift their heads and grunt, and the sled dogs at the trapper's hut watch the car and wag their tails.
-   A level turns this on with  animals:{polarbears:[{at,r,n}], reindeer:[{at,r,n}], seals:[{at:[x,z],n}], walruses:[{at,r,n}],
+   A level turns this on with  animals:{polarbears:[{at,r,n,charge}] (charge: this bear's own charge distance), reindeer:[{at,r,n}], seals:[{at:[x,z],n}], walruses:[{at,r,n}],
    dogs:[[x,z,heading],…]}.  at for the seals is the breathing hole. Loaded after js/savannedyr.js; buildAnimals and updateAnimals call in here.
    ================================================================= */
 const POL={bears:[],seals:[],walruses:[],dogs:[],gruntT:0};
@@ -62,7 +62,7 @@ function makeSledDog(col){const g=new THREE.Group(),G=ANIMAL_GEO,fur=amat(col||'
 function buildPolar(lv,def,R){POL.bears=[];POL.seals=[];POL.walruses=[];POL.dogs=[];const A=def.animals;if(!A)return;
   const land=(x,z)=>WL(x,z)<H(x,z)-.03&&lv.dist(x,z)>2,put=(g,x,z,ry)=>{g.position.set(x,H(x,z),z);g.rotation.y=ry;levelGroup.add(g);SAV.all.push(g);return g};
   for(const o of(A.polarbears||[]))for(let i=0;i<(o.n||1);i++){const p=savSpot(o,R,land);if(!p)continue;const g=put(savPrep(makePolarBear()),p[0],p[1],R()*6.28);g.scale.setScalar(.95+R()*.25);
-    const b={g,kind:'bear',K:SAV_KIND.bear,hx:p[0],hz:p[1],hr:Math.min(o.r||5,6),st:'rest',t:R()*3,cool:0,sp:0,ph:R()*6.28,walk:false,wt:R()*5,wx:p[0],wz:p[1]};SAV.preds.push(b);POL.bears.push(b)}
+    const b={g,kind:'bear',K:o.charge?Object.assign({},SAV_KIND.bear,{charge:o.charge}):SAV_KIND.bear,hx:p[0],hz:p[1],hr:Math.min(o.r||5,6),st:'rest',t:R()*3,cool:0,sp:0,ph:R()*6.28,walk:false,wt:R()*5,wx:p[0],wz:p[1]};SAV.preds.push(b);POL.bears.push(b)}
   for(const o of(A.reindeer||[]))for(let i=0;i<(o.n||4);i++){const p=savSpot(o,R,land);if(!p)continue;const g=put(savPrep(makeReindeer(i%3===0)),p[0],p[1],R()*6.28);g.scale.setScalar(.9+R()*.25);
     ANIMALS.deer.push({g,kind:'deer',hx:o.at[0],hz:o.at[1],hr:o.r,st:'graze',t:R()*4,ph:R()*6.28,sp:0,tx:p[0],tz:p[1],flee:5,speed:3.2})}
   const sealCols=['#8a9098','#74787e','#9a948a','#6a7078'];

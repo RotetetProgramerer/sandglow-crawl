@@ -271,7 +271,7 @@ I fri kjøring blir banens egen løype en startstrek (`c.course` lages automatis
 
 **GPS:** Åpne kartet (K) og trykk der du vil kjøre: fergekaia, basen, marinaen, flyplassen, skiheisen, grotten (når du har funnet den), en løype, et navn på kartet eller et hvilket som helst sted på land. Knappene under kartet («Vis vei til») gjør det samme for de viktigste stedene. En blå pil over bilen og blå piler på bakken viser veien, ruten tegnes på kartet og minikartet, og raden for basen/kaia i hjørnet viser hvor langt det er igjen. Kjører du fra ruten, finner GPS-en en ny vei. Trykker du på en annen øy på skjærgårdskartet, viser GPS-en veien til fergen (og hvilken øy du må via hvis det ikke går ferge rett dit). Framme slår GPS-en seg av; «Stopp GPS» slår den av før.
 
-Ruten finnes i `js/gpsroute.js`: øya deles i ruter (to terrengruter brede), og hver rute får en pris per enhet. Veier er billige, bratt, ulendt, sand, gjørme, snø og grunt vann koster mer, og det koster mye mer å kjøre på skrå i en bratt bakke enn rett opp (der velter biler). Dypt vann, lava, hus, trær, gjerder og høye kanter kan ikke kjøres gjennom. A* finner den billigste veien, og hjørnene kuttes der den rette linjen ikke koster mer. Stedene og hvor nær du må være, står i `gpsPlaces`. Kjør `node tools/test-gps.js` etter endringer på en øy: alle rader skal vise FRAMME.
+Ruten finnes i `js/gpsroute.js`: øya deles i ruter (to terrengruter brede), og hver rute får en pris per enhet. Veier er billige, bratt, ulendt, sand, gjørme, snø og grunt vann koster mer, og det koster mye mer å kjøre på skrå i en bratt bakke enn rett opp (der velter biler). På glatt underlag (snø, is, gjørme, sand) regnes bakken som brattere, og en åpning som bare er én rute bred (mellom to trær) brukes bare når det ikke finnes en annen vei. Dypt vann, lava, hus, trær, gjerder og høye kanter kan ikke kjøres gjennom. A* finner den billigste veien, og hjørnene kuttes der den rette linjen ikke koster mer. Stedene og hvor nær du må være, står i `gpsPlaces`. Kjør `node tools/test-gps.js` etter endringer på en øy: alle rader skal vise FRAMME.
 
 Fergerutene og plasseringen på skjærgårdskartet ligger i `data/archipelago.js` (`ISLANDS`, `ROUTES`). Kartet (K) har to faner: øya du er på, og skjærgården. Hver øy er fortsatt sin egen fil og kan endres og testes for seg: `node tools/test-levels.js sand`.
 
@@ -646,13 +646,17 @@ Testen lar en autopilot kjøre vogna di mot rivalene i flere hastigheter. Hver r
 
 | Felt | Hva |
 |---|---|
-| `polarbears:[{at,r,n}]` | Isbjørner. De rusler rundt og snuser når de er i ro. Kommer du innenfor 11 enheter, snur de seg mot deg, og innenfor 7,5 angriper de, som løvene på Løveøya (tallene står i `SAV_KIND.bear`). Et treff kaster bilen rundt og koster 5 straffepoeng i et løp eller 3 muttere i fri kjøring. I lavt gir tar bjørnen deg igjen; i høyt gir eller på skuter slipper du unna. |
+| `polarbears:[{at,r,n,charge}]` | Isbjørner. De rusler rundt og snuser når de er i ro. Kommer du innenfor 11 enheter, snur de seg mot deg, og innenfor 7,5 angriper de, som løvene på Løveøya (tallene står i `SAV_KIND.bear`). Et treff kaster bilen rundt og koster 5 straffepoeng i et løp eller 3 muttere i fri kjøring. I lavt gir tar bjørnen deg igjen; i høyt gir eller på skuter slipper du unna. `charge` gir én bjørn sin egen angrepsavstand. Bjørnene på Svalbard står så langt fra løypene, veiene og gruveinngangen at de bare varsler den som holder seg der; flytter du en bjørn eller en løype, så hold minst 7,5 + `r` mellom dem. |
 | `reindeer:[{at,r,n}]` | Svalbardrein: korte bein og runde kropper. De beiter i flokk og trasker unna bilen. |
 | `seals:[{at:[x,z],n}]` | Sel ved et pustehull (`at` er hullet). Kommer du nær, vrikker de seg til hullet og stuper, og titter opp igjen når det er stille. |
 | `walruses:[{at,r,n}]` | Hvalross som ligger i ro, løfter hodet og grynter. De flytter seg ikke, og dytter bilen til side. |
 | `dogs:[[x,z,retning],…]` | Sledehunder som følger bilen med hodet og logrer. |
 
 Binna med unge, fjellrevene og snøuglene står i ro og kommer fra `data/dyr.js`.
+
+**Fargene:** `paintIsland` i banefilen farger snøen, isen og fjellet selv med `setC`, rett før `c.finish()`. Lesidene blir blå og solsidene lyse (regnet ut fra `sunDir`), vinden legger skavler, veiene er hardkjørte spor med hjulspor, skuterløypene har et beltespor, breisen er blå med turkise sprekker, fjordisen er blågrå med sprekker og snøfonner, Gruvefjellet har vannrette berglag med snø på hyllene, og strendene og rabbene har snøflekker i kanten. Bare fargene endres: underlaget (`TS`) og grepet er som før. Fargene står øverst i funksjonen.
+
+**Pynten:** røde løypestikker står langs veiene (de velter om du kjører på dem), brefronten har taggete isblokker og kalvet is i sjøen foran, og drivis flyter rundt øya, unntatt i fergeleia og ved flyplassen.
 
 **Terrenget:** `glH` er breen (bredden på kanten styrer om det er snøbakke eller isvegg), `mesa` er Gruvefjellet med de to veiene i `RAMPS`, og `landExtra` lar breen og fjordisen gå helt ut i havet. Hoppene i Breløpet lages av `jump` i `build(c)`.
 
