@@ -1,7 +1,7 @@
 'use strict';
-/* Bytre: rett stamme, to korte greiner og en rund krone av tre kuler. Duene sitter på toppen. Brukes i Trinnvik. */
+/* Bytre: rett stamme, to korte greiner og en rund krone av tre kuler. Duene sitter på toppen. Brukes i Arendal. */
 PROPS.bytre={
-  navn:'Bytre',info:'Parktre i Trinnvik. c.plant(\'bytre\',x,z,{s})',
+  navn:'Bytre',info:'Parktre i Arendal. c.plant(\'bytre\',x,z,{s})',
   params:{
     s:{v:1,min:.5,max:2,step:.05,navn:'Størrelse'},
     stamme:{v:1,min:.6,max:1.6,step:.05,navn:'Stammelengde'},

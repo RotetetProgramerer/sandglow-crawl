@@ -56,7 +56,7 @@ function buildSea(){if(BT.built)return;BT.built=true;if(!BTEX)BTEX=bMakeTex();
   for(const id in SEA.docks)BT.docks[id]=bDock(seaDock(id));
   bTreasure();
   for(let i=0;i<24;i++)bCloud(R);for(let i=0;i<16;i++)bGull(R);
-  if(typeof fAirportSea==='function')fAirportSea();   // Trinnvik's airport (js/plane.js)
+  if(typeof fAirportSea==='function')fAirportSea();   // Arendal's airport (js/plane.js)
   BT.W={islands:seaIslands(),hulls:BT.pir,bound:SEA.bound}}
 // a smaller shadow map with low graphics (the setting in the menu)
 function bShadowSize(){const sz=state.gfx==='hi'?2048:1024,sh=BT.dir.shadow;if(sh.mapSize.x===sz)return;sh.mapSize.set(sz,sz);if(sh.map){sh.map.dispose();sh.map=null}}

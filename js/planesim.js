@@ -1,6 +1,6 @@
 'use strict';
 /* =================================================================
-   PLANESIM: the small plane from Trinnvik airport, in fixed 60 Hz steps (BSTEP, js/boatsim.js). No DOM, no three.js,
+   PLANESIM: the small plane from Arendal airport, in fixed 60 Hz steps (BSTEP, js/boatsim.js). No DOM, no three.js,
    so tools/test-flights.js can fly it in node. The same sea and scale as the boat race: north is −z, heading a=0 is north
    and a grows to the left, pitch p > 0 is nose up, roll r > 0 is the left wing down.
    On the ground: gas = full throttle, rev = brake, steer = the nose wheel. Fast enough and still on the gas, it lifts off.
@@ -48,7 +48,7 @@ function stepPlane(pl,inp,W){const C=pl.cfg||PCFG;
 // the rings of a flight: fly through them in order; the last one is the finish
 function planeRing(pl,course){if(pl.done||pl.crash||pl.ring>=course.rings.length)return null;const q=course.rings[pl.ring];
   if(Math.hypot(pl.x-q.x,pl.y-q.y,pl.z-q.z)>PCFG.ringR)return null;pl.ring++;if(pl.ring>=course.rings.length){pl.done=true;return{type:'finish'}}return{type:'ring',i:pl.ring-1}}
-// the airport at sea: AIRPORT (data/flights.js) moved out to where Trinnvik lies
+// the airport at sea: AIRPORT (data/flights.js) moved out to where Arendal lies
 let AIRSEA=null;
 function airSea(){if(AIRSEA)return AIRSEA;const I=seaIslands().find(i=>i.id===AIRPORT.island),A=AIRPORT,o=(p)=>({x:I.x+p[0],z:I.z+p[1]});
   AIRSEA={island:I,land:{x0:I.x+A.land.x0,x1:I.x+A.land.x1,z0:I.z+A.land.z0,z1:I.z+A.land.z1},rwy:{x0:I.x+A.rwy.x-A.rwy.w/2,x1:I.x+A.rwy.x+A.rwy.w/2,z0:I.z+A.rwy.z0,z1:I.z+A.rwy.z1,x:I.x+A.rwy.x},
@@ -57,7 +57,7 @@ function airSea(){if(AIRSEA)return AIRSEA;const I=seaIslands().find(i=>i.id===AI
 // The cargo plane: heavier than the small plane, a longer roll, wider turns. Its measures are the island model's (js/cargo.js) times CARGO_SEA.
 const CARGO_SEA=5.9,PCARGO=Object.assign({},PCFG,{cruise:2.6,turbo:3.3,lift:1.9,stall:1.35,accel:.027,brake:.07,pitchRate:.012,pitchMax:.42,pitchMin:-.5,bankMax:.75,bankRate:.05,turn:.024,taxiTurn:.02,
   gear:2*CARGO_SEA,sinkOk:1.05,kts:24,approach:2,landR:.6,landP:-.35});   // approach: the speed on the way in with the landing help; landR, landP: how much bank and nose-down a touchdown forgives
-// Every island's airport at sea: the fill lies off the coast where the island's own airport is (def.airport in data/levels/, Trinnvik's is AIRPORT in data/flights.js),
+// Every island's airport at sea: the fill lies off the coast where the island's own airport is (def.airport in data/levels/, Arendal's is AIRPORT in data/flights.js),
 // the runway along the coast. h is the way the cargo plane takes off (and the way to land), start is where it stands ready. On the islands +x is west and +z north; at sea +x is east and −z north.
 let SEA_AIR=null;
 function seaAirports(){if(SEA_AIR)return SEA_AIR;const L=[];

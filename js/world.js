@@ -39,7 +39,7 @@ function openAsk(k){state.mode='ask';state.askK=k;if(typeof tipDone==='function'
   if(k==='vault'){vaultAsk();return}   // Svalbard: Frøken Frø at the door of the seed vault (js/frohvelv.js)
   if(k==='cargo'){cargoAsk();return}   // every island: the cargo plane at the airport (js/cargo.js)
   if(typeof k==='string'&&k.startsWith('race')){raceAsk(k);return}   // Racerøya: the race from above (js/race.js)
-  if(k==='fly'){flyAsk(k);return}   // Trinnvik: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
+  if(k==='fly'){flyAsk(k);return}   // Arendal: a flight from the airport (js/plane.js)   // Tromøya: the boat race from the marina (js/boat.js)
   if(k==='ferry'){const here=LEVELS[state.levelIdx];$('aName').textContent='Fergen';$('aKind').textContent='Kaia på '+here.name;$('aDesc').textContent='Hvor vil du reise? Overfarten koster 5 muttere. Du har '+fmtN(prof.nuts)+'.';$('aBest').textContent='';$('aQ').textContent='';
     const dests=ROUTES.filter(r=>r.includes(here.id)).map(r=>r[0]===here.id?r[1]:r[0]).map(id=>LEVELS.find(l=>l.id===id)).filter(Boolean);
     $('aList').innerHTML=dests.map(l=>`<button data-dest="${l.id}"><span><span class="nm">${l.name}</span><span class="sub">${l.desc}</span></span><span class="pr">5 ⚙</span></button>`).join('');$('aList').hidden=false;$('aYes').hidden=true;$('aNo').textContent='Bli her';$('ask').hidden=false;return}

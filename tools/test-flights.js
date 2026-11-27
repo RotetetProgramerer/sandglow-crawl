@@ -1,7 +1,7 @@
 // Kjør:  node tools/test-flights.js            (alle flyturene)
 //        node tools/test-flights.js vulkan v   (én tur, med hendelser)
 //        node tools/test-flights.js last       (bare lasteflyet mellom øyene)
-// Laster flyfysikken uten nettleser og lar en autopilot ta av fra Trinnvik og fly hver tur gjennom ringene.
+// Laster flyfysikken uten nettleser og lar en autopilot ta av fra Arendal og fly hver tur gjennom ringene.
 // Til slutt flyr autopiloten lasteflyet fra hver øys flyplass til alle de andre og lander der.
 // Bakken er en skisse av øyene (en kjegle eller et platå per øy, flyplassen på fyllingen), så ringene og etappene sjekkes mot den med god margin.
 // Bruk dette når du har flyttet ringer i data/flights.js.

@@ -1,6 +1,6 @@
 'use strict';
 /* =================================================================
-   PLANE: sightseeing flights from Trinnvik airport over the same sea as the boat race (js/boat.js).
+   PLANE: sightseeing flights from Arendal airport over the same sea as the boat race (js/boat.js).
    Park on the blue square at the airport → «Vil du fly?» → the flight menu (a ring course, or fly where you like) → take off from the runway,
    fly through the rings, land again or crash and start over → the result → back to the car.
    The sea, the islands, the sky and the water are the boat race's scene (buildSea); the airport is built into it here (fAirportSea).
@@ -10,7 +10,7 @@
    ================================================================= */
 const FL={on:false,fade:null,phase:'',cam:null,pl:null,mesh:null,route:null,flight:null,ringGrp:null,ringVis:[],time:0,acc:0,camYaw:0,camPitch:0,result:false,paused:false,
   hudT:0,res:null,airport:null,cargo:null,small:null,big:null,sock:null,snd:null,notes:[],took:false,landed:false,wake:0,orbit:0,from:new THREE.Vector3()};
-const flyKey=f=>'trinnvik/fly/'+f.id;
+const flyKey=f=>'arendal/fly/'+f.id;
 const flyDone=()=>FLIGHTS.filter(f=>best[flyKey(f)]).length;
 const _fv=new THREE.Vector3(),_fv2=new THREE.Vector3(),_fv3=new THREE.Vector3();
 
@@ -40,7 +40,7 @@ function fSockMesh(r0,r1,len){const g0=new THREE.CylinderGeometry(r0,r1,len,10,5
   for(let i=0;i<p.count;i+=3){const k=Math.floor((p.getZ(i)+p.getZ(i+1)+p.getZ(i+2))/3/len*5)%2?b:a;for(let j=0;j<3;j++){C[(i+j)*3]=k.r;C[(i+j)*3+1]=k.g;C[(i+j)*3+2]=k.b}}
   g.setAttribute('color',new THREE.BufferAttribute(C,3));return new THREE.Mesh(g,new THREE.MeshStandardMaterial({vertexColors:true,side:THREE.DoubleSide}))}
 
-/* ---------- Trinnvik airport at sea: the fill with grass, the runway with its lights, the terminal, the tower, the hangar, the windsock ---------- */
+/* ---------- Arendal airport at sea: the fill with grass, the runway with its lights, the terminal, the tower, the hangar, the windsock ---------- */
 function fAirportSea(){const A=airSea(),L=A.land,R=A.rwy,g=new THREE.Group(),cx=(L.x0+L.x1)/2,cz=(L.z0+L.z1)/2,top=A.top;
   bAdd(g,new THREE.BoxGeometry(L.x1-L.x0+6,12,L.z1-L.z0+6),bStd(0x8a8a86),cx,top-8,cz,false);bAdd(g,new THREE.BoxGeometry(L.x1-L.x0,3,L.z1-L.z0),bStd(0x6f9a48),cx,top-1.5,cz,false);
   bAdd(g,new THREE.BoxGeometry(R.x1-R.x0,.4,R.z1-R.z0),bStd(0x3a3d40),R.x,top+.2,(R.z0+R.z1)/2,false);
@@ -52,7 +52,7 @@ function fAirportSea(){const A=airSea(),L=A.land,R=A.rwy,g=new THREE.Group(),cx=
   const T=A.terminal,H=A.hangar,W=A.tower,S=A.sock;
   bAdd(g,new THREE.BoxGeometry(22,.3,70),bStd(0x8a8a86),T.x+14,top+.15,T.z,false);                  // the apron
   bAdd(g,new THREE.BoxGeometry(14,14,40),bStd(0xe9dcb9),T.x,top+7,T.z);bAdd(g,new THREE.BoxGeometry(15,1.2,41),bStd(0x3f4a52),T.x,top+14.6,T.z,false);bAdd(g,new THREE.BoxGeometry(.4,4,34),bStd(0x1a262d),T.x+7.05,top+8,T.z,false);
-  const sign=new THREE.Mesh(new THREE.PlaneGeometry(44,9),new THREE.MeshBasicMaterial({map:bText('TRINNVIK LUFTHAVN',512,104,'64px "Saira Stencil One", Impact, sans-serif','#14120E','#E5A92B','#14120E'),side:THREE.DoubleSide}));
+  const sign=new THREE.Mesh(new THREE.PlaneGeometry(44,9),new THREE.MeshBasicMaterial({map:bText('ARENDAL LUFTHAVN',512,104,'64px "Saira Stencil One", Impact, sans-serif','#14120E','#E5A92B','#14120E'),side:THREE.DoubleSide}));
   sign.position.set(T.x+2,top+20,T.z);sign.rotation.y=Math.PI/2;g.add(sign);
   bAdd(g,new THREE.BoxGeometry(30,20,34),bStd(0x8a9096),H.x,top+10,H.z);for(const s of[-1,1]){const rf=bAdd(g,new THREE.BoxGeometry(17,1.2,36),bStd(0x5a6066),H.x+s*7.5,top+22.4,H.z,false);rf.rotation.z=s*.33}
   bAdd(g,new THREE.BoxGeometry(.6,16,26),bStd(0x3a3f44),H.x+15.1,top+8,H.z,false);bAdd(g,new THREE.BoxGeometry(.8,1.2,28),bStd(0xe5a92b),H.x+15.2,top+16.6,H.z,false);
@@ -75,7 +75,7 @@ const FW={ground:fGround,bound:SEA.bound};
 
 /* ---------- the airport on the island: your plane in your paint and the windsock ---------- */
 function buildAirport(lv){FL.airport=null;const A=lv.airportDef;if(!A)return;if(!BTEX)BTEX=bMakeTex();const g=new THREE.Group();let pm=null;
-  if(A.plane){pm=fPlaneMesh((PAINTS[prof.paint]||PAINTS[0]).c);pm.scale.setScalar(.17);pm.position.set(A.plane.x,A.y+PCFG.gear*.17,A.plane.z);pm.rotation.y=A.plane.yaw+Math.PI;g.add(pm)}   // Trinnvik: the small plane
+  if(A.plane){pm=fPlaneMesh((PAINTS[prof.paint]||PAINTS[0]).c);pm.scale.setScalar(.17);pm.position.set(A.plane.x,A.y+PCFG.gear*.17,A.plane.z);pm.rotation.y=A.plane.yaw+Math.PI;g.add(pm)}   // Arendal: the small plane
   const sock=new THREE.Group();sock.position.set(A.sock.x,A.y+1.62,A.sock.z);sock.add(fSockMesh(.05,.13,.75));g.add(sock);
   levelGroup.add(g);FL.airport={A,plane:pm,sock,paint:prof.paint};if(A.cargo&&typeof cargoIsland==='function')cargoIsland(A,g)}   // every island: the cargo plane (js/cargo.js)
 // the windsock swings in the wind, and the planes follow the paint you choose in the garage
@@ -95,7 +95,7 @@ function fRingLook(){const R=FL.route;if(!R)return;const n=FL.pl.ring,t=performa
   const next=i===n,last=i===R.rings.length-1;v.m.material.color.set(next?0xe5a92b:last?0xff6a2a:0xf4f2ec);v.m.material.emissive.set(next?0xffb300:last?0xff4a0a:0x666666);v.m.material.emissiveIntensity=next?.8+.4*Math.sin(t*5):.4})}
 
 /* ---------- the trip: the question at the airport, the flight menu, back to the car ---------- */
-function flyAsk(k){$('aYes').hidden=false;$('aList').hidden=true;const n=flyDone();$('aKind').textContent='Trinnvik lufthavn';$('aName').textContent='Rundflyging';
+function flyAsk(k){$('aYes').hidden=false;$('aList').hidden=true;const n=flyDone();$('aKind').textContent='Arendal lufthavn';$('aName').textContent='Rundflyging';
   $('aDesc').textContent='Lån et småfly og fly over skjærgården: gjennom ringene, eller fritt over øyene og båtene. Bilen venter her.';
   $('aBest').textContent=n?'Du har fullført '+n+' av '+FLIGHTS.length+' flyturer.':'Første tur gjennom ringene gir bonus.';$('aQ').textContent='Vil du fly?';$('aNo').textContent='NEI, kjør videre';$('ask').hidden=false;$('aYes').focus()}
 function flyAnswer(k,yes){if(yes)flyStart();else{state.mode='play';state.askCool='fly';toast('Kjør videre når du vil')}}
@@ -157,7 +157,7 @@ function fShowResult(){FL.result=true;const f=FL.flight,pl=FL.pl,t=FL.time,par=f
   const n=f.rings.length;let e=n*5+20;const el=[n+' ringer +'+n*5,'i mål +20'];if(!pl.crashes){e+=15;el.push('ingen krasj +15')}
   if(!prev){e+=60;el.push('første gang +60')}else if(isBest){e+=20;el.push('ny rekord +20')}
   prof.nuts+=e;saveProf();FL.res={isBest,prev};
-  $('rLevel').textContent='Trinnvik lufthavn · '+f.name;$('rTitle').textContent=pl.crashes?'I mål!':'Feilfri tur!';
+  $('rLevel').textContent='Arendal lufthavn · '+f.name;$('rTitle').textContent=pl.crashes?'I mål!':'Feilfri tur!';
   $('rTime').textContent=fmtTime(t);$('rPenL').textContent='Krasj';$('rPen').textContent=pl.crashes;$('rGatesL').textContent='Ringer';$('rGates').textContent=pl.ring+'/'+n;
   $('rStars').innerHTML=[0,1,2].map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z" fill="${i<stars?'#E5A92B':'rgba(242,232,208,.15)'}"/></svg>`).join('');$('rStars').setAttribute('aria-label',stars+' av 3 stjerner');
   $('rLog').innerHTML=[`<li><b>Krasj:</b> ${pl.crashes}${pl.crashes?'':', helt feilfritt'}</li>`,`<li><b>Mål for stjerner:</b> ${fmtTime(par[0])} gir tre, ${fmtTime(par[1])} gir to</li>`,isBest&&prev?'<li><b>Ny personlig rekord på denne turen.</b></li>':''].join('');

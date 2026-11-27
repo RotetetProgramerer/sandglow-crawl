@@ -1,7 +1,7 @@
 'use strict';
 /* =================================================================
    CARGO: the cargo plane that carries your car between the islands.
-   Every island has an airport (def.airport in data/levels/, built by c.airport in js/core.js; Trinnvik's own is in its level file).
+   Every island has an airport (def.airport in data/levels/, built by c.airport in js/core.js; Arendal's own is in its level file).
    At one end of the runway stands a big four-engined cargo plane with its tail ramp down. Drive up the ramp and into the hold →
    «Hvor vil du fly?» → pick an island → you fly the plane yourself over the same sea as the boat race and the sightseeing flights (js/plane.js),
    land on that island's runway (or any other island's; lined up with the runway of your island, the landing help sights the plane in), brake to a stop → the island loads and you drive out of the hold. It costs nothing.
@@ -173,7 +173,7 @@ function cgSeaKit(G,o){const S=cgBucket(),U=cgBucket(),mS=bStd(0xffffff,{vertexC
   if(o.sock){const[sx,sz]=o.sock;cyl(sx,8,sz,.4,.35,16,0xe9e6df,6);for(let i=0;i<4;i++)cyl(sx,15.5-i*.22,sz+1+i*2,1.6-i*.24,1.36-i*.24,2,i%2?0xf4f4f0:0xff6a2a,8,H)}
   S.build(G);U.build(G);for(const m of G.children)m.castShadow=m.material===mS;return G}
 
-/* ---------- the airports of the other islands at sea (Trinnvik's own is fAirportSea in js/plane.js) ---------- */
+/* ---------- the airports of the other islands at sea (Arendal's own is fAirportSea in js/plane.js) ---------- */
 function cgSeaAirports(){const lamp=new THREE.MeshStandardMaterial({color:0xfff3c0,emissive:0xffd27a,emissiveIntensity:1.2}),red=new THREE.MeshStandardMaterial({color:0xff5040,emissive:0xff2010,emissiveIntensity:1.2}),white=new THREE.MeshBasicMaterial({color:0xf4f4f0});
   for(const A of seaAirports()){if(A.own)continue;const g=new THREE.Group(),top=A.top;g.position.set(A.lx,0,A.lz);g.rotation.y=Math.atan2(A.hx,A.hz);   // local +z is the way you take off, local +x is across
     const off=(A.cx-A.lx)*A.hz-(A.cz-A.lz)*A.hx,in_=off>0?-1:1,look=A.island.look,ground=look==='vinter'||look==='svalbard'?0xe8eef4:look==='orken'||look==='sand'?0xd9c08a:0x6f9a48;

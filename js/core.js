@@ -188,7 +188,7 @@ function genLevel(def){
   const coast=def.coast||0;if(coast&&!def._coastBand){const ob=def.waterBand,had=def.water!=null;def._coastBand=true;if(!had)def.water=.3;def.waterBand=(x,z)=>Math.hypot(x,z)>coast-5||(ob?ob(x,z):had)}   // a level without water of its own only gets the sea ring
   const wsea=def.water;
   for(let j=0;j<N;j++)for(let i=0;i<N;i++){const k=j*N+i,x=-HALF+i*CELL,z=-HALF+j*CELL;let h=def.base(x,z,n),sf=def.surf(x,z,n);
-    if(coast){const R=Math.hypot(x,z),ex=def.landExtra?def.landExtra(x,z):0,kk=smt01((R-coast+3)/6)*(1-ex);if(kk>0)h+=((wsea-1.8)-h)*kk;if(R>coast-7&&h>wsea-.05&&ex<.5)sf=def.beachSurf??S.SAND}   // landExtra(x,z): 0–1, land built out past the coast (Trinnvik's airport)
+    if(coast){const R=Math.hypot(x,z),ex=def.landExtra?def.landExtra(x,z):0,kk=smt01((R-coast+3)/6)*(1-ex);if(kk>0)h+=((wsea-1.8)-h)*kk;if(R>coast-7&&h>wsea-.05&&ex<.5)sf=def.beachSurf??S.SAND}   // landExtra(x,z): 0–1, land built out past the coast (Arendal's airport)
     TH[k]=h;TS[k]=sf}
   TB.set(TH);
   const curve=new THREE.CatmullRomCurve3(def.path.map(p=>new V3(p[0],0,p[1])),false,'centripetal');
@@ -366,7 +366,7 @@ function genLevel(def){
       for(let u=-10;u<=8;u+=3){const[bx,bz]=at(u,0);c.block(bx,bz,4)}
       const P=(u,v)=>{const[qx,qz]=at(u,v);return{x:qx,z:qz}};
       c.cargoDef={x,z,yaw,y,fy,ux,uz,half:K.half,hw:K.hw,ramp:K.ramp,foot:P(-K.half-K.ramp-.6,0),pad:P(-K.half-K.ramp-2.6,0)};return c.cargoDef},
-    // ---- the airport kit: what stands on an airport, built from boxes and cylinders. Used by c.airport below and by Trinnvik's own airport. ----
+    // ---- the airport kit: what stands on an airport, built from boxes and cylinders. Used by c.airport below and by Arendal's own airport. ----
     // a frame on the ground: s runs along (sx,sz), f across it to the right of that (the same as airFrame's f and s). K.box/K.cyl take (f, s, height over the ground, …)
     apFrame(x0,z0,sx,sz,y){const yaw=Math.atan2(sx,sz),at=(f,s)=>[x0+sz*f+sx*s,z0-sx*f+sz*s];
       return{y,yaw,sx,sz,at,box(f,s,h0,wf,h,ws,col,o){const[x,z]=at(f,s);c.box(x,y+h0,z,wf,h,ws,col,yaw,o)},cyl(f,s,h0,r,h,col,o){const[x,z]=at(f,s);return c.cyl(x,y+h0,z,r,h,col,o)},

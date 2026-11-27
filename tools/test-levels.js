@@ -49,7 +49,7 @@ function cargoTest(def,lv){const A=lv.airportDef,C=A.cargo,car=makeCar(TCAR);car
   let out=false;for(let i=0;i<240*30;i++){const dx=C.pad.x-c2.pos.x,dz=C.pad.z-c2.pos.z;if(Math.hypot(dx,dz)<1){out=true;break}
     const fw=c2.fw,lf=c2.lf,ang=Math.atan2(dx*lf.x+dz*lf.z,dx*fw.x+dz*fw.z);c2.steer=Math.max(-.6,Math.min(.6,ang*1.5));c2.throttle=1;stepCar(c2,dt);if(c2.up.y<.2)break}
   console.log(def.id.padEnd(14),'LASTEFLY',sat&&out?'OK  ':'FEIL',sat&&out?'ut av lasterommet og ned på plassen':(sat?'kom ikke ut: ':'sto ikke i lasterommet: ')+c2.pos.x.toFixed(1)+','+c2.pos.y.toFixed(2)+','+c2.pos.z.toFixed(1));if(!(sat&&out))process.exitCode=1}
-// drives the road to the airport (Trinnvik) and onto its blue square: lv.airportDef.from, then .route
+// drives the road to the airport (Arendal) and onto its blue square: lv.airportDef.from, then .route
 function airportTest(def,lv){const A=lv.airportDef,car=makeCar(TCAR);car.assist=false;car.low=true;const pts=A.route,nx=pts[0];placeCar(car,A.from.x,A.from.z,Math.atan2(nx.x-A.from.x,nx.z-A.from.z));for(let i=0;i<480;i++)stepCar(car,dt);
   let fell=0,wp=0,t=0;
   for(let i=0;i<240*60;i++){const w=pts[wp],dx=w.x-car.pos.x,dz=w.z-car.pos.z,d=Math.hypot(dx,dz);if(d<(wp===pts.length-1?.7:1.2)){wp++;if(wp>=pts.length){t=i*dt;break}continue}

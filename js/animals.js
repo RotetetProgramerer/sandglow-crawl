@@ -363,7 +363,7 @@ function updateAnimals(dt){if(!car)return;const tm=performance.now()*.001;if(typ
 /* ---------- the rolling boulder ---------- */
 const BLD={m:null,def:null,active:false,done:false,t:0,len:1,ax:new V3()};
 function buildBoulder(def){BLD.def=def.boulder||null;BLD.m=null;if(!BLD.def)return;const b=BLD.def;
-  const m=new THREE.Mesh(b.col?ANIMAL_GEO.sph:ANIMAL_GEO.rock,amat(b.col||'#4a4541',{roughness:b.col?.6:.95}));m.scale.setScalar(b.r);m.castShadow=true;m.visible=false;levelGroup.add(m);BLD.m=m;   // b.col makes it a ball (the football on Trinnvik)
+  const m=new THREE.Mesh(b.col?ANIMAL_GEO.sph:ANIMAL_GEO.rock,amat(b.col||'#4a4541',{roughness:b.col?.6:.95}));m.scale.setScalar(b.r);m.castShadow=true;m.visible=false;levelGroup.add(m);BLD.m=m;   // b.col makes it a ball (the football on Arendal)
   BLD.len=Math.hypot(b.to[0]-b.from[0],b.to[1]-b.from[1]);const dx=(b.to[0]-b.from[0])/BLD.len,dz=(b.to[1]-b.from[1])/BLD.len;BLD.ax.set(dz,0,-dx);BLD.dx=dx;BLD.dz=dz;resetBoulder()}
 function resetBoulder(){BLD.active=false;BLD.done=false;BLD.t=0;if(BLD.m){BLD.m.visible=false;BLD.m.quaternion.set(0,0,0,1)}}
 function boulderShake(){return BLD.active?.006:0}

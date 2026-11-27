@@ -9,7 +9,7 @@ const dbHas=k=>!!best[k];
 // the island's own games: [label, done, of]
 function dbExtras(l){const E=[];
   if(l.marina)E.push(['Båtløp',BOAT_RACES.filter(r=>dbHas(boatKey(r))).length,BOAT_RACES.length]);
-  if(l.id==='trinnvik')E.push(['Rundflyging',FLIGHTS.filter(f=>dbHas(flyKey(f))).length,FLIGHTS.length]);
+  if(l.id==='arendal')E.push(['Rundflyging',FLIGHTS.filter(f=>dbHas(flyKey(f))).length,FLIGHTS.length]);
   if(l.pistes)E.push(['Nedfarter på ski',l.pistes.filter(k=>dbHas(l.id+'/ski/'+k.id)).length,l.pistes.length]);
   if(l.cavePath){const b=best[caveKey()];E.push(['Diamantgrotten',b&&b.done?1:0,1])}
   if(l.minePath){const b=best[mineKey()];E.push(['Gruve 7 vunnet',b&&b.p===1?1:0,1]);E.push(['Frøhvelvet',prof.frohvelv&&prof.frohvelv.done?1:0,1])}
@@ -27,7 +27,7 @@ function dbBadges(I){const every=f=>I.every(f),some=f=>I.some(f),ex=(id,n)=>{con
     ['Gullgraver','Alle gullmutterne på en øy',some(i=>i.nuts===SECRET_PER)],
     ['Skattejeger','Alle gullmutterne i skjærgården',every(i=>i.nuts===SECRET_PER)],
     ['Kaptein','Alle båtløpene',ex('verden',0)],
-    ['Pilot','Alle rundflygingene',ex('trinnvik',0)],
+    ['Pilot','Alle rundflygingene',ex('arendal',0)],
     ['Skiløper','Alle nedfartene i Gautefall',ex('gautefall',0)],
     ['Diamantjeger','Gjennom Diamantgrotten',ex('orken',0)],
     ['Gruvemester','Vinn kappløpet i Gruve 7',ex('svalbard',0)],

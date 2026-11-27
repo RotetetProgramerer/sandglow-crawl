@@ -6,6 +6,12 @@ const $=id=>document.getElementById(id);
 const FIXED=1/240;
 const store={get(k,d){try{const v=localStorage.getItem('sgc:'+k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem('sgc:'+k,JSON.stringify(v))}catch(e){}}};
 
+// the town was called Trinnvik before it became Arendal: move records, ghosts, gold nuts and fog maps saved under the old id, once
+(function(){try{const LS=localStorage,OLD=/trinnvik/g;if(LS.getItem('sgc:mig')==='"arendal"')return;
+  const keys=[];for(let i=0;i<LS.length;i++){const k=LS.key(i);if(k&&k.startsWith('sgc:'))keys.push(k)}
+  for(const k of keys){const nk=k.replace(OLD,'arendal');let v=LS.getItem(k);if(/^sgc:(best|prof|ghIdx|level|flyPick)$/.test(k))v=v.replace(OLD,'arendal');
+    if(nk!==k){if(LS.getItem(nk)==null)LS.setItem(nk,v);LS.removeItem(k)}else LS.setItem(k,v)}
+  LS.setItem('sgc:mig','"arendal"')}catch(e){}})();
 // car and level are saved by id; older saves used the list index
 const idxOf=(list,v)=>{const i=typeof v==='number'?v:list.findIndex(x=>x.id===v);return i>=0&&i<list.length?i:0};
 const state={mode:'menu',carIdx:idxOf(CARS,store.get('car',0)),levelIdx:idxOf(LEVELS,store.get('level',0)),assist:store.get('assist',true),camMode:0,lights:false,sound:store.get('sound',true),
