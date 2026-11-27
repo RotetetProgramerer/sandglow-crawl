@@ -3,7 +3,7 @@
 // Isfjorden i vest med sel ved pustehullene og en isbjørn ute ved iskanten, Gruvefjellet i øst med taubane, radarkupler og frøhvelv,
 // og fangsthytta med sledehunder og hvalross i nordvest. Husk: på øyene er +x vest og +z nord.
 // Snøskuteren (data/cars.js, js/world.js): kjør inn på den blå ruta ved Skuterutleia. Løypene med skuter:true låner deg en skuter ved start.
-// Dyrene som beveger seg, ligger i js/polardyr.js.
+// Dyrene som beveger seg, ligger i js/polardyr.js. Fargene på snøen, isen og fjellet lages av paintIsland nederst i «fargene».
 //   node tools/test-levels.js svalbard
 (function(){
 const DEG=Math.PI/180;
@@ -35,6 +35,47 @@ const mesa=(x,z,n)=>{const d=Math.hypot(x-MT[0],z-MT[1]),r=mtR(x,z);let h=MT_TOP
   for(const[A,B]of RAMPS){const ex=B[0]-A[0],ez=B[1]-A[1],L2=ex*ex+ez*ez;let t=((x-A[0])*ex+(z-A[1])*ez)/L2;if(t<-.1||t>1.6)continue;const tc=Math.max(0,Math.min(1,t)),lat=Math.hypot(x-A[0]-ex*tc,z-A[1]-ez*tc);
     h=Math.max(h,MT_TOP*tc*smt((2.6-lat)/1.4))}
   return h};
+// ---------- fargene ----------
+// Banen farger selv snøen, isen og fjellet (setC), rett før c.finish(): lesiden av hver bakke blir blå og solsiden lys, vinden legger skavler,
+// veiene er hardkjørte spor, breisen er blå med turkise sprekker, fjordisen er blågrå med sprekker og snøfonner, og Gruvefjellet har vannrette berglag.
+// Bare fargene endres: underlaget (TS) og grepet er som før.
+const paintIsland=(c,K)=>{const n=c.noise,RD=new Float32Array(TH.length).fill(9),SD=new Float32Array(TH.length).fill(9);
+  const stamp=(A,P,r)=>{for(const p of P)cellsIn(p.x-r,p.z-r,p.x+r,p.z+r,(k,px,pz)=>{const d=Math.hypot(px-p.x,pz-p.z);if(d<A[k])A[k]=d})};
+  for(const r of ROADS)stamp(RD,polyPts(r,.2),1.6);                                                    // avstanden til nærmeste vei
+  for(const id of['safari','breen']){const P=[];for(let i=0;i<=700;i++)P.push(K[id].P(i/700));stamp(SD,P,1)}   // og til skuterløypene
+  const L3=(a,b,t)=>{t=t<0?0:t>1?1:t;return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]};
+  const SN0=col('#cfd9e6'),SN1=col('#f1f5fa'),SHADE=col('#9db4d6'),DRIFT=col('#bccde2'),PACK=col('#c2cddb'),RUT=col('#98a9bf'),FIRN=col('#dbe8f6'),
+    BLUE0=col('#4f9fd2'),BLUE1=col('#a4d6f0'),DEEP=col('#16709f'),BERG=col('#6fc2e4'),FJ0=col('#86b0cb'),FJ1=col('#b8d5e6'),THIN=col('#6696b6'),CRACK=col('#43799c'),
+    GR0=col('#5b5853'),GR1=col('#8b857a'),STRATA=['#484a50','#6b645b','#54565e','#7c7368','#4e5058'].map(h=>col(h));
+  const LX=-.909,LZ=-.417,WX=.83,WZ=.56;                                                               // retningen mot sola, og vinden
+  cellsIn(-HALF,-HALF,HALF,HALF,(k,x,z)=>{if(TCF[k])return;const s=TS[k],h=TH[k];if(s!==S.SNOW&&s!==S.ICE&&s!==S.ROCK&&s!==S.GRAVEL)return;
+    const e=.3,gx=(H(x-e,z)-H(x+e,z))/(2*e),gz=(H(x,z-e)-H(x,z+e))/(2*e),lit=gx*LX+gz*LZ,v=n(x*.45+50,z*.45),w=n(x*2.7,z*2.7-40);
+    const dG=Math.hypot(x-GL[0],z-GL[1]),dF=Math.hypot(x-FJ[0],z-FJ[1]),u=x*WX+z*WZ,q=z*WX-x*WZ,rb=n(x*.22+9,z*.22);let cc;
+    if(s===S.SNOW){cc=L3(SN0,SN1,v*.5+w*.5);
+      cc=L3(cc,DRIFT,.6*smt((n(u*.16+7,q*1.5)-.56)/.2));                                              // skavler på tvers av vinden
+      if(dG<GL_R)cc=L3(cc,FIRN,.5);
+      cc=L3(cc,SHADE,.8*smt(-lit*1.5));cc=L3(cc,SN1,.6*smt(lit*1.2));                                  // blå lesider og lyse solsider
+      if(dG>GL_R+1)cc=L3(cc,L3(GR0,GR1,w),smt((rb-.63)/.09)*(w>.52?.85:.12));                          // grus som stikker fram der rabbene begynner
+      const rd=RD[k],sd=SD[k];
+      if(rd<1.35){cc=L3(cc,PACK,.85*smt((1.35-rd)/.4));const t=Math.abs(rd-.5);if(t<.17)cc=L3(cc,RUT,.8*(1-t/.17))}   // veien: hardkjørt snø med to hjulspor
+      else if(sd<.62){cc=L3(cc,PACK,.7*smt((.62-sd)/.25));const t=Math.abs(sd-.32);if(t<.1)cc=L3(cc,RUT,.5*(1-t/.1))}} // skuterløypa: et smalere beltespor
+    else if(s===S.ICE){
+      if(dF<FJ_R+1.4){cc=L3(FJ0,FJ1,v*.6+w*.4);                                                       // fjordisen
+        if(Math.abs(n(x*.3+3,z*.3+8)-.5)<.011||Math.abs(n(x*.75+20,z*.75)-.5)<.007)cc=L3(cc,CRACK,.85);   // sprekker
+        cc=L3(cc,SN1,.85*smt((n(u*.13+3,q*.9)-.68)/.1)*smt((n(x*.11+31,z*.11)-.3)/.3));                                               // snøfonner som vinden har lagt igjen
+        cc=L3(cc,THIN,.7*smt((dF-(FJ_R-1.8))/1.8))}                                                   // tynnere og mørkere is ut mot iskanten
+      else if(dG<GL_R+1.2){const cd=Math.min(lineD(CREV[0],x,z),lineD(CREV[1],x,z));
+        cc=L3(BLUE0,BLUE1,.35+.35*Math.sin(h*6.5+n(x*.8,z*.8)*5)+.3*w);                               // breisen: blå, med lag i brefronten
+        cc=L3(cc,SN1,.45*smt(lit*1.2));if(cd<.75)cc=L3(DEEP,cc,smt(cd/.6))}                           // og turkise sprekker
+      else cc=L3(L3(DEEP,BERG,smt((h+.6)/1.2)),SN1,.85*smt((h-1)/2.6))}                               // isfjellene: turkise i vannlinja, hvite på toppen
+    else{const R=Math.hypot(x,z),ri=isl(x,z),base=surfColor(s,x,z,n,G.def);
+      if(s===S.ROCK&&Math.hypot(x-MT[0],z-MT[1])<mtR(x,z)+2.5&&h>1.6){                               // Gruvefjellet: vannrette berglag
+        const y=h*1.15+.35*n(x*.3,z*.3),b=Math.floor(y),f=.88+.2*v,st=STRATA[b%5];cc=[st[0]*f,st[1]*f,st[2]*f];
+        if(y-b<.16&&Math.hypot(gx,gz)<3.5)cc=L3(cc,SN1,.8)}                                           // med snø på hyllene
+      else if(R>ri-6.2)cc=L3(base,SN0,(1-smt((R-(ri-6.2))/2.6))*(w>.48?.85:.25));                     // strendene: snøflekker innerst, bar grus ut mot sjøen
+      else if(s===S.GRAVEL&&rb>.72)cc=L3(L3(GR0,GR1,v*.5+w*.5),SN0,(1-smt((rb-.72)/.07))*(w>.5?.8:.2));   // rabbene: snø i kanten
+      else return}                                                                                    // resten av steinen og grusen (Gruveveien) er som før
+    setC(k,cc)})};
 // ---------- løypene ----------
 const CH=[
  {id:'safari',name:'Skutersafari',diff:1,gates:12,skuter:true,desc:'En lang runde med snøskuter gjennom Reindalen og over viddene i sørvest. Du får låne en skuter ved start. Reinsdyrene går unna, bare du ikke kjører rett på dem.',
@@ -64,8 +105,8 @@ LEVELS.push(
 { id:'svalbard', name:'Svalbard', diff:2, seed:7818, size:120, coast:42, world:true,
   desc:'Den arktiske øya helt i nord: bre, islagt fjord, gruvefjell og isbjørner som ikke liker besøk. Lei en snøskuter ved kaia og kjør over viddene.',
   start:[VROAD[0]+1,VROAD[1]+2.5,0],
-  sky:['#4577b8','#f6dcc8'], fog:0xe9e4e8, fogNear:34, fogFar:128, sun:0xffe9d2, sunI:1.05, hemi:[0xe2ecf8,0x8c96a8,.74], sunDir:[-22,13,-10], rockCol:'#5f6268',
-  water:.3, waterCol:'#27617e', waterOpacity:.88, beachSurf:S.GRAVEL,
+  sky:['#2c62ad','#f4cdb8'], fog:0xdde3ee, fogNear:50, fogFar:175, sun:0xffe0c2, sunI:1.12, hemi:[0xdce8f8,0x7f8ba2,.6], sunDir:[-24,9,-11], rockCol:'#5f6268',   // lav, varm sol og kald, klar luft
+  water:.3, waterCol:'#1f5874', waterOpacity:.88, beachSurf:S.GRAVEL,
   snow:true, precip:(x,z)=>.25+.55*smt((GL_R-Math.hypot(x-GL[0],z-GL[1]))/8), wind:true, ambience:'jungle',
   biome:(x,z)=>{const R=Math.hypot(x,z);return{snow:.8+.2*glMask(x,z),beach:.6*smt((R-(isl(x,z)-9))/5),jungle:0,swamp:0,desert:0}},
   landExtra:(x,z)=>Math.max(glMask(x,z),smt((FJ_R+1.2-Math.hypot(x-FJ[0],z-FJ[1]))/.8)),   // breen og fjordisen går helt ut i havet
@@ -75,7 +116,9 @@ LEVELS.push(
   mapLabels:[[VIL[0]+3.5,VIL[1]+1,'Kaia'],[RENT[0]+5,RENT[1]-2.5,'Skuterutleia'],[4,-4,'Reindalen'],[GL[0],GL[1]+3,'Isbjørnbreen'],[FJ[0],FJ[1]-1,'Isfjorden'],
     [MT[0],MT[1]+11.5,'Gruvefjellet'],[VAULT[0]+3.5,VAULT[1]+2.6,'Frøhvelvet'],[HUT[0]+1,HUT[1]+3.4,'Fangsthytta'],[SENTRAL[0]-1,SENTRAL[1]+3.5,'Taubanen']],
   animals:{
-    polarbears:[{at:[39,-1.5],r:1.5,n:1},{at:[-14,30],r:4,n:1},{at:[-27,-20],r:4,n:1}],
+    // isbjørnene står så langt fra løypene, gruveinngangen og veiene at de varsler og følger med, men ikke angriper den som holder seg der.
+    // Bjørnen ute på fjordisen (charge:5) går bare til angrep på den som kjører bort til den
+    polarbears:[{at:[40,-1.6],r:.9,n:1,charge:5},{at:[-17.5,31],r:3,n:1},{at:[-24.5,-25.5],r:3,n:1}],
     reindeer:[{at:[3.5,-2],r:6,n:4},{at:[13,-20],r:6,n:4},{at:[19.5,9],r:4,n:3}],
     seals:[{at:HOLES[0],n:2},{at:HOLES[1],n:2},{at:HOLES[2],n:1}],
     walruses:[{at:[33.6,14.4],r:2.4,n:4}],
@@ -177,9 +220,20 @@ LEVELS.push(
     for(let i=0;i<40;i++){const a=R()*6.28,d=mtR(MT[0]+Math.cos(a)*9,MT[1]+Math.sin(a)*9)+.6+R()*3,x=MT[0]+Math.cos(a)*d,z=MT[1]+Math.sin(a)*d,rr=.4+R()*.9;if(c.dist(x,z)<rr+1.8||!c.free(x,z,rr+.4))continue;rock(x,z,rr,.4+R()*.8,{ang:R()*6.3,ax:1+R()*.5,sharp:.4,surf:S.ROCK});if(rr>.9)c.anchor(x,z)}   // ur under fjellveggen
     rock(-2,35,2.6,3.4,{ang:.6,ax:1.3,sharp:.75,surf:S.ROCK});c.block(-2,35,3.4);c.anchor(-2,35);
     for(const[x,z,r,h]of[[2,47.5,2.6,5.6],[13,48,3.2,6.4],[-9,46,2.2,5],[22,45.5,2,4.8],[46.5,-9,2.4,5.2],[47,5,1.9,4.6],[-32,37,2.3,5.2],[40,26,1.8,4.6]])rock(x,z,r,h,{ang:R()*6,ax:1.2+R()*.5,sharp:.42,nz:.3,surf:S.ICE});
+    // --- løypestikker langs veiene: røde stikker med hvit topp, annenhver side. De velter om du kjører på dem ---
+    for(const r of ROADS){const P=polyPts(r,.5);let m=0;for(let i=5;i<P.length-5;i+=9){const a=P[i-1],b=P[i+1],L=Math.hypot(b.x-a.x,b.z-a.z)||1,sd=m++%2?1:-1,x=P[i].x+(b.z-a.z)/L*1.8*sd,z=P[i].z-(b.x-a.x)/L*1.8*sd;
+      if(c.dist(x,z)<1.6||!c.free(x,z,.3)||surfAt(x,z)!==S.SNOW)continue;const y=H(x,z);c.breakable(x,z,.07,[c.cyl(x,y-.05,z,.022,.9,'#c8463a'),c.cyl(x,y+.85,z,.03,.13,'#f4f4f0')])}}
+    // --- brefronten: taggete isblokker langs kanten, kalvet is i sjøen foran, og drivis rundt hele øya ---
+    for(let i=0;i<17;i++){const a=(14+i*9.5+R()*4)*DEG,d=GL_R-1.2-R()*1.3,x=GL[0]+Math.cos(a)*d,z=GL[1]+Math.sin(a)*d;if(c.dist(x,z)<3.2)continue;
+      rock(x,z,.75+R()*.6,.25+R()*.4,{ang:R()*6,ax:1+R()*.8,sharp:.5,nz:.5,surf:S.ICE})}
+    for(const[x,z,r,h]of[[-2.5,44.3,1.1,3],[3.5,45.6,.8,2.6],[9,45.2,1.3,3.3],[14.5,44.6,.9,2.8],[19.5,42.8,.8,2.7],[6,47.6,.6,2.3]])rock(x,z,r,h,{ang:R()*6,ax:1.2+R()*.6,sharp:.5,nz:.4,surf:S.ICE});
+    for(let i=0;i<95;i++){const a=R()*6.283,d=isl(Math.cos(a),Math.sin(a))+3.5+R()*R()*17,x=Math.cos(a)*d,z=Math.sin(a)*d,r=.45+R()*R()*1.9,da=Math.atan2(Math.sin(a-VA),Math.cos(a-VA));
+      if(Math.abs(da)<.4||x<-33||Math.abs(x)>HALF-3||Math.abs(z)>HALF-3||H(x,z)>-.2)continue;   // ikke i fergeleia, ikke ved flyplassen, og bare der det er sjø
+      const ry=R()*6.283;c.cyl(x,.2,z,r*1.07,.07,'#8fcbe4',{ry});c.cyl(x,.25,z,r,.1,'#eef3f8',{ry})}
     // --- gullmutterne ---
     for(const[x,z,l]of[[-27.3,-.5,'Mellom radarkuplene på Gruvefjellet'],[VAULT[0]+2.6,VAULT[1]-1.5,'Ved døra til frøhvelvet'],[GL[0],GL[1]+1,'På toppen av Isbjørnbreen'],
       [HUT[0]+.2,HUT[1]+1.9,'Bak fangsthytta'],[35.6,3.4,'Ved den innefrosne skøyta']]){c.secret(x,z,l);c.block(x,z,1.2)}
+    paintIsland(c,K);
     c.finish();
     // --- det lille som vokser: myrull og polarvier på rabbene, og dyrene som står i ro (data/dyr.js) ---
     const low=(x,z)=>Math.hypot(x-GL[0],z-GL[1])>GL_R+1&&Math.hypot(x-FJ[0],z-FJ[1])>FJ_R+1.5&&Math.hypot(x-MT[0],z-MT[1])>mtR(x,z)+1;
