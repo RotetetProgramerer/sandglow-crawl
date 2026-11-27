@@ -70,7 +70,7 @@ Etter rapporten er disse forslagene utført. «Prøvd» betyr sett virke i nettl
 | Q9 | Ingen turbotønne på siste etappe i båtløpet, og trykk på skjermen hopper over introen. | Lest, båttesten er grønn. Tidligere varsel om å sakke farten er ikke gjort. |
 | M1 | Lett-modus på ski: bom gir +2 s, andre skiløpere dytter i stedet for å felle, ingen snurr på korte luftferder. Kortere nedtelling ved «Prøv igjen». Større ringer i rundflygingen. | Ringene prøvd, ski lest og skitesten er grønn. Båt har ikke fått automatisk brems ved brygga. |
 
-Ikke gjort: nedtelling etter pause i Gruve 7, M2–M8 og L1–L3.
+Ikke gjort: nedtelling etter pause i Gruve 7, M2–M6, M8 og L1–L3. M7 (GPS-ruter som velter bilen) er løst av en annen endring på `main`: `tools/test-gps.js` gir nå 0 feil.
 
 ## Forslag: raske gevinster (under en dag hver)
 
