@@ -28,7 +28,8 @@ function placeSkier(s,x,z,head){s.pos.set(x,H(x,z),z);s.vel.set(0,0,0);s.vy=0;s.
 function skiCrash(s,why){if(s.crashT>0)return;s.crashT=1e-4;s.why=why;s.air=false;s.ev.push({type:'crash',why})}
 const _sn=new V3(),wrapA=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // inp = {steer:-1…1 (left +), gas:0…1 (pole and skate on the flat, tuck when fast), brake:0…1 (snowplough; with hard steering a hockey stop), jump:true once}
-// o.assist: the easy mode: a speed limit, softer landings
+// o.assist: the easy mode: a speed limit, softer landings. o.tricks: spinning in the air is wanted (Big Jumps); without it the easy mode does not
+// spin on short hops (a child holding a turn over a bump) and straightens the skis enough at the landing that it is a wobble at most, not a fall
 function stepSkier(s,inp,dt,o={}){
   const p=s.pos,v=s.vel;
   if(s.crashT>0){   // tumbling: the skier slides to a stop, then the game puts them back
@@ -83,12 +84,12 @@ function stepSkier(s,inp,dt,o={}){
   }else{
     s.airT+=dt;s.vy-=SKI_G*dt;const k=1-.01*dt;v.x*=k;v.z*=k;s.inc*=1-Math.min(1,dt*5);s.wob=Math.max(0,s.wob-dt*2);s.hock=0;s.plow=0;s.carve=0;
     // spin with left and right
-    s.spinV+=(inp.steer*7.2-s.spinV)*Math.min(1,dt*7);s.head+=s.spinV*dt;s.spin+=s.spinV*dt;
+    const calm=o.assist&&!o.tricks;s.spinV+=((calm&&s.airT<.3?0:inp.steer*7.2)-s.spinV)*Math.min(1,dt*7);s.head+=s.spinV*dt;s.spin+=s.spinV*dt;
     p.x+=v.x*dt;p.z+=v.z*dt;p.y+=s.vy*dt;const h=H(p.x,p.z);
     if(p.y<=h){
       normalAt(p.x,p.z,_sn);const vn=v.x*_sn.x+s.vy*_sn.y+v.z*_sn.z,sp=Math.hypot(v.x,v.z),hard=-vn;
       const turns=Math.abs(s.spin)/(2*Math.PI),spins=Math.round(turns),clean=Math.abs(turns-spins)*360<45;
-      const d=wrapA(s.head-Math.atan2(v.x,v.z)),lim=o.assist?10.5:9.2,wl=o.assist?7.4:6.2;
+      let d=wrapA(s.head-Math.atan2(v.x,v.z));if(calm&&Math.abs(d)>.9){d=Math.sign(d)*.9;s.head=Math.atan2(v.x,v.z)+d}const lim=o.assist?10.5:9.2,wl=o.assist?7.4:6.2;
       p.y=h;s.air=false;s.dir=Math.atan2(v.x,v.z);
       if(sp>2.5&&Math.abs(d)>1.05){skiCrash(s,'Landet på tvers');return}
       if(hard>lim){skiCrash(s,'For hard landing');return}
@@ -113,16 +114,16 @@ function stepSkier(s,inp,dt,o={}){
 function skiSegX(p1,p2,a,b){const d=(p2.x-p1.x)*(b.z-a.z)-(p2.z-p1.z)*(b.x-a.x);if(Math.abs(d)<1e-9)return false;
   const u=((a.x-p1.x)*(b.z-a.z)-(a.z-p1.z)*(b.x-a.x))/d,v=((a.x-p1.x)*(p2.z-p1.z)-(a.z-p1.z)*(p2.x-p1.x))/d;return u>=0&&u<=1&&v>=0&&v<=1}
 function makeSkiRun(k){return{k,next:0,passed:0,missed:0,pen:0,time:0,done:false,cp:{x:k.start.p.x,z:k.start.p.z,h:Math.atan2(k.start.tan.x,k.start.tan.z)},jumps:[],points:0,crashes:0,top:0}}
-// returns a list of {type:'gate'|'miss'|'finish', i}. A gate skipped, or a slalom gate passed on the wrong side of a pole, costs 5 seconds.
-function skiGates(run,p1,p2){const out=[],G2=run.k.gates;
+// returns a list of {type:'gate'|'miss'|'finish', i}. A gate skipped, or a slalom gate passed on the wrong side of a pole, costs pen seconds (5; 2 in the easy mode).
+function skiGates(run,p1,p2,pen=5){const out=[],G2=run.k.gates;
   for(let i=run.next;i<G2.length&&!run.done;i++){const g=G2[i];
     const E=g.finish?3:run.k.kind==='slalom'?2.2:0,hit=skiSegX(p1,p2,g.a,g.b),wide=!hit&&E>0&&i===run.next&&skiSegX(p1,p2,{x:g.a.x+g.side.x*E,z:g.a.z+g.side.z*E},{x:g.b.x-g.side.x*E,z:g.b.z-g.side.z*E});
     if(!hit&&!wide)continue;
-    for(let j=run.next;j<i;j++){run.missed++;run.pen+=5;out.push({type:'miss',i:j})}
+    for(let j=run.next;j<i;j++){run.missed++;run.pen+=pen;out.push({type:'miss',i:j})}
     run.next=i+1;
     if(g.finish){run.done=true;out.push({type:'finish',i});break}
     if(hit){run.passed++;run.cp={x:g.c.x,z:g.c.z,h:Math.atan2(g.tan.x,g.tan.z)};out.push({type:'gate',i})}
-    else{run.missed++;run.pen+=5;out.push({type:'miss',i})}
+    else{run.missed++;run.pen+=pen;out.push({type:'miss',i})}
     break}
   return out}
 // points for a jump in Big Jumps: airtime, full spins with a clean landing, and a pop right at the lip

@@ -4,17 +4,18 @@
    Lions rest in the shade on the kopje, cheetahs patrol the open plain, crocodiles lurk in the river and the waterhole.
    Come too close and they attack: lions charge, cheetahs sprint (faster than the car, but only for a few seconds, and they turn
    wide, so swerve), crocodiles lunge out of the water. A hit throws the car about and costs 5 penalty points in a race,
-   or 3 nuts while roaming. After an attack the animal goes back home and rests a while.
+   or 3 nuts while roaming. After an attack the animal goes back home and rests a while, and for SAV_TRUCE seconds no other animal
+   attacks either (a pride of three is one hit, not three). The crocodile waits a moment (windup) after its warning before it lunges.
    Zebras, wildebeest, gazelles and giraffes graze in herds and bolt from the car (they use updateGrazers in js/animals.js),
    and vultures circle over the plain.
    A level turns this on with  animals:{lions:[{at,r,n}], cheetahs:[…], crocs:[…], zebras:[…], gnus:[…], gazelles:[…],
    giraffes:[…], vultures:{at,n,r}}. Loaded after js/animals.js; buildAnimals and updateAnimals call in here.
    ================================================================= */
-const SAV={preds:[],vultures:[],all:[],warnT:0};
+const SAV={preds:[],vultures:[],all:[],warnT:0,hitT:0},SAV_TRUCE=7;   // hitT: seconds left of the truce after a hit (the polar bears in js/polardyr.js share it)
 const SAV_KIND={
   lion:{name:'Løven',emoji:'🦁',big:true,alert:9,charge:6.5,speed:4.6,turn:3.2,maxT:5,leash:17,hit:.6,push:1,rest:12,warn:'⚠ Løvene har sett deg!'},
   cheetah:{name:'Geparden',emoji:'🐆',alert:13,charge:10.5,speed:6.6,turn:2.2,maxT:3.2,leash:26,hit:.55,push:.75,rest:9,warn:'⚠ Gepard! Sving unna!'},
-  croc:{name:'Krokodillen',emoji:'🐊',alert:5,charge:3.6,speed:6,turn:5,maxT:1,leash:4.5,hit:.7,push:1.2,rest:7,warn:'⚠ Krokodille i vannet!'}
+  croc:{name:'Krokodillen',emoji:'🐊',alert:5,charge:3.6,speed:6,turn:5,maxT:1,leash:4.5,hit:.7,push:1.2,rest:7,windup:.8,warn:'⚠ Krokodille i vannet!'}
 };
 
 /* ---------- the meshes (they face +z) ---------- */
@@ -89,7 +90,7 @@ function savBake(o){const by=new Map();
 // only the body casts a shadow: legs, heads and tails would cost a draw call each in the shadow pass too
 function savPrep(g){savBake(g);const U=g.userData,body=U.rig||g;g.traverse(m=>{if(m.isMesh&&m.parent!==body&&m.parent!==g)m.castShadow=false});return g}
 function savSpot(o,R,ok){for(let k=0;k<60;k++){const a=R()*6.28,d=Math.sqrt(R())*o.r,x=o.at[0]+Math.cos(a)*d,z=o.at[1]+Math.sin(a)*d;if(ok(x,z))return[x,z]}return null}
-function buildSavanna(lv,def,R){SAV.preds=[];SAV.vultures=[];SAV.all=[];SAV.warnT=0;const A=def.animals;if(!A)return;
+function buildSavanna(lv,def,R){SAV.preds=[];SAV.vultures=[];SAV.all=[];SAV.warnT=0;SAV.hitT=0;const A=def.animals;if(!A)return;
   const land=(x,z)=>WL(x,z)<H(x,z)-.05&&lv.dist(x,z)>2,wet=(x,z)=>WL(x,z)>H(x,z)+.14;
   const pred=(kind,list,mk,ok)=>{for(const o of(list||[]))for(let i=0;i<(o.n||1);i++){const p=savSpot(o,R,ok);if(!p)continue;const g=savPrep(mk(i));SAV.all.push(g);g.position.set(p[0],H(p[0],p[1]),p[1]);g.rotation.y=R()*6.28;levelGroup.add(g);
       SAV.preds.push({g,kind,K:SAV_KIND[kind],hx:p[0],hz:p[1],st:'rest',t:R()*3,cool:0,sp:0,ph:R()*6.28,male:kind==='lion'&&i===0})}};
@@ -119,16 +120,17 @@ function savAttack(p){const K=p.K,g=p.g;let nx=car.pos.x-g.position.x,nz=car.pos
 function savTurn(g,want,rate,dt){let dy=want-g.rotation.y;dy=Math.atan2(Math.sin(dy),Math.cos(dy));g.rotation.y+=Math.max(-rate*dt,Math.min(rate*dt,dy))}
 function updateSavanna(dt,tm){if(!SAV.all.length)return;
   for(const g of SAV.all){const dx=g.position.x-camera.position.x,dz=g.position.z-camera.position.z;g.visible=dx*dx+dz*dz<55*55}   // far away they are a few pixels: not drawn
-  const play=state.mode==='play';SAV.warnT-=dt;
+  const play=state.mode==='play';SAV.warnT-=dt;SAV.hitT-=dt;
   for(const p of SAV.preds){const g=p.g,K=p.K,U=g.userData,x=g.position.x,z=g.position.z,d=savCarDist(x,z),home=Math.hypot(x-p.hx,z-p.hz),croc=p.kind==='croc';p.t-=dt;p.cool-=dt;
-    const carWet=WL(car.pos.x,car.pos.z)>H(car.pos.x,car.pos.z)-.25,canSee=play&&p.cool<=0&&(!croc||carWet||d<2.2);
+    const carWet=WL(car.pos.x,car.pos.z)>H(car.pos.x,car.pos.z)-.25,canSee=play&&p.cool<=0&&SAV.hitT<=0&&(!croc||carWet||d<2.2);
     if(p.st==='rest'||p.st==='alert'){p.sp=0;
-      if(canSee&&d<K.charge){p.st='charge';p.t=K.maxT;if(!croc)savRoar(x,z,K.big);if(SAV.warnT<=0){toast(K.warn,true);SAV.warnT=6}}
-      else if(canSee&&d<K.alert){if(p.st!=='alert'&&SAV.warnT<=0&&!croc){toast(K.warn,true);SAV.warnT=6}p.st='alert';savTurn(g,Math.atan2(car.pos.x-x,car.pos.z-z),2,dt)}
+      // K.windup (the crocodile): it must have been alert, with its warning shown, for that long before it may charge
+      if(canSee&&d<K.charge&&!(K.windup&&!(p.st==='alert'&&p.al>=K.windup))){p.st='charge';p.t=K.maxT;if(!croc)savRoar(x,z,K.big);if(SAV.warnT<=0){toast(K.warn,true);SAV.warnT=6}}
+      else if(canSee&&d<K.alert){if(p.st!=='alert'){p.al=0;if(SAV.warnT<=0){toast(K.warn,true);SAV.warnT=6}}p.al+=dt;p.st='alert';savTurn(g,Math.atan2(car.pos.x-x,car.pos.z-z),2,dt)}
       else p.st='rest'}
     else if(p.st==='charge'){p.sp=K.speed;const tx=car.pos.x+car.vel.x*.35,tz=car.pos.z+car.vel.z*.35;savTurn(g,Math.atan2(tx-x,tz-z),K.turn,dt);
-      if(d<K.hit+.45){savAttack(p);p.st='back';p.cool=K.rest;p.t=0}
-      else if(p.t<=0||home>K.leash||!play){p.st='back';p.cool=K.rest*.5;p.t=0}}
+      if(SAV.hitT<=0&&d<K.hit+.45){savAttack(p);SAV.hitT=SAV_TRUCE;p.st='back';p.cool=K.rest;p.t=0}
+      else if(p.t<=0||home>K.leash||!play||SAV.hitT>0){p.st='back';p.cool=K.rest*.5;p.t=0}}
     else if(p.st==='back'){p.sp=croc?1.2:1.6;savTurn(g,Math.atan2(p.hx-x,p.hz-z),3,dt);if(home<.6||p.t<-12){p.st='rest';p.sp=0}}   // after 12 s it rests where it is (water in the way)
     if(p.sp>0){const nx=x+Math.sin(g.rotation.y)*p.sp*dt,nz=z+Math.cos(g.rotation.y)*p.sp*dt,wet=WL(nx,nz)>H(nx,nz)+.05;
       if((croc?Math.hypot(nx-p.hx,nz-p.hz)<K.leash:!wet)&&Math.abs(nx)<HALF-3&&Math.abs(nz)<HALF-3){g.position.x=nx;g.position.z=nz}else if(p.st==='charge'){p.st='back';p.cool=K.rest*.5;p.t=0}}

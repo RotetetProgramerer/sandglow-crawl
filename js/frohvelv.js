@@ -65,17 +65,22 @@ const VT_POT=`<svg class="vt-pot" viewBox="0 0 220 240" aria-hidden="true">
 // a Norwegian voice if the machine has one. With voices but none Norwegian we stay quiet: another language's voice can't read Norwegian
 function vVoice(){if(!('speechSynthesis' in window))return null;const L=speechSynthesis.getVoices()||[];if(!L.length)return undefined;
   return L.find(v=>/^(nb|no|nn)([-_]|$)/i.test(v.lang))||L.find(v=>/norsk|norwegian/i.test(v.name))||null}
-function vSpeak(text){const fia=$('vtFia');clearTimeout(VT.talkTo);fia.classList.remove('talk');
-  if(!('speechSynthesis' in window))return vTalk(text);speechSynthesis.cancel();if(!vtRead())return vTalk(text);
-  const v=vVoice();VT.voiceOk=v!==null;vReadBtn();if(v===null)return vTalk(text);
-  clearTimeout(VT.spkTo);VT.spkTo=setTimeout(()=>{if(!VT.on)return;const u=new SpeechSynthesisUtterance(text);u.lang=v?v.lang:'nb-NO';if(v)u.voice=v;u.rate=.92;u.pitch=1.12;
-    u.onstart=()=>fia.classList.add('talk');u.onend=u.onerror=()=>fia.classList.remove('talk');try{speechSynthesis.speak(u)}catch(e){vTalk(text)}},70)}
+// more: [[text,button],…] read after the line, one utterance each (the browser queues them, so they can't cut the line off). The button lights up (.say) while its text is read
+function vSpeak(text,more){if(VT.out)return;const fia=$('vtFia'),all=more&&more.length?text+' '+more.map(m=>m[0]).join(' '):text;clearTimeout(VT.talkTo);clearTimeout(VT.spkTo);fia.classList.remove('talk');vUnsay();
+  if(!('speechSynthesis' in window)){vReadBtn();return vTalk(all)}speechSynthesis.cancel();vReadBtn();if(!vtRead())return vTalk(all);
+  const v=vVoice();if(v===null)return vTalk(all);
+  VT.spkTo=setTimeout(()=>{if(!VT.on||VT.out)return;const parts=[[text,null],...(more||[])];
+    try{parts.forEach(([t,el],i)=>{const u=new SpeechSynthesisUtterance(t);u.lang=v?v.lang:'nb-NO';if(v)u.voice=v;u.rate=.92;u.pitch=1.12;
+      u.onstart=()=>{fia.classList.add('talk');if(el)el.classList.add('say')};u.onend=u.onerror=()=>{if(el)el.classList.remove('say');if(i===parts.length-1)fia.classList.remove('talk')};speechSynthesis.speak(u)})}catch(e){vTalk(all)}},70)}
+const vUnsay=()=>{const st=$('vtStage');if(st)st.querySelectorAll('.say').forEach(x=>x.classList.remove('say'))};
+const vAgain=()=>{if(VT.said)vSpeak(VT.said,VT.more)};
 // no voice: she moves her mouth for about as long as it takes to read the line
 function vTalk(text){const fia=$('vtFia');fia.classList.add('talk');VT.talkTo=setTimeout(()=>fia.classList.remove('talk'),Math.min(6000,600+text.length*45))}
-function vSay(text){VT.said=text;$('vtSay').textContent=text;vSpeak(text);const b=$('vtBubble');b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}
-function vReadBtn(){const b=$('vtRead');b.textContent=(vtRead()?'🔊':'🔇')+' Les høyt: '+(vtRead()?'på':'av');b.setAttribute('aria-pressed',vtRead());
+function vSay(text,more){VT.said=text;VT.more=more||null;$('vtSay').textContent=text;vSpeak(text,more);const b=$('vtBubble');b.classList.remove('pop');void b.offsetWidth;b.classList.add('pop')}
+// with no Norwegian voice (or no speech at all) the game is silent: say so in a line a grown-up can see, also on a touch screen (a title never shows there)
+function vReadBtn(){const b=$('vtRead'),v=vVoice();if(v!==undefined)VT.voiceOk=v!==null;const nv=$('vtNoVoice');if(nv)nv.hidden=VT.voiceOk!==false;b.textContent=(vtRead()?'🔊':'🔇')+' Les høyt: '+(vtRead()?'på':'av');b.setAttribute('aria-pressed',vtRead());
   b.title=VT.voiceOk===false?'Fant ingen norsk stemme på denne maskinen, så teksten blir ikke lest høyt.':'Frøken Frø leser høyt';b.classList.toggle('novoice',VT.voiceOk===false)}
-function vStopVoice(){clearTimeout(VT.spkTo);clearTimeout(VT.talkTo);if('speechSynthesis' in window)speechSynthesis.cancel();const f=$('vtFia');if(f)f.classList.remove('talk')}
+function vStopVoice(){clearTimeout(VT.spkTo);clearTimeout(VT.talkTo);try{if('speechSynthesis' in window)speechSynthesis.cancel()}catch(e){}const f=$('vtFia');if(f)f.classList.remove('talk');vUnsay()}
 
 /* ---------- small sounds (WebAudio, no files) ---------- */
 function vTone(fr,d,delay=0,type='triangle',v=.16){if(!AC||!state.sound)return;try{const t=AC.currentTime+delay,o=AC.createOscillator(),g=AC.createGain();o.type=type;o.frequency.setValueAtTime(fr,t);
@@ -119,7 +124,8 @@ function vPick(S){const V=VT.V,r=S.rounds[V.round],st=vStage();
     if(!res.ok){vWrong();vShake(b);b.classList.add('off');b.disabled=true;vSay(res.say);return}
     vRight();b.classList.add('right');st.querySelectorAll('.vt-opt').forEach(x=>x.disabled=true);vSay(res.say);
     if(res.done)vMore();else{const nb=document.createElement('button');nb.className='vt-big vt-go vt-more';nb.textContent='Neste frø ▶';nb.onclick=()=>{vTap();vPick(S)};st.appendChild(nb);setTimeout(()=>nb.focus({preventScroll:true}),50)}});
-  vSay(r.say)}
+  // the answers of a question without a picture seed are whole sentences (station 4): read them too, each with its number (the keys 1–3)
+  vSay(r.say,r.seed?null:[...st.querySelectorAll('.vt-opt')].map((b,i)=>[(['Én','To','Tre'][i]||i+1)+': '+r.options[i].label+'.',b]))}
 // 3. the belt: one thing at a time. Into the cold room, or not?
 function vSort(S){const V=VT.V,st=vStage();
   st.innerHTML=`<div class="vt-sort"><div class="vt-belt"><div class="vt-thing" id="vtThing"></div><div class="vt-rollers" aria-hidden="true"></div></div>
@@ -155,17 +161,20 @@ function vaultAnswer(yes){state.askCool='vault';if(yes)vaultEnter();else state.m
 // called from updateWorld while roaming: ask when the car (or the driver on foot) stops on the blue square by the door
 function vaultWorld(){const D=LV&&LV.vaultDef;if(!D||state.mode!=='play')return false;const p=WALK.on?WALK.pos:car.pos,d=Math.hypot(D.ask.x-p.x,D.ask.z-p.z);
   if(d<D.r&&state.askCool!=='vault'&&(WALK.on||car.vel.lengthSq()<4)){openAsk('vault');return true}if(d>D.r+2.5&&state.askCool==='vault')state.askCool=null;return false}
-function vaultEnter(){if(VT.on||VT.fade)return;vTap();state.mode='vault';car.vel.set(0,0,0);car.w.set(0,0,0);car.throttle=0;setOffer(null);
-  $('fade').classList.add('on');VT.fade={t:0,hold:.2,cb:()=>{VT.on=true;$('hud').hidden=true;$('hint').hidden=true;$('vault').hidden=false;vReadBtn();vIntro()}}}
-function vaultExit(){if(VT.fade||!VT.on)return;vStopVoice();$('fade').classList.add('on');
-  VT.fade={t:0,hold:.2,cb:()=>{VT.on=false;$('vault').hidden=true;vStage().innerHTML='';state.mode='play';state.askCool='vault';showHud();camSnap=true;
+function vaultEnter(){if(VT.on||VT.fade)return;vTap();
+  try{if('speechSynthesis' in window){const u=new SpeechSynthesisUtterance(' ');u.volume=0;speechSynthesis.speak(u)}}catch(e){}   // iOS: the first speech must start inside a tap, and this runs in the JA tap. A silent one opens it up
+  state.mode='vault';car.vel.set(0,0,0);car.w.set(0,0,0);car.throttle=0;setOffer(null);
+  $('fade').classList.add('on');VT.fade={t:0,hold:.2,cb:()=>{VT.on=true;VT.out=false;$('hud').hidden=true;$('hint').hidden=true;$('vault').hidden=false;vReadBtn();vIntro()}}}
+// VT.out: on the way out. Taps in the game are swallowed (see initVault) and nothing new is said, so Frøken Frø can't go on talking out on the island
+function vaultExit(){if(VT.fade||!VT.on)return;VT.out=true;vStopVoice();$('fade').classList.add('on');
+  VT.fade={t:0,hold:.2,cb:()=>{vStopVoice();VT.on=false;VT.out=false;$('vault').hidden=true;vStage().innerHTML='';state.mode='play';state.askCool='vault';showHud();camSnap=true;
     toast(vtProf().done?'🌱 Ut i kulda igjen, frøvokter!':'Ut i kulda igjen')}}}
 function updateVault(dt){
   if(VT.fade){const f=VT.fade;f.t+=dt;if(f.t>.9&&!f.done){f.done=true;f.cb()}if(f.t>.9+f.hold){$('fade').classList.remove('on');VT.fade=null}}
   return VT.on}
 function vaultKeyDown(k){if(!VT.on||VT.fade)return;
   if(k==='escape'){vaultExit();return}
-  if(k==='r'){if(VT.said)vSpeak(VT.said);return}
+  if(k==='r'){vAgain();return}
   if(/^[1-9]$/.test(k)){const b=[...vStage().querySelectorAll('[data-n]')].find(x=>x.dataset.n===k&&!x.disabled&&!x.closest('[hidden]'));if(b)b.click();else{const s=$('vtSeed');if(s&&k==='1')s.click()}}}
 
 /* ---------- the sprout on the car: a little pot at the back, on every island once you are a seed keeper ---------- */
@@ -181,9 +190,11 @@ function vaultSprout(tm){if(typeof carVis==='undefined'||!carVis||!carVis.body||
   const sp=car?Math.min(1,car.vel.length()/4):0;s.userData.top.rotation.z=Math.sin(tm*(3+sp*7))*(.12+.2*sp);s.userData.top.rotation.x=-sp*.25}
 
 function initVault(){$('vtFia').innerHTML=VT_FIA;
+  {const n=document.createElement('p');n.id='vtNoVoice';n.className='vt-novoice';n.hidden=true;n.textContent='🔇 Ingen norsk stemme på denne enheten. Les høyt for barnet.';const V=$('vault');V.insertBefore(n,V.querySelector('.vt-main'));
+    V.addEventListener('click',e=>{if(VT.out){e.stopPropagation();e.preventDefault()}},true)}   // capture: no button in here gets a tap while the screen fades out
   $('vtOut').onclick=()=>vaultExit();
-  $('vtRead').onclick=()=>{vTap();const P=vtProf();P.read=vtRead()?0:1;saveProf();vReadBtn();if(vtRead()&&VT.said)vSpeak(VT.said);else vStopVoice()};
-  $('vtAgain').onclick=()=>{vTap();if(VT.said)vSpeak(VT.said)};
+  $('vtRead').onclick=()=>{vTap();const P=vtProf();P.read=vtRead()?0:1;saveProf();vReadBtn();if(vtRead())vAgain();else vStopVoice()};
+  $('vtAgain').onclick=()=>{vTap();vAgain()};
   if('speechSynthesis' in window&&speechSynthesis.addEventListener)speechSynthesis.addEventListener('voiceschanged',()=>{if(VT.on)vReadBtn()});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&VT.on)vStopVoice()})}
 initVault();

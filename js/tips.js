@@ -11,7 +11,7 @@ const tipNear=(p,r)=>!!p&&Math.hypot((p.x??p[0])-car.pos.x,(p.z??p[1])-car.pos.z
 const tipFree=()=>state.world&&!state.course;
 const TIPS=[
   {id:'stuck',when:()=>TIP.stuck>4,say:t=>t?'Sitter du fast? Prøv lavt gir, Vinsj-knappen eller «Hent bilen» i pausemenyen.':'Sitter du fast? Prøv lavt gir (G), vinsjen (R) eller «Hent bilen» i pausemenyen (Esc).'},
-  {id:'start',when:()=>tipFree()&&TIP.play>1.5,say:()=>'Hele øya er din. Pilen og minikartet viser veien til nærmeste startstrek.'},
+  {id:'start',when:()=>tipFree()&&TIP.play>1.5,say:()=>'Hele øya er din. Pilen over bilen viser veien til en lett løype å begynne med.'},
   {id:'portal',when:()=>{if(!tipFree())return false;const n=nearestPortal();return!!n&&n.d<13},say:t=>'Kjør inn mellom flaggene og trykk START'+(t?'':' (Enter)')+'. Porter, kasser og hopp gir muttere.'},
   {id:'garage',when:()=>tipFree()&&tipNear(LEVELS[state.levelIdx].garageAt,13),say:()=>'Verkstedet: her bruker du mutterne på dekk, fjæring, motor, lakk og nye biler.'},
   {id:'ferry',when:()=>tipFree()&&LV.ferry&&tipNear(LV.ferry.quay,14),say:()=>'Fergekaia: kjør om bord på fergen for å reise til de andre øyene.'},
