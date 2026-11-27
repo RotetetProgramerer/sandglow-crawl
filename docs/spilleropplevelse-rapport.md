@@ -53,6 +53,25 @@ Alt under er verifisert i nettleseren etter rettelsen, og testene i tools/ gir s
 
 `VERSION` i sw.js er økt til v46.
 
+## Gjort i runde 2
+
+Etter rapporten er disse forslagene utført. «Prøvd» betyr sett virke i nettleseren, «lest» betyr bare kodegjennomgang og testene i tools/.
+
+| Forslag | Hva som er gjort | Status |
+|---|---|---|
+| Q1 | En diamant gir 10 muttere første gang den tas, og 2 senere. Tatte diamanter er blekere og mindre. Lagres i `prof.cave.gems`. | Prøvd: 15 diamanter ga 150, samme 15 på ny tur ga 30. |
+| Q2 | Myntlyd ved kasse, fanfare ved mål, og mutterne teller opp på resultatskjermen. | Opptelling og kall prøvd. Lyden er ikke hørt. |
+| Q3 | Racehint på berøring de tre første løpene, knappen «Tilbake», og lasteflyet sier hvordan turen hoppes over. | Lest. |
+| Q4 | I Gruve 7 hopper et trykk alltid, og utstyret brukes med knappen. Finger holdt nede etter sveip ned holder dukket. | Prøvd med syntetiske pekerhendelser. |
+| Q5 | Sju sekunders felles pause etter et dyreangrep, og krokodillen varsler og venter 0,8 s før utfallet. | Lest. |
+| Q6 | Fergen med under 5 muttere: grå reisemål og tekst om det gratis lasteflyet. Talltastene 1–9 velger i lister. | Prøvd. |
+| Q7 | Frøhvelvet: synlig linje når norsk stemme mangler, svarene på stasjon 4 leses opp, tale stoppes på vei ut, og en stille ytring i JA-trykket for iOS. | Lest. Linjen vises ikke når nettleseren aldri gir en stemmeliste; da er det ukjent om talen virker. |
+| Q8 | Piratøya: «Stopp helt på krysset», «!» over krysset og hodeskallen, «Kjør tilbake til Skumkroa!», og tall foran svarene i ordduellen. | Lest. |
+| Q9 | Ingen turbotønne på siste etappe i båtløpet, og trykk på skjermen hopper over introen. | Lest, båttesten er grønn. Tidligere varsel om å sakke farten er ikke gjort. |
+| M1 | Lett-modus på ski: bom gir +2 s, andre skiløpere dytter i stedet for å felle, ingen snurr på korte luftferder. Kortere nedtelling ved «Prøv igjen». Større ringer i rundflygingen. | Ringene prøvd, ski lest og skitesten er grønn. Båt har ikke fått automatisk brems ved brygga. |
+
+Ikke gjort: nedtelling etter pause i Gruve 7, M2–M8 og L1–L3.
+
 ## Forslag: raske gevinster (under en dag hver)
 
 ### Q1. Tett hullet i grotteøkonomien

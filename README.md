@@ -553,7 +553,7 @@ Kjør inn den smale kløfta og helt inn i den mørke åpningen (merket «FARE �
 | ← eller S (↓), eller BREMS-pedalen | Brems og revers. I lufta tipper bremsen nesa ned. |
 | Esc eller P | Pause: tilbake til sjekkpunktet, start ved inngangen, kjør ut, lyd. |
 
-- **Diamanter:** 1 diamant er 10 muttere, og de legges til med en gang du tar dem. Diamantene er tilbake neste gang du kjører inn.
+- **Diamanter:** en diamant er 10 muttere første gang du tar den, og de legges til med en gang. Diamantene er tilbake neste gang du kjører inn, men de du har tatt før, er blekere og gir 2 muttere (`prof.cave.gems`).
 - **Bensin:** tanken går mest etter hvor langt du kjører (litt også når du står stille). De røde kannene fyller tanken. Er tanken tom og bilen står, blir du tauet ut. I Lett modus rekker tanken en tredjedel lenger.
 - **Sjekkpunkter:** lyktene. Velter du (taket i bakken, eller bilen blir liggende på siden) eller faller ned i et juv, starter du ved siste lykt.
 - **Lett modus:** bilen lander alltid på hjulene, og motoren slipper litt når forhjulene letter i en bratt bakke. **Ekte modus:** du styrer selv i lufta, og hver hele salto gir 5 muttere.
@@ -609,9 +609,9 @@ Koden ligger i `js/world.js` («the snowmobile hire»). Banen setter `c.skuterDe
 | Du gjør | Taster | Berøring | Til hva |
 |---|---|---|---|
 | Bytter spor | ← →, A D | Sveip til siden | Forbi steinras, parkerte kullvogner, stengte spor, spor som ender i veggen, og rivaler |
-| Hopper | ↑, W | Sveip opp | Over brudd i skinnene og steinfeller |
-| Dukker | ↓, S | Sveip ned | Under lave bjelker og istapper |
-| Bruker utstyret | Mellomrom, Enter, X | Trykk, eller knappen nede til høyre | Det du fant i en kasse |
+| Hopper | ↑, W | Sveip opp, eller trykk | Over brudd i skinnene og steinfeller |
+| Dukker | ↓, S | Sveip ned (hold fingeren nede for å bli nede) | Under lave bjelker og istapper |
+| Bruker utstyret | Mellomrom, Enter, X | Knappen nede til høyre | Det du fant i en kasse |
 
 - **Krasj:** vogna snurrer rundt, mister farten og to kullklumper, og ruller videre. Faller du ned i en sjakt, settes vogna på skinnene igjen på den andre siden. Ingen blir satt tilbake, og ingen ryker ut.
 - **Kull er fart:** hver klump du har om bord (opptil 20), gjør vogna 0,4 % raskere. Hver klump du plukker, er også 3 muttere.

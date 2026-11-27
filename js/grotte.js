@@ -2,7 +2,7 @@
 /* =================================================================
    GROTTE: Diamantgrotten, the secret cave on Kameløya. Drive into the dark opening in the rock face and the picture
    changes: the cave is seen from the side, as in Hill Climb Racing. Gas (→, ↑, D or W) drives on and tips the nose up
-   in the air, brake (←, ↓, A or S) slows down, reverses and tips the nose down. Every diamond is worth 10 nuts.
+   in the air, brake (←, ↓, A or S) slows down, reverses and tips the nose down. Every diamond is worth 10 nuts the first time it is ever taken, and 2 after that.
    Fuel cans fill the tank, the lanterns are checkpoints, and at the far end the treasure chamber waits. Drive back out
    through the entrance, run out of fuel or reach the treasure and you are back on the island.
    The cave itself (floor, ceiling, diamonds, decor) is built from data/grotte.js by makeCave (js/grottesim.js), which
@@ -11,7 +11,7 @@
    Loaded after plane.js; uses the globals of game.js and world.js (state, renderer, car, prof, best, AC, M …) at run time.
    ================================================================= */
 const CV={on:false,fade:null,built:false,cave:null,scene:null,cam:null,car:null,run:null,vis:null,acc:0,paused:false,result:false,phase:'',
-  zone:-1,hudT:0,lowT:0,snd:null,look:new THREE.Vector3(),camX:0,camY:0,camD:12,shake:0,combo:0,comboT:0,nuts:0,flips:0,bonus:0,carKey:'',lightsWas:false,doneT:0};
+  zone:-1,hudT:0,lowT:0,snd:null,look:new THREE.Vector3(),camX:0,camY:0,camD:12,shake:0,combo:0,comboT:0,nuts:0,fresh:0,flips:0,bonus:0,carKey:'',lightsWas:false,doneT:0};
 const caveKey=()=>'orken/grotte';
 const CAVE_W=1.25,CAVE_BACK=3.4;   // the front edge of the rock (towards the camera) and the back wall, in z
 const CTHEME={
@@ -167,12 +167,17 @@ function cItems(cv,grp){const oct=new THREE.OctahedronGeometry(.2,0),gm=new THRE
   const n=cv.gems.length,im=new THREE.InstancedMesh(oct,gm,n);im.castShadow=true;im.frustumCulled=false;grp.add(im);
   const pos=new Float32Array(n*3),colr=new Float32Array(n*3);cv.gems.forEach((g,i)=>pos.set([g.x,g.y,.06],i*3));const pg=new THREE.BufferGeometry();pg.setAttribute('position',new THREE.BufferAttribute(pos,3));pg.setAttribute('color',new THREE.BufferAttribute(colr,3));
   const glow=new THREE.Points(pg,new THREE.PointsMaterial({map:glowTex,size:1,vertexColors:true,transparent:true,blending:THREE.AdditiveBlending,depthWrite:false,sizeAttenuation:true}));glow.frustumCulled=false;grp.add(glow);
-  CV.gemIM={im,glow,on:cv.gems.map(()=>true),ph:cv.gems.map((g,i)=>i*1.7)};
+  CV.gemIM={im,glow,on:cv.gems.map(()=>true),old:cv.gems.map(()=>false),ph:cv.gems.map((g,i)=>i*1.7)};cGemOld();
   const red=cStd('#c8302a',{roughness:.4,metalness:.2}),blk=cStd('#2a2826');
   CV.canVis=cv.cans.map(c=>{const g=new THREE.Group();g.position.set(c.x,c.y,0);cBox(g,.34,.44,.14,red,0,0,0);cBox(g,.22,.06,.06,blk,0,.26,0);cBox(g,.06,.1,.06,cStd('#d8c070'),.12,.27,0);
     const lab=new THREE.Mesh(new THREE.PlaneGeometry(.26,.12),new THREE.MeshBasicMaterial({map:cLabelTex('BENSIN','',256,96,'#f2e8d0')}));lab.position.set(0,0,.075);g.add(lab);
     const gl=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:LIN('#ff9a5a'),transparent:true,opacity:.4,blending:THREE.AdditiveBlending,depthWrite:false}));gl.scale.set(1.3,1.3,1);g.add(gl);grp.add(g);return{g}});
   CV.cpVis=cv.cps.map(p=>cLantern(grp,p.x,caveTop(cv,p.x),false))}
+
+// which diamonds have been taken on an earlier trip (prof.cave.gems: a string with one '1' or '0' per diamond, kept for good): those are paler and smaller, and worth 2 nuts instead of 10
+const GEM_NEW=10,GEM_OLD=2,_gc=new THREE.Color();
+function cGemOld(){const G=CV.gemIM,s=prof.cave&&typeof prof.cave.gems==='string'?prof.cave.gems:'';for(let i=0;i<G.old.length;i++){G.old[i]=s[i]==='1';G.im.setColorAt(i,_gc.setRGB(G.old[i]?.42:1,G.old[i]?.45:1,G.old[i]?.5:1))}if(G.im.instanceColor)G.im.instanceColor.needsUpdate=true}
+function cGemKeep(i){if(!prof.cave)prof.cave={};const n=CV.cave.gems.length,a=(typeof prof.cave.gems==='string'?prof.cave.gems:'').slice(0,n).padEnd(n,'0').split('');a[i]='1';prof.cave.gems=a.join('')}
 
 /* ---------- the car in the cave: the same model and paint as on the island ---------- */
 function cCarVis(){const cfg=Object.assign({},CARS[state.carIdx],{tune:car.tune}),key=cfg.id+'/'+JSON.stringify(prof.parts);if(CV.vis&&CV.carKey===key)return CV.vis;
@@ -208,12 +213,12 @@ function caveEnter(){if(CV.on||CV.fade)return;initAudio();if(AC&&AC.state==='sus
   $('fade').classList.add('on');CV.fade={t:0,hold:.25,cb:()=>{if(!CV.built)cBuild();cCarVis();CV.on=true;CV.lightsWas=state.lights;setLights(true);M.beam.opacity=.045;$('hud').hidden=true;$('hint').hidden=true;$('caveHud').hidden=false;cLayout();cStart();
     cNotice(first?'Du fant en hemmelig grotte!':'Diamantgrotten',2600)}}}
 function cStart(){const cv=CV.cave,c=CV.car=makeCaveCar(CARS[state.carIdx],car.tune);c.assist=state.assist;c.speedScale=state.speed/100;placeCaveCar(c,cv,cv.start);
-  CV.run=makeCaveRun(cv);CV.treasure=null;CV.phase='drive';CV.paused=false;CV.result=false;CV.acc=0;CV.zone=-1;CV.nuts=0;CV.flips=0;CV.bonus=0;CV.combo=0;CV.doneT=0;CV.lowT=0;CV.snap=true;
-  CV.gemIM.on.fill(true);cGemPose(true);CV.canVis.forEach(c=>c.g.visible=true);CV.cpVis.forEach(l=>{l.glass.color.set(LIN('#6a5a40'));l.gl.material.opacity=.15});
+  CV.run=makeCaveRun(cv);CV.treasure=null;CV.phase='drive';CV.paused=false;CV.result=false;CV.acc=0;CV.zone=-1;CV.nuts=0;CV.fresh=0;CV.flips=0;CV.bonus=0;CV.combo=0;CV.doneT=0;CV.lowT=0;CV.snap=true;
+  if(CV.saveT>0){CV.saveT=0;saveProf()}CV.gemIM.on.fill(true);cGemOld();cGemPose(true);CV.canVis.forEach(c=>c.g.visible=true);CV.cpVis.forEach(l=>{l.glass.color.set(LIN('#6a5a40'));l.gl.material.opacity=.15});
   if(CV.chest)CV.chest.lid.rotation.x=0;$('cvPauseMenu').hidden=true;$('result').hidden=true;cHud(true)}
 // back to the island: in front of the cave mouth, or (after the treasure chamber) out of the back door on the other side of the rock
 function caveExit(back){if(CV.fade||!CV.on)return;$('fade').classList.add('on');
-  CV.fade={t:0,hold:.2,cb:()=>{CV.on=false;CV.phase='';CV.result=false;CV.paused=false;if(CV.snd)CV.snd.master.gain.setTargetAtTime(0,AC.currentTime,.1);$('caveHud').hidden=true;$('cvPauseMenu').hidden=true;
+  CV.fade={t:0,hold:.2,cb:()=>{if(CV.saveT>0){CV.saveT=0;saveProf()}CV.on=false;CV.phase='';CV.result=false;CV.paused=false;if(CV.snd)CV.snd.master.gain.setTargetAtTime(0,AC.currentTime,.1);$('caveHud').hidden=true;$('cvPauseMenu').hidden=true;
     if(!$('result').hidden){$('result').hidden=true;bResultReset()}setLights(CV.lightsWas);
     const D=LV.caveDef,o=back&&D.back?D.back:D.out;placeCar(car,o.x,o.z,o.h);state.checkpoint={x:o.x,z:o.z,h:o.h};state.flipT=0;state.air=0;state.mode='play';state.askCool='cave';camSnap=true;showHud();
     toast(back?'Ut gjennom bakdøra!':'Ute i sola igjen')}}}
@@ -233,7 +238,7 @@ function cStep(dt){const c=CV.car,cv=CV.cave,inp=cInput();CV.inp=inp;stepCaveCar
     else if(e.type==='empty'){cNotice('Tom for bensin!',2200,true)}}
   c.ev.length=0;
   for(const e of caveRunStep(CV.run,c,cv,dt)){
-    if(e.type==='gem'){CV.gemIM.on[e.i]=false;cGemPose(true);prof.nuts+=10;CV.nuts+=10;CV.combo=CV.comboT>0?CV.combo+1:0;CV.comboT=.9;cGemSound(CV.combo);for(let i=0;i<8;i++)cPart(e.x,e.y,'#bff4ff',3);CV.pulse=1;CV.saveT=1}
+    if(e.type==='gem'){const old=CV.gemIM.old[e.i],add=old?GEM_OLD:GEM_NEW;CV.gemIM.on[e.i]=false;cGemPose(true);prof.nuts+=add;CV.nuts+=add;if(!old){CV.fresh++;cGemKeep(e.i)}CV.combo=CV.comboT>0?CV.combo+1:0;CV.comboT=.9;cGemSound(CV.combo);for(let i=0;i<(old?4:8);i++)cPart(e.x,e.y,old?'#9ab4bc':'#bff4ff',3);CV.pulse=1;CV.saveT=1}
     else if(e.type==='can'){CV.canVis[e.i].g.visible=false;cNotice('Full tank!',1200);cGlug();for(let i=0;i<8;i++)cPart(e.x,e.y,'#ffb070',3)}
     else if(e.type==='cp'){const l=CV.cpVis[e.i];l.glass.color.set(LIN('#ffd27a'));l.gl.material.opacity=.8;cNotice('Sjekkpunkt: '+e.name,1500);cBell()}
     else if(e.type==='end')cTreasure();
@@ -243,18 +248,18 @@ function cStep(dt){const c=CV.car,cv=CV.cave,inp=cInput();CV.inp=inp;stepCaveCar
 function cTreasure(){CV.phase='done';CV.doneT=0;const first=!prof.cave.treasure;prof.cave.treasure=(prof.cave.treasure||0)+1;const add=50+(first?100:0);prof.nuts+=add;CV.bonus+=add;CV.treasure={first,add};saveProf();
   cNotice(first?'Skattkammeret! +5 💎 og +100 ⚙':'Skattkammeret! +5 💎',2600);cFanfare();for(let i=0;i<30;i++)cPart(CV.cave.end-3+(Math.random()-.5)*2,caveTop(CV.cave,CV.cave.end-3)+.8,['#ffd65a','#9fe8ff','#ff7aa8'][i%3],3)}
 // the trip is over: the result, then back to the island. how: 'out' (drove out), 'empty' (no fuel), 'end' (the treasure)
-function cFinish(how){if(CV.result)return;const cv=CV.cave,R=CV.run,c=CV.car,m=Math.max(0,R.far)*UNIT_CM/100,got=R.got,key=caveKey(),prev=best[key];saveProf();
+function cFinish(how){if(CV.result)return;const cv=CV.cave,R=CV.run,c=CV.car,m=Math.max(0,R.far)*UNIT_CM/100,got=R.got,key=caveKey(),prev=best[key];CV.saveT=0;saveProf();
   if(how==='empty')cNotice('Tom for bensin – du blir tauet ut',2000,true);
   const rec=!prev||m>prev.d+.05||(how==='end'&&!prev.done);best[key]={d:Math.max(m,prev?prev.d:0),g:Math.max(got,prev?prev.g:0),done:how==='end'||!!(prev&&prev.done)};store.set('best',best);
   CV.phase='result';CV.result=true;CV.how=how;const stars=how==='end'?3:R.far>cv.end*.5?2:1;
   $('rLevel').textContent='Kameløya · Diamantgrotten';$('rTitle').textContent=how==='end'?'Helt inn til skatten!':how==='empty'?'Tom for bensin':'Ut av grotten';
   $('rTime').textContent=fmtTime(R.t);$('rPenL').textContent='Diamanter';$('rPen').textContent=got+'/'+cv.gems.length;$('rGatesL').textContent='Lengst inn';$('rGates').textContent=m.toFixed(1).replace('.',',')+' m';
   $('rStars').innerHTML=[0,1,2].map(i=>`<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2l2.9 6.6 7.1.6-5.4 4.7 1.6 7-6.2-3.7-6.2 3.7 1.6-7L2 9.2l7.1-.6z" fill="${i<stars?'#E5A92B':'rgba(242,232,208,.15)'}"/></svg>`).join('');$('rStars').setAttribute('aria-label',stars+' av 3 stjerner');
-  const L=[`<li><b>${got} diamanter</b> × 10 = ${got*10} ⚙</li>`];if(CV.flips)L.push(`<li><b>${CV.flips} salto${CV.flips>1?'er':''}:</b> +${CV.flips*5} ⚙</li>`);
+  const nw=CV.fresh,od=got-nw,L=[];if(nw||!od)L.push(`<li><b>${nw} ${nw===1?'ny diamant':'nye diamanter'}</b> × ${GEM_NEW} = ${nw*GEM_NEW} ⚙</li>`);if(od)L.push(`<li><b>${od} ${od===1?'diamant':'diamanter'} du har tatt før</b> × ${GEM_OLD} = ${od*GEM_OLD} ⚙</li>`);if(CV.flips)L.push(`<li><b>${CV.flips} salto${CV.flips>1?'er':''}:</b> +${CV.flips*5} ⚙</li>`);
   if(CV.treasure)L.push(`<li><b>Skattkammeret:</b> +${CV.treasure.add} ⚙${CV.treasure.first?' (100 av dem for første gang)':''}</li>`);
   if(rec&&prev)L.push('<li><b>Ny rekord:</b> lenger inn enn noen gang.</li>');else if(prev)L.push(`<li><b>Rekorden din:</b> ${prev.d.toFixed(1).replace('.',',')} m${prev.done?', helt inn til skatten':''}</li>`);
   if(how!=='end')L.push('<li><b>Innerst i grotten</b> venter skattkammeret. Plukk opp bensinkannene på veien.</li>');
-  $('rLog').innerHTML=L.join('');$('rNuts').textContent='+'+fmtN(got*10+CV.bonus);$('rNutsNote').textContent='1 diamant = 10 muttere. Du har nå '+fmtN(prof.nuts)+' ⚙.';
+  $('rLog').innerHTML=L.join('');$('rNuts').textContent='+'+fmtN(CV.nuts+CV.bonus);$('rNutsNote').textContent='Ny diamant = '+GEM_NEW+' muttere, en du har tatt før = '+GEM_OLD+'. Du har nå '+fmtN(prof.nuts)+' ⚙.';
   $('rNext').textContent=how==='end'?'Ut gjennom bakdøra':'Kjør ut i sola';$('rRetry').textContent='Kjør inn igjen';$('rRetry').hidden=false;$('rMenu').textContent='Til menyen';$('rMenu').hidden=true;$('rGarage').hidden=true;
   setTimeout(()=>{if(CV.result){$('result').hidden=false;$('rNext').focus()}},how==='end'?200:600)}
 // the result buttons (game.js): next = out to the island, retry = in again from the entrance
@@ -285,12 +290,12 @@ function cAnim(dt){const c=CV.car,tm=performance.now()*.001,x0=CV.cam.position.x
   if(CV.motes&&state.gfx==='hi'){CV.motes.position.x=Math.sin(tm*.1)*.3;CV.motes.position.y=Math.sin(tm*.13)*.2}
   CV.lamp.position.set(c.x+Math.cos(c.a)*1.4,c.y+1.3,2.2);
   CV.sun.position.set(c.x-4,c.y+9,7);CV.sun.target.position.set(c.x,c.y,0)}
-// the diamonds turn and bob, and their glow twinkles; taken ones are scaled to nothing. all: every diamond, not only those in view
+// the diamonds turn and bob, and their glow twinkles; taken ones are scaled to nothing, and ones from an earlier trip are smaller with a faint glow. all: every diamond, not only those in view
 const _gm=new THREE.Matrix4(),_gp=new THREE.Vector3(),_gs=new THREE.Vector3(),_gr=new THREE.Quaternion(),_gy=new THREE.Vector3(0,1,0);
 function cGemPose(all){const G=CV.gemIM,gems=CV.cave.gems,tm=performance.now()*.001,cx=CV.cam?CV.cam.position.x:0,C=G.glow.geometry.attributes.color,P=G.glow.geometry.attributes.position;
-  for(let i=0;i<gems.length;i++){const g=gems[i];if(!all&&Math.abs(g.x-cx)>16)continue;const on=G.on[i],ph=G.ph[i],y=g.y+Math.sin(tm*2.6+ph)*.05;
-    _gp.set(g.x,y,0);_gr.setFromAxisAngle(_gy,tm*2+ph);_gs.set(on?1:0,on?1.3:0,on?1:0);_gm.compose(_gp,_gr,_gs);G.im.setMatrixAt(i,_gm);
-    const k=on?(.35+.25*Math.sin(tm*4+ph)):0;C.setXYZ(i,.5*k,.9*k,k);P.setY(i,y)}
+  for(let i=0;i<gems.length;i++){const g=gems[i];if(!all&&Math.abs(g.x-cx)>16)continue;const on=G.on[i],old=G.old[i],ph=G.ph[i],sc=on?(old?.72:1):0,y=g.y+Math.sin(tm*2.6+ph)*.05;
+    _gp.set(g.x,y,0);_gr.setFromAxisAngle(_gy,tm*2+ph);_gs.set(sc,sc*1.3,sc);_gm.compose(_gp,_gr,_gs);G.im.setMatrixAt(i,_gm);
+    const k=on?(.35+.25*Math.sin(tm*4+ph))*(old?.3:1):0;C.setXYZ(i,.5*k,.9*k,k);P.setY(i,y)}
   G.im.instanceMatrix.needsUpdate=true;C.needsUpdate=true;P.needsUpdate=true}
 // a particle: kind 0 = dust that drifts, 1 = dust thrown up, 2 = debris that falls, 3 = a sparkle
 function cPart(x,y,colr,k){const p=CV.parts.find(q=>q.life<=0)||CV.parts[Math.floor(Math.random()*CV.parts.length)];p.k=k;p.life=1;p.s.visible=true;p.s.material.color.set(LIN(colr));p.s.material.blending=k===3?THREE.AdditiveBlending:THREE.NormalBlending;
@@ -305,7 +310,7 @@ function cLayout(){if(!CV.cam)return;CV.cam.aspect=innerWidth/innerHeight;CV.cam
 function cHud(force){const c=CV.car,R=CV.run,cv=CV.cave;if(!c)return;const m=Math.max(0,c.x)*UNIT_CM/100,b=best[caveKey()];
   const fu=$('cvFuel');fu.style.width=(c.fuel*100).toFixed(1)+'%';fu.parentNode.classList.toggle('low',c.fuel<.22);
   $('cvDist').textContent=m.toFixed(1).replace('.',',')+' m';$('cvBest').textContent=b?'Rekord '+b.d.toFixed(1).replace('.',',')+' m':'Ingen rekord ennå';
-  $('cvGems').textContent=R.got;$('cvNuts').textContent='= '+fmtN(R.got*10)+' ⚙';if(CV.pulse>0){$('cvGemBox').classList.remove('pulse');void $('cvGemBox').offsetWidth;$('cvGemBox').classList.add('pulse');CV.pulse=0}
+  $('cvGems').textContent=R.got;$('cvNuts').textContent='= '+fmtN(CV.nuts)+' ⚙';if(CV.pulse>0){$('cvGemBox').classList.remove('pulse');void $('cvGemBox').offsetWidth;$('cvGemBox').classList.add('pulse');CV.pulse=0}
   let zi=-1;for(let i=0;i<cv.zones.length;i++)if(c.x>=cv.zones[i].x)zi=i;if(zi!==CV.zone||force){CV.zone=zi;const el=$('cvZone');el.textContent=zi>=0?cv.zones[zi].name:'Kameløya';el.classList.remove('on');void el.offsetWidth;el.classList.add('on')}
   // the two dials: engine speed and how fast the car goes (cm/s, like on the island)
   const cvs=$('cvDials'),x=cvs.getContext('2d'),W=cvs.width,H=cvs.height,rw=c.wheels[0],wv=rw.contact&&rw.slip<.4?Math.abs(rw.vl):Math.abs(c.thr)*GCFG.vmax,rpm=Math.min(1,.12+.78*wv/GCFG.vmax+.12*Math.abs(c.thr));

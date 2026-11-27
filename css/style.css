@@ -610,3 +610,11 @@ body.is-touch .rc-touch{display:block}
 .dbb li b{color:var(--paper);font-size:1rem}
 .dbb li.got{opacity:1;border-color:var(--sand)}.dbb li.got b{color:var(--sand)}
 @media (max-width:520px){.res.four{grid-template-columns:repeat(2,minmax(0,1fr))}.dbb{grid-template-columns:1fr}}
+
+/* ---------- additions: Frøhvelvet without a Norwegian voice, the answer being read, the way out; the number keys in the pirates' war of words ---------- */
+.vt-novoice{flex:0 0 auto;margin:0 16px 8px;padding:8px 14px;border-radius:12px;background:#f2c230;color:#1d1a14;font-size:1.05rem;font-weight:700;line-height:1.25;text-align:center}
+.vt-novoice[hidden]{display:none}
+.vt-opt.say{border-color:#f2c230;box-shadow:0 6px 0 rgba(0,0,0,.28),0 0 0 6px rgba(242,194,48,.35);transform:scale(1.05)}
+.pir-n{display:inline-block;min-width:1.5em;margin-right:8px;padding:0 4px;border:1px solid currentColor;border-radius:4px;text-align:center;font-weight:400;opacity:.75}
+body.is-touch .pir-n{display:none}
+.alist button:disabled{opacity:.5}   /* the ferry with too few nuts */

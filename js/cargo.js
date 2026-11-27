@@ -211,7 +211,7 @@ function cargoStart(destId){const A=seaAirport(LEVELS[state.levelIdx].id),B=seaA
   initAudio();if(AC&&AC.state==='suspended')AC.resume();state.mode='fly';car.vel.set(0,0,0);car.w.set(0,0,0);car.throttle=0;setOffer(null);if(typeof gpsStop==='function'&&typeof GPS!=='undefined'&&GPS.dest)gpsStop();
   $('fade').classList.add('on');FL.fade={t:0,hold:.2,cb:()=>{buildSea();bShadowSize();fHideBoats();if(!FL.cam)FL.cam=new THREE.PerspectiveCamera(60,1,1,B_FAR);FL.on=true;$('hud').hidden=true;$('hint').hidden=true;
     const H=$('boatHud');H.hidden=false;H.classList.add('fly');H.classList.remove('two','won','menu');$('bpane1').hidden=true;$('bdiv').hidden=true;$('bpane0').querySelector('.bplace').hidden=true;$('flyMenu').hidden=true;$('flyPause').hidden=true;
-    fLayout();cgSetup(A,B);FL.phase='fly';fNotice('Hold gass for å ta av · kurs mot '+B.name,3200);cgHUD()}}}
+    fLayout();cgSetup(A,B);FL.phase='fly';fNotice('Hold gass for å ta av · kurs mot '+B.name+(document.body.classList.contains('is-touch')?' · pauseknappen hopper over turen':' · Enter hopper over turen'),5200);cgHUD()}}}
 // on the runway of the island you leave, nose down the runway; the way in to the island you fly to is lit up
 function cgSetup(A,B){const paint=(PAINTS[prof.paint]||PAINTS[0]).c;FL.cargo={from:A,dest:B,fin:false,done:false,warn:false};FL.flight=null;FL.route={flight:null,rings:[],start:A.start};fRings(FL.route);FL.pl=makeCargo(A);
   if(!FL.big){FL.big=cgSeaMesh(paint);BT.scene.add(FL.big)}else fPaint(FL.big,paint);if(FL.small)FL.small.visible=false;FL.mesh=FL.big;FL.mesh.visible=true;cgGuide(B);

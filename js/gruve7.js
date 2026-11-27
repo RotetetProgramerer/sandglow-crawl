@@ -192,7 +192,7 @@ function mRaceVis(m,sc,grp){
 function mineEnter(){if(MN.on||MN.fade)return;initAudio();if(AC&&AC.state==='suspended')AC.resume();state.mode='mine';car.vel.set(0,0,0);car.w.set(0,0,0);car.throttle=0;setOffer(null);
   if(!prof.mine)prof.mine={};prof.mine.found=true;saveProf();
   $('fade').classList.add('on');MN.fade={t:0,hold:.25,cb:()=>{if(!MN.built)mBuild();MN.on=true;$('hud').hidden=true;$('hint').hidden=true;$('mineHud').hidden=false;mLayout();mStart()}}}
-function mStart(){const m=MN.mine,R=MN.race=makeMineRace(m,{speedScale:Math.max(.7,Math.min(1.15,state.speed/100)),easy:state.assist,seed:1+Math.floor(Math.random()*1e6)});MN.cart=R.P;
+function mStart(){MN.touchDuck=false;const m=MN.mine,R=MN.race=makeMineRace(m,{speedScale:Math.max(.7,Math.min(1.15,state.speed/100)),easy:state.assist,seed:1+Math.floor(Math.random()*1e6)});MN.cart=R.P;
   MN.phase='count';MN.paused=false;MN.result=false;MN.acc=0;MN.zone=-1;MN.bonus=0;MN.banked=false;MN.doneT=0;MN.snap=true;MN.shake=0;MN.clack=0;MN.how='';MN.q.left=MN.q.right=MN.q.jump=MN.q.duck=MN.q.use=false;
   MN.cnt=4;MN.placeWas=4;MN.cpI=0;MN.itemWas=null;MN.hudItem='';MN.mus=null;MN.warned=new Set();
   MN.hints.forEach(h=>h.done=false);mCoalPose(true);MN.obsVis.forEach(g=>{if(g)g.visible=true});MN.cpVis.forEach(l=>{l.glass.color.set(LIN('#8a7040'));l.gl.material.color.set(LIN('#ffc860'));l.gl.material.opacity=.35});
@@ -208,7 +208,7 @@ function mineExit(top){if(MN.fade||!MN.on)return;$('fade').classList.add('on');
 /* ---------- a step of the race: physics and what happens ---------- */
 const M_ORD=['','1.','2.','3.','4.'];
 function mBurst(s,lat,h,n,a,b){mXYZ(s,lat,h,_g7v);for(let i=0;i<n;i++)mPart(_g7v.x,_g7v.y,_g7v.z,i%2?a:b,true)}
-function mStep(dt){const R=MN.race,c=R.P,m=MN.mine,q=MN.q,inp={left:q.left,right:q.right,jump:q.jump,duck:q.duck,use:q.use,duckHold:MN.padHold||keys.has('arrowdown')||keys.has('s')};q.left=q.right=q.jump=q.duck=q.use=false;
+function mStep(dt){const R=MN.race,c=R.P,m=MN.mine,q=MN.q,inp={left:q.left,right:q.right,jump:q.jump,duck:q.duck,use:q.use,duckHold:MN.padHold||MN.touchDuck||keys.has('arrowdown')||keys.has('s')};q.left=q.right=q.jump=q.duck=q.use=false;
   stepMineRace(R,inp,dt);const va=state.volAmb/70,touch=document.body.classList.contains('is-touch'),LW=MCFG.lane;
   for(const e of R.ev){const me=e.c===0,k=R.carts[e.c||0],near=Math.abs(k.s-c.s)<45;
     if(e.type==='go'){MN.phase='run';mTone(880,.5,'square',.14)}
@@ -238,7 +238,7 @@ function mStep(dt){const R=MN.race,c=R.P,m=MN.mine,q=MN.q,inp={left:q.left,right
   R.ev.length=0;
   if(MN.phase!=='run')return;
   // what you found in the crate is ready
-  if(c.item&&c.itemT<=0&&MN.itemWas!==c.item){MN.itemWas=c.item;mTone(1320,.12,'triangle',.14);mTone(1760,.22,'triangle',.14,0,.1);mNotice(MITEMS[c.item]+(touch?': trykk':': mellomrom'),1300)}if(!c.item)MN.itemWas=null;
+  if(c.item&&c.itemT<=0&&MN.itemWas!==c.item){MN.itemWas=c.item;mTone(1320,.12,'triangle',.14);mTone(1760,.22,'triangle',.14,0,.1);mNotice(MITEMS[c.item]+(touch?': trykk på knappen nede til høyre':': mellomrom'),1600)}if(!c.item)MN.itemWas=null;
   // overtaking and being overtaken
   if(c.place!==MN.placeWas){const up=c.place<MN.placeWas;MN.placeWas=c.place;MN.pulseP=1;mTone(up?660:520,.1,'square',.08);mTone(up?990:390,.16,'square',.08,0,.09)}
   // the lanterns on the wall: your place as you pass
@@ -387,12 +387,12 @@ function initMine(){
   $('mnpRestart').onclick=()=>{mPause(false);mBank();mStart()};$('mnpOut').onclick=()=>{mPause(false);mFinish('quit')};
   $('mnpSound').onclick=()=>{setSound(!state.sound);$('mnpSound').textContent='Lyd: '+(state.sound?'på':'av')};
   $('mnItem').addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();if(mLive())MN.q.use=true});
-  // touch and mouse: swipe to the side to change track, up to jump, down to duck; a tap uses what you hold (or jumps, with empty hands)
+  // touch and mouse: swipe to the side to change track, up to jump, down to duck; a tap jumps. What you hold is used with its own button (#mnItem), so a tap never means two things
   const el=$('mnSwipe'),P=new Map();
   el.addEventListener('pointerdown',e=>{e.preventDefault();P.set(e.pointerId,{x:e.clientX,y:e.clientY,t:performance.now(),used:false});try{el.setPointerCapture(e.pointerId)}catch(_){}});
   el.addEventListener('pointermove',e=>{const p=P.get(e.pointerId);if(!p||p.used||!mLive())return;const dx=e.clientX-p.x,dy=e.clientY-p.y,th=Math.max(22,Math.min(innerWidth,innerHeight)*.045);
-    if(Math.abs(dx)<th&&Math.abs(dy)<th)return;const q=MN.q;if(Math.abs(dx)>Math.abs(dy)){if(dx<0)q.left=true;else q.right=true}else if(dy<0)q.jump=true;else q.duck=true;p.used=true});   // one swipe is one move, however long it is
-  const up=e=>{const p=P.get(e.pointerId);P.delete(e.pointerId);if(p&&!p.used&&e.type==='pointerup'&&performance.now()-p.t<350&&mLive()){const c=MN.cart;if(c&&c.item&&c.itemT<=0)MN.q.use=true;else MN.q.jump=true}};
+    if(Math.abs(dx)<th&&Math.abs(dy)<th)return;const q=MN.q;if(Math.abs(dx)>Math.abs(dy)){if(dx<0)q.left=true;else q.right=true}else if(dy<0)q.jump=true;else{q.duck=true;p.duck=true;MN.touchDuck=true}p.used=true});   // one swipe is one move, however long it is
+  const up=e=>{const p=P.get(e.pointerId);P.delete(e.pointerId);if(p&&p.duck)MN.touchDuck=false;if(p&&!p.used&&e.type==='pointerup'&&performance.now()-p.t<350&&mLive())MN.q.jump=true};
   el.addEventListener('pointerup',up);el.addEventListener('pointercancel',up);
   addEventListener('resize',()=>{if(MN.on)mLayout()});
   document.addEventListener('visibilitychange',()=>{if(document.hidden&&MN.on)mPause(true)})}
