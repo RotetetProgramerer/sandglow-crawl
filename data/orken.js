@@ -66,7 +66,14 @@ PROPS.orken_beduin={dyr:true,
     DYR.kule(out,M.pels,scarf,P(-.01*s,top+.1*s,0),.064*s,.06*s);DYR.el(out,M.pels,scarf,P(-.05*s,top+.02*s,0),V(-.4,-1,0),.08*s,.06*s);
     for(let i=0;i<5;i++){const a=i/5*6.28;DYR.kule(out,M.pels,check,P(-.01*s+Math.cos(a)*.045*s,top+.13*s,Math.sin(a)*.045*s),.012*s)}   // det rutete mønsteret
     out.add(PG.blob,M.glatt,{x:P(0,0,0).x,y:top+.15*s,z:P(0,0,0).z,sx:.06*s,sy:.012*s,sz:.06*s,c:'#141210'});   // agalen
-    DYR.kule(out,M.pels,'#2a2420',P(.045*s,top+.03*s,0),.025*s,.03*s);DYR.oye(out,F,.05*s,top+.1*s,.02*s,.007*s);DYR.oye(out,F,.05*s,top+.1*s,-.02*s,.007*s)}
+    DYR.kule(out,M.pels,'#2a2420',P(.045*s,top+.03*s,0),.025*s,.03*s);DYR.oye(out,F,.05*s,top+.1*s,.02*s,.007*s);DYR.oye(out,F,.05*s,top+.1*s,-.02*s,.007*s);
+    // ansiktet: nese, øyenbryn, bart og ører. Klærne: et belte med en ende som henger, en brodert stripe foran, mansjetter, og sandaler på den som står
+    DYR.kule(out,M.pels,shade(skin,-.1),P(.056*s,top+.075*s,0),.011*s,.016*s);
+    for(const sg of[-1,1]){DYR.el(out,M.pels,'#1e1a18',P(.05*s,top+.122*s,sg*.021*s),V(0,0,1),.019*s,.005*s);DYR.el(out,M.pels,'#2a2420',P(.056*s,top+.052*s,sg*.012*s),V(0,-.3,sg),.024*s,.006*s);
+      DYR.kule(out,M.pels,skin,P(0,top+.085*s,sg*.054*s),.008*s,.014*s)}
+    const belt=R()<.5?'#8a5a2a':'#b8342a',by=hip+(top-hip)*.42;DYR.el(out,M.pels,belt,P(0,by,0),V(0,1,0),.03*s,.09*s);DYR.el(out,M.pels,belt,P(.075*s,by-.05*s,-.035*s),V(0,1,0),.09*s,.014*s);
+    DYR.el(out,M.pels,shade(robe,-.18),P(.078*s,by+(top-by)*.55,0),V(0,1,0),(top-by)*.5,.01*s);
+    if(!sit)for(const sg of[-1,1]){DYR.kule(out,M.pels,skin,P(.05*s,.02*s,sg*.045*s),.04*s,.016*s);DYR.el(out,M.pels,'#3a2a20',P(.055*s,.03*s,sg*.045*s),V(0,0,1),.07*s,.006*s)}}
 };
 
 /* Beduintelt: lavt telt av svart geitehår på stenger, åpent foran, med fargerike tepper og puter inni. */

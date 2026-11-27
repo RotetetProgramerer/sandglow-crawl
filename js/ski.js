@@ -78,6 +78,17 @@ function skiGroup(skiM,dark,bind){const g=new THREE.Group();g.rotation.order='YZ
 // a racing bib with a number on the back
 function bibTexture(no){const c=document.createElement('canvas');c.width=c.height=128;const x=c.getContext('2d');x.fillStyle='#f4f4f0';x.fillRect(0,0,128,128);x.fillStyle='#d9432f';x.fillRect(0,0,128,16);
   x.fillStyle='#14120E';x.textAlign='center';x.textBaseline='middle';x.font='76px "Saira Stencil One", Impact, sans-serif';x.fillText(String(no),64,74);const t=new THREE.CanvasTexture(c);t.encoding=THREE.sRGBEncoding;return t}
+// what the skier wears, bone by bone (the frame is explained in js/folk.js). No part takes the jacket's colour: the player's jacket changes with the car's paint
+const SKI_PARTS=(()=>{const dk='#1d1c1a',wh='#f2f2ee',bk='#c8ccd0';
+  return{torso:[['box',dk,0,.43,.5,.07,.14,.06],['box',dk,0,.5,0,.82,.1,.94],['box',dk,0,.42,-.54,.66,.16,.14],['box',dk,0,-.47,0,1.04,.06,1.08],['box',wh,.5,.02,0,.03,.84,.36],['box',wh,-.5,.02,0,.03,.84,.36],
+      ['box',dk,.3,-.33,.5,.22,.03,.06],['box',dk,-.3,-.33,.5,.22,.03,.06]],
+    ua:[['box',wh,0,-.22,0,1.1,.09,1.1],['box',dk,0,-.34,0,1.1,.04,1.1]],
+    fa:[['box',dk,0,.4,0,1.2,.2,1.2],['box',bk,0,.29,0,1.22,.03,1.22]],
+    thigh:sx=>[['box',wh,sx*.5,0,0,.05,.9,.3],['box',dk,sx*.3,.28,.5,.3,.03,.06]],
+    shin:[['box','#2a2a2e',0,-.28,0,1.14,.44,1.14],['box',bk,0,-.38,.58,.66,.05,.06],['box',bk,0,-.24,.58,.66,.05,.06],['box',bk,0,-.1,.58,.66,.05,.06],['box',dk,0,.4,.5,.82,.2,.1]],
+    // in head radii: the strap and the frame of the goggles, vents on top of the helmet, the ear pads and the chin strap
+    helm:c=>[['cyl',dk,0,.19,-.06,1.175,.26,1.175],['box',dk,0,.19,.87,1.7,.66,.44],['box','#ffd9a0',-.42,.3,1.135,.3,.1,.02],...[-.34,0,.34].map(x=>['box',dk,x,1.3-Math.abs(x)*.16,.18,.1,.06,.42,-.3]),
+      ['sph',c,1.04,-.2,-.06,.24,.42,.44],['sph',c,-1.04,-.2,-.06,.24,.42,.44],['box',dk,.86,-.62,.2,.06,.5,.1],['box',dk,-.86,-.62,.2,.06,.5,.1],['box',dk,0,-.9,.32,1.5,.07,.1,0,0,0],['sph',c,0,.72,-1.02,.18,.14,.1]]}})();
 function makeSkierModel(col,o={}){
   const mat=c=>new THREE.MeshStandardMaterial({color:LIN(c),roughness:.6}),jacket=mat(col),pants=mat(o.pants||'#1f2a3a'),white=mat('#f2f2ee'),skiM=mat(o.ski||'#f2c230'),dark=mat('#1d1c1a'),bind=mat('#6d747a'),skin=mat('#d9a07a'),helm=mat(o.helmet||'#f2f2ee'),
     gog=new THREE.MeshStandardMaterial({color:LIN('#ff9a2a'),roughness:.1,metalness:.6}),bibM=o.bib?new THREE.MeshStandardMaterial({color:0xffffff,roughness:.7,map:bibTexture(o.bib)}):white;
@@ -87,7 +98,10 @@ function makeSkierModel(col,o={}){
     poleL:M_(dark),poleR:M_(dark),basketL:M_(dark,cylGeo),basketR:M_(dark,cylGeo),
     head:M_(skin,new THREE.SphereGeometry(1,12,10)),helmet:M_(helm,new THREE.SphereGeometry(1,12,8,0,Math.PI*2,0,Math.PI*.55)),goggles:M_(gog),gloveL:M_(dark),gloveR:M_(dark),
     skiGL:skiGroup(skiM,dark,bind),skiGR:skiGroup(skiM,dark,bind)};
-  body.add(v.skiGL,v.skiGR);v.head.scale.setScalar(.062);v.helmet.scale.setScalar(.071);return v}
+  body.add(v.skiGL,v.skiGR);v.head.scale.setScalar(.062);v.helmet.scale.setScalar(.071);
+  // the details (js/folk.js): one mesh on each bone, and the face under the goggles with the helmet's vents, ear pads and straps
+  const K=SKI_PARTS;folkOn(v.torso,K.torso,'ski:torso');for(const[sd,sx]of[['L',1],['R',-1]]){folkOn(v['shin'+sd],K.shin,'ski:shin');folkOn(v['thigh'+sd],K.thigh(sx),'ski:thigh'+sd);folkOn(v['ua'+sd],K.ua,'ski:ua');folkOn(v['fa'+sd],K.fa,'ski:fa')}
+  v.face=folkHead({eyes:false,brows:false,ears:false,style:'none',neck:1,smile:1},K.helm(o.helmet||'#f2f2ee'),'ski'+(o.helmet||''));v.face.scale.setScalar(.062);body.add(v.face);return v}
 function buildSkierVis(){if(SKI.vis){SKI.vis.root.parent||scene.add(SKI.vis.root);return SKI.vis}
   const v=makeSkierModel('#d9432f',{bib:1});v.root.visible=false;scene.add(v.root);SKI.vis=v;
   // the skis and poles that fly off in a fall ("yard sale"): copies that lie where they land until the skier is up again
@@ -133,7 +147,7 @@ function poseSkier(v,P){const J=(x,y,z)=>new V3(x,y,z),c=P.c||0,tk=P.tk||0,inc=P
   const pel=_ba.copy(hipL).add(hipR).multiplyScalar(.5);bone(v.torso,pel,neck,.15);v.torso.scale.z=.1;
   const up=_bb.copy(neck).sub(pel).normalize(),fw=J(0,-up.z,up.y).multiplyScalar(.052),bibA=pel.clone().lerp(neck,.3),bibB=pel.clone().lerp(neck,.75);
   bone(v.bib,bibA.clone().add(fw),bibB.clone().add(fw),.1);v.bib.scale.z=.01;bone(v.bibBack,bibA.sub(fw),bibB.sub(fw),.11);v.bibBack.scale.z=.01;
-  const hd=neck.clone().addScaledVector(up,.075);v.head.position.copy(hd);v.helmet.position.copy(hd).add(J(0,.01,-.004));v.goggles.position.copy(hd).add(J(0,.012,.055));v.goggles.scale.set(.1,.035,.03);v.goggles.rotation.set(tilt*.5,0,0);
+  const hd=neck.clone().addScaledVector(up,.075);v.head.position.copy(hd);v.helmet.position.copy(hd).add(J(0,.01,-.004));v.goggles.position.copy(hd).add(J(0,.012,.055));v.goggles.scale.set(.1,.035,.03);v.goggles.rotation.set(tilt*.5,0,0);v.face.position.copy(hd);v.face.rotation.set(tilt*.5,0,0);
   const sw=J(-up.y,up.x,0).multiplyScalar(.1),shL=neck.clone().add(sw).add(J(0,-.03,0)),shR=neck.clone().sub(sw).add(J(0,-.03,0)),elL=shL.clone().lerp(hL,.5).add(J(.04,-.04,0)),elR=shR.clone().lerp(hR,.5).add(J(-.04,-.04,0));
   bone(v.uaL,shL,elL,.06);bone(v.uaR,shR,elR,.06);bone(v.faL,elL,hL,.055);bone(v.faR,elR,hR,.055);v.gloveL.position.copy(hL);v.gloveR.position.copy(hR);v.gloveL.scale.setScalar(.05);v.gloveR.scale.setScalar(.05);
   bone(v.poleL,hL,tipL,.018);bone(v.poleR,hR,tipR,.018);
@@ -142,9 +156,9 @@ function poseSkier(v,P){const J=(x,y,z)=>new V3(x,y,z),c=P.c||0,tk=P.tk||0,inc=P
 function applySkierColor(){if(!SKI.vis)return;const p=PAINTS[prof.paint]||PAINTS[0];SKI.vis.jacket.color.set(p.c).convertSRGBToLinear()}
 // a figure frozen in one pose as a single mesh with vertex colours (other skiers, people in the chairlift, the ghost): one draw call each
 function figureGeo(col,P,o={}){const v=makeSkierModel(col,o);poseSkier(v,P);v.root.updateMatrixWorld(true);const pos=[],nrm=[],cols=[],cc=new THREE.Color(),nm=new THREE.Matrix3();
-  v.root.traverse(m=>{if(!m.isMesh||m===v.bibBack&&!o.bib)return;const g=m.geometry.index?m.geometry.toNonIndexed():m.geometry.clone();g.applyMatrix4(m.matrixWorld);const P2=g.attributes.position.array,N2=g.attributes.normal.array;cc.copy(m.material.color);
-    for(let i=0;i<P2.length;i+=3){pos.push(P2[i],P2[i+1],P2[i+2]);nrm.push(N2[i],N2[i+1],N2[i+2]);cols.push(cc.r,cc.g,cc.b)}g.dispose()});
-  v.root.traverse(m=>{if(m.isMesh&&m.geometry!==boxGeo&&m.geometry!==cylGeo)m.geometry.dispose();if(m.material)m.material.dispose()});
+  v.root.traverse(m=>{if(!m.isMesh||m===v.bibBack&&!o.bib)return;const g=m.geometry.index?m.geometry.toNonIndexed():m.geometry.clone();g.applyMatrix4(m.matrixWorld);const P2=g.attributes.position.array,N2=g.attributes.normal.array,C2=g.attributes.color&&g.attributes.color.array;cc.copy(m.material.color);   // C2: the details of js/folk.js have their colours in the vertices
+    for(let i=0;i<P2.length;i+=3){pos.push(P2[i],P2[i+1],P2[i+2]);nrm.push(N2[i],N2[i+1],N2[i+2]);if(C2)cols.push(C2[i],C2[i+1],C2[i+2]);else cols.push(cc.r,cc.g,cc.b)}g.dispose()});
+  v.root.traverse(m=>{if(m.isMesh&&!SHARED_GEO.has(m.geometry))m.geometry.dispose();if(m.material&&m.material!==FOLK_MAT)m.material.dispose()});
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setAttribute('color',new THREE.Float32BufferAttribute(cols,3));g.computeBoundingSphere();return g}
 
 /* ---------- the trip ---------- */
@@ -358,7 +372,7 @@ function skiCamera(dt){const s=SKI.s,v=SKI.vis;let snap=SKI.camSnap,helmet=false
   SKI.shake.set((Math.random()-.5)*amp,(Math.random()-.5)*amp,(Math.random()-.5)*amp);camera.position.copy(SKI.camPos).add(SKI.shake);
   if(helmet){const a=s.inc*.55;camera.up.set(Math.cos(s.head)*Math.sin(a),Math.cos(a),-Math.sin(s.head)*Math.sin(a))}else camera.up.set(0,1,0);
   camera.lookAt(SKI.look);camera.updateProjectionMatrix();
-  if(v)v.head.visible=v.helmet.visible=v.goggles.visible=!helmet;
+  if(v)v.head.visible=v.helmet.visible=v.goggles.visible=v.face.visible=!helmet;
   updateStreaks(dx,dz)}
 
 /* ---------- sounds: the swish of the skis, the hiss of a carve, the scrape of the edges, powder, the wind, the crowd and the cowbells ---------- */

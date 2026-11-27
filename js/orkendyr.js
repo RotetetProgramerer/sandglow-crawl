@@ -27,15 +27,24 @@ function makeCamel(o={}){const g=new THREE.Group(),fur=amat(o.col||'#c69a5c'),lt
   if(o.load){const rug=amat(o.rug||'#b8342a');apart(g,ANIMAL_GEO.sph,rug,0,1.22,-.02,.27,.13,.3);apart(g,ANIMAL_GEO.box,amat('#e8dcc0'),0,1.33,-.02,.3,.03,.04);
     for(const sd of[-1,1]){apart(g,ANIMAL_GEO.sph,amat(sd>0?'#8a6a3e':'#a07a48'),sd*.3,.98,-.04,.12,.17,.13);apart(g,ANIMAL_GEO.cylTop,amat('#d8c597'),sd*.22,1.22,-.04,.012,.2,.012,0,0,sd*.6)}}
   if(o.rider){const robe=amat(o.rider),skin=amat('#9a6a44');apart(g,ANIMAL_GEO.sph,robe,0,1.5,.08,.09,.17,.08);apart(g,ANIMAL_GEO.sph,skin,0,1.73,.1,.05,.06,.05);apart(g,ANIMAL_GEO.sph,amat('#f4f2ec'),0,1.76,.09,.058,.05,.058);
-    for(const sd of[-1,1])apart(g,ANIMAL_GEO.sph,robe,sd*.15,1.32,.12,.04,.12,.05,0,0,sd*.5)}
+    for(const sd of[-1,1])apart(g,ANIMAL_GEO.sph,robe,sd*.15,1.32,.12,.04,.12,.05,0,0,sd*.5);
+    // his face, the black cord round the headscarf and its end down the back, the hands on the reins and a sash (js/folk.js)
+    const f=folkHead(ORK_FACE,null,null,true);f.scale.set(.05,.06,.05);f.position.set(0,1.73,.1);g.add(f);
+    folkOn(g,[['cyl','#141210',0,1.79,.09,.056,.012,.056],['sph','#f4f2ec',0,1.67,.045,.05,.09,.03],['cyl','#8a5a2a',0,1.4,.08,.088,.03,.078],['sph','#9a6a44',.19,1.23,.15,.024],['sph','#9a6a44',-.19,1.23,.15,.024],
+      folkLimb('#3a2a20',[.19,1.23,.15],[.04,1.2,.42],.006),folkLimb('#3a2a20',[-.19,1.23,.15],[-.04,1.2,.42],.006),['box',folkShade(o.rider,-.25),0,1.5,.158,.02,.2,.01]],'ork:rider:'+o.rider,true)}
   Object.assign(g.userData,{legs,head,tail});return g}
+// the Bedouins' face under the headscarf: dark eyes and brows, a moustache over the beard (js/folk.js)
+const ORK_FACE={skin:'#9a6a44',hair:'#1e1a18',style:'none',ears:false,dy:-.1,mous:'#2a2420',lips:'#6a3a2c'};
 // a Bedouin on foot: a long robe, the headscarf, arms and feet that swing as he walks
 function makeWalker(col){const g=new THREE.Group(),robe=amat(col||'#f2efe6'),skin=amat('#9a6a44'),scarf=amat('#f4f2ec');
   apart(g,ANIMAL_GEO.sph,robe,0,.38,0,.11,.36,.1);apart(g,ANIMAL_GEO.sph,robe,0,.66,0,.1,.14,.08);
   const head=new THREE.Group();head.position.set(0,.84,0);apart(head,ANIMAL_GEO.sph,skin,0,0,.01,.055,.065,.055);apart(head,ANIMAL_GEO.sph,scarf,0,.03,-.01,.064,.06,.064);
   apart(head,ANIMAL_GEO.sph,scarf,0,-.06,-.05,.06,.08,.03);apart(head,ANIMAL_GEO.cyl,amat('#141210'),0,.06,0,.06,.012,.06);apart(head,ANIMAL_GEO.sph,amat('#2a2420'),0,-.05,.04,.03,.03,.02);g.add(head);
-  const arms=[],legs=[];for(const sd of[-1,1]){const a=new THREE.Group();a.position.set(sd*.1,.74,0);apart(a,ANIMAL_GEO.cylTop,robe,0,0,0,.03,.3,.03);apart(a,ANIMAL_GEO.sph,skin,0,-.31,0,.025);g.add(a);arms.push(a);
-    const l=new THREE.Group();l.position.set(sd*.05,.12,0);apart(l,ANIMAL_GEO.sph,amat('#5a4030'),0,-.1,.03,.035,.02,.06);g.add(l);legs.push(l)}
+  // the face, and on the robe a sash, a stripe of embroidery down the front and a hem; sandals and thumbs (js/folk.js)
+  {const f=folkHead(ORK_FACE,null,null,true),c=col||'#f2efe6',cd=folkShade(c,-.22);f.scale.set(.055,.065,.055);f.position.z=.01;head.add(f);
+    folkOn(g,[['cyl','#8a5a2a',0,.56,0,.094,.03,.082],['box','#8a5a2a',-.04,.5,.085,.03,.1,.012],['box',cd,0,.7,.078,.02,.1,.01],['box',cd,0,.4,.099,.02,.13,.008],['cyl',cd,0,.06,0,.064,.02,.058],['box','#9a6a44',0,.775,.05,.03,.03,.02]],'ork:robe:'+c,true)}
+  const arms=[],legs=[];for(const sd of[-1,1]){const a=new THREE.Group();a.position.set(sd*.1,.74,0);apart(a,ANIMAL_GEO.cylTop,robe,0,0,0,.03,.3,.03);apart(a,ANIMAL_GEO.sph,skin,0,-.31,0,.025);folkOn(a,[['cyl','#d8c8a0',0,-.275,0,.034,.02,.034],['sph','#9a6a44',-sd*.012,-.315,.022,.01,.013,.01]],'ork:arm'+sd,true);g.add(a);arms.push(a);
+    const l=new THREE.Group();l.position.set(sd*.05,.12,0);apart(l,ANIMAL_GEO.sph,amat('#5a4030'),0,-.1,.03,.035,.02,.06);folkOn(l,[['sph','#9a6a44',0,-.088,.04,.028,.018,.045],['box','#3a2a20',0,-.08,.05,.062,.008,.014],['box','#3a2a20',0,-.08,.02,.062,.008,.014]],'ork:foot',true);g.add(l);legs.push(l)}
   Object.assign(g.userData,{head,arms,legs});return g}
 
 /* ---------- build ---------- */

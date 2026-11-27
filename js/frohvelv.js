@@ -19,13 +19,20 @@ const vtRead=()=>vtProf().read!==0;
 const vEsc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
 /* ---------- the drawings ---------- */
-// Frøken Frø: round glasses, red braids, a knitted hat with a sprout on top and a warm green jacket. The mouth opens while she talks (.talk)
+// Frøken Frø: round glasses, freckles, red braids and a fringe, earrings, a knitted hat with a pattern and a sprout on top, a striped scarf and a warm green jacket with a zip. The mouth opens while she talks (.talk)
 const VT_FIA=`<svg viewBox="0 0 140 170" aria-hidden="true">
   <path d="M22 170c0-40 18-62 48-62s48 22 48 62z" fill="#2f8f6a"/><path d="M70 112v58" stroke="#1f6a4c" stroke-width="3"/>
   <path d="M44 112c8 10 44 10 52 0l-4-8H48z" fill="#f2c230"/><rect x="88" y="132" width="16" height="14" rx="3" fill="#1f6a4c"/><path d="M96 132v-6m-4 2 4-4 4 4" stroke="#8bdc6a" stroke-width="3" fill="none" stroke-linecap="round"/>
   <path d="M36 66c-10 14-10 34-2 42" stroke="#c8622a" stroke-width="10" fill="none" stroke-linecap="round"/><path d="M104 66c10 14 10 34 2 42" stroke="#c8622a" stroke-width="10" fill="none" stroke-linecap="round"/>
   <circle cx="34" cy="110" r="5" fill="#f2c230"/><circle cx="106" cy="110" r="5" fill="#f2c230"/>
+  <path d="M30 76l9 4M29 87l9 4M29 98l8 3M110 76l-9 4M111 87l-9 4M111 98l-8 3" stroke="#a04e20" stroke-width="2.4" stroke-linecap="round"/>
+  <path d="M34 128q7 16 5 42M106 128q-7 16-5 42" stroke="#1f6a4c" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M53 109l-2 7M64 111l-1 8M76 111l1 8M87 109l2 7" stroke="#d99a1a" stroke-width="2.5" stroke-linecap="round"/>
+  <circle cx="70" cy="124" r="3" fill="#f2c230"/><circle cx="70" cy="140" r="2.2" fill="#1f6a4c"/><circle cx="70" cy="154" r="2.2" fill="#1f6a4c"/>
+  <ellipse cx="37" cy="74" rx="5" ry="8" fill="#f4c9a2"/><ellipse cx="103" cy="74" rx="5" ry="8" fill="#f4c9a2"/><circle cx="36" cy="82" r="2.2" fill="#f2c230"/><circle cx="104" cy="82" r="2.2" fill="#f2c230"/>
   <ellipse cx="70" cy="70" rx="33" ry="35" fill="#f4c9a2"/>
+  <path d="M38 64c4 7 12 7 16 2 4 6 12 6 16 0 4 6 12 6 16 0 4 5 12 5 16-2v-8H38z" fill="#c8622a"/>
+  <g fill="#d99a72"><circle cx="45" cy="77" r="1.1"/><circle cx="49" cy="75" r="1.1"/><circle cx="53" cy="78" r="1.1"/><circle cx="87" cy="78" r="1.1"/><circle cx="91" cy="75" r="1.1"/><circle cx="95" cy="77" r="1.1"/></g>
+  <path d="M67 79q3 4 6 0" stroke="#d99a72" stroke-width="2.2" fill="none" stroke-linecap="round"/>
   <ellipse cx="50" cy="82" rx="7" ry="4.5" fill="#f19a8e" opacity=".7"/><ellipse cx="90" cy="82" rx="7" ry="4.5" fill="#f19a8e" opacity=".7"/>
   <g class="vt-eyes"><circle cx="57" cy="70" r="4" fill="#2a2420"/><circle cx="83" cy="70" r="4" fill="#2a2420"/><circle cx="58.5" cy="68.5" r="1.3" fill="#fff"/><circle cx="84.5" cy="68.5" r="1.3" fill="#fff"/></g>
   <g fill="none" stroke="#5a4636" stroke-width="2.4"><circle cx="57" cy="70" r="10"/><circle cx="83" cy="70" r="10"/><path d="M67 70h6"/></g>
@@ -33,6 +40,7 @@ const VT_FIA=`<svg viewBox="0 0 140 170" aria-hidden="true">
   <ellipse class="vt-mouth" cx="70" cy="91" rx="8" ry="6" fill="#8a3a2a"/>
   <path d="M34 58c0-26 16-40 36-40s36 14 36 40z" fill="#5aa83a"/><path d="M32 56h76v10H32z" fill="#3f8a2a" rx="4"/>
   <path d="M40 56v10M50 56v10M60 56v10M70 56v10M80 56v10M90 56v10M100 56v10" stroke="#2f6a1f" stroke-width="2"/>
+  <path d="M41 46l6-6 6 6 6-6 6 6 5-6 5 6 6-6 6 6 6-6 6 6" stroke="#8bdc6a" stroke-width="2.5" fill="none" stroke-linejoin="round" stroke-linecap="round"/><path d="M50 30h40" stroke="#3f8a2a" stroke-width="2.5" stroke-linecap="round"/>
   <path d="M70 18V4" stroke="#3f8a2a" stroke-width="4" stroke-linecap="round"/><path d="M70 9c-10-8-20-4-20 2 8 4 16 2 20-2zM70 7c8-9 18-7 19-1-7 5-15 4-19 1z" fill="#8bdc6a"/>
 </svg>`;
 const SEED_SVG={

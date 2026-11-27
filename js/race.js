@@ -374,7 +374,10 @@ function rcStand(x,s,t){x.save();x.translate(s.x,s.y);x.rotate(s.a);const w=s.w,
   // rows of people: coloured dots that jump when somebody finishes
   const rows=5,cols=Math.floor(w/1.05),jump=RC.cheer>0?.25:0;for(let r=0;r<rows;r++){x.fillStyle=r%2?'#9a9a96':'#7e7e7a';x.fillRect(-w/2,-d/2+1+r*(d-1.6)/rows,w,(d-1.6)/rows-.25)}
   for(let r=0;r<rows;r++)for(let i=0;i<cols;i++){if(R()<.18)continue;const px=-w/2+.6+i*1.05,py=-d/2+1.5+r*(d-1.6)/rows+(jump?Math.sin(t*14+i*1.7+r)*jump:0);
-    x.fillStyle=['#d9432f','#f2e8d0','#2f6fd6','#e5a92b','#8bbb4a','#14120E','#b05ad0'][Math.floor(R()*7)];x.beginPath();x.arc(px,py,.36,0,6.283);x.fill();x.fillStyle='#e8c8a0';x.beginPath();x.arc(px,py-.05,.18,0,6.283);x.fill()}
+    // each one seen from above: shoulders in the colour of the jacket, the head with hair or a cap, and both arms in the air when they cheer
+    const q=Math.floor(R()*42),skin=q%6===5?'#b8875e':'#e8c8a0';x.fillStyle=['#d9432f','#f2e8d0','#2f6fd6','#e5a92b','#8bbb4a','#14120E','#b05ad0'][q%7];x.beginPath();x.ellipse(px,py,.42,.3,0,0,6.283);x.fill();
+    if(jump){x.strokeStyle=skin;x.lineWidth=.11;x.lineCap='round';x.beginPath();x.moveTo(px-.34,py);x.lineTo(px-.44,py-.42);x.moveTo(px+.34,py);x.lineTo(px+.44,py-.42);x.stroke()}
+    x.fillStyle=skin;x.beginPath();x.arc(px,py-.05,.19,0,6.283);x.fill();x.fillStyle=['#3a2a1c','#1d1c1a','#c8963a','#8a4a2a','#d8d4c8','#d9432f'][q%6];x.beginPath();x.arc(px,py-.03,.19,-.25,Math.PI+.25);x.fill()}
   // the roof edge with flags
   x.fillStyle='#3a3a3c';x.fillRect(-w/2-.3,d/2-.3,w+.6,.9);for(let i=0;i<5;i++){const fx=-w/2+2+i*(w-4)/4;x.fillStyle=['#d9432f','#E5A92B','#2f6fd6','#8bbb4a','#f2e8d0'][i];x.beginPath();x.moveTo(fx,d/2+.6);x.lineTo(fx+1.6+Math.sin(t*5+i)*.3,d/2+1.1);x.lineTo(fx,d/2+1.6);x.fill()}
   x.restore()}

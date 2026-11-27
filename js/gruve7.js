@@ -159,8 +159,14 @@ function mCart(look){const g=new THREE.Group(),spin=new THREE.Group(),tilt=new T
   const head=new THREE.Mesh(new THREE.SphereGeometry(.23,14,10),skin);head.position.set(0,.96,0);man.add(head);
   const cap=new THREE.Mesh(new THREE.SphereGeometry(.27,14,8,0,6.283,0,Math.PI/2),hel);cap.position.set(0,.98,0);man.add(cap);cBox(man,.5,.05,.2,hel,0,.99,-.26);
   const lamp=new THREE.Mesh(boxGeo,new THREE.MeshBasicMaterial({color:LIN('#fff0c0')}));lamp.scale.set(.14,.12,.08);lamp.position.set(0,1.1,-.27);man.add(lamp);mGlow(man,'#ffd890',0,1.1,-.34,1.1,.7);
-  if(look.beard)cBox(man,.3,.3,.14,cStd('#f0efe8'),0,.8,-.19);if(look.scarf)cBox(man,.5,.14,.5,cStd(look.scarf),0,.76,0);if(look.plait)cBox(man,.12,.5,.12,cStd(look.plait),0,.6,.26);
-  const arms=[];for(const sx of[-1,1]){const a=new THREE.Group();a.position.set(sx*.45,.62,0);cBox(a,.17,.62,.17,jac,0,-.26,0);cBox(a,.19,.16,.19,cStd('#3a3632'),0,-.6,0);a.rotation.x=1.15;man.add(a);arms.push(a)}
+  // the face (he looks along −z), the helmet's band and ridge, and the jacket's zip, collar, pockets and braces (js/folk.js)
+  {const jd=folkShade(look.jacket,-.3),hair=look.plait||(look.beard?'#f0efe8':'#4a3424'),f=folkHead({hair,style:'back',dy:-.2,smile:1,neck:1,beard:look.beard?'#f0efe8':0,freckles:look.plait?1:0,stubble:!look.beard&&!look.plait&&!look.name?1:0});
+    f.scale.setScalar(.23);f.position.set(0,.96,0);f.rotation.y=Math.PI;man.add(f);
+    folkOn(man,[['cyl','#1b1b1d',0,1.0,0,.276,.045,.276],['box',look.helmet,0,1.215,.02,.07,.07,.44],['box','#1b1b1d',0,1.1,-.262,.18,.16,.05],
+      ['box','#1b1b1d',0,.44,-.234,.05,.56,.02],['box',jd,0,.74,0,.52,.1,.5],['box',jd,.2,.56,-.234,.2,.16,.02],['box',jd,-.2,.56,-.234,.2,.16,.02],['box','#d8dce0',.2,.63,-.24,.2,.03,.02],['box','#d8dce0',-.2,.63,-.24,.2,.03,.02],
+      ['box','#f0c020',.3,.5,0,.06,.46,.48],['box','#f0c020',-.3,.5,0,.06,.46,.48],['box',jd,.375,.36,0,.01,.7,.2],['box',jd,-.375,.36,0,.01,.7,.2]],'mine:man:'+look.jacket+look.helmet)}
+  if(look.scarf)cBox(man,.5,.14,.5,cStd(look.scarf),0,.76,0);if(look.plait)cBox(man,.12,.5,.12,cStd(look.plait),0,.6,.26);
+  const arms=[];for(const sx of[-1,1]){const a=new THREE.Group();a.position.set(sx*.45,.62,0);cBox(a,.17,.62,.17,jac,0,-.26,0);cBox(a,.19,.16,.19,cStd('#3a3632'),0,-.6,0);folkOn(a,[['box','#f0c020',0,-.3,0,.18,.05,.18],['box','#d8dce0',0,-.36,0,.18,.03,.18],['box','#5a544e',0,-.51,0,.2,.04,.2],['box','#2a2622',-sx*.07,-.62,-.1,.06,.1,.06]],'mine:arm'+sx);a.rotation.x=1.15;man.add(a);arms.push(a)}
   // what shows what he has: the fire of a burst of speed, the shield and the magnet
   const fire=mGlow(tilt,'#ffa030',0,.9,1.7,2.6,0),fire2=mGlow(tilt,'#fff0c0',0,.9,1.45,1.3,0);
   const shield=new THREE.Mesh(new THREE.SphereGeometry(1.75,18,12),new THREE.MeshBasicMaterial({color:LIN('#6fe0ff'),transparent:true,opacity:.22,blending:THREE.AdditiveBlending,depthWrite:false}));shield.position.y=1.3;shield.visible=false;g.add(shield);

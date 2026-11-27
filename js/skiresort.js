@@ -89,11 +89,18 @@ function partsGeo(parts){const pos=[],nrm=[],col=[],m4=new THREE.Matrix4(),q=new
   for(const p of parts){const g=(p.sph?new THREE.SphereGeometry(1,8,6):new THREE.BoxGeometry(1,1,1)).toNonIndexed();e.set(p.rx||0,0,0);q.setFromEuler(e);m4.compose(new V3(...p.p),q,new V3(...p.s));g.applyMatrix4(m4);cc.set(p.c||'#ffffff').convertSRGBToLinear();
     const P=g.attributes.position.array,Nn=g.attributes.normal.array;for(let i=0;i<P.length;i+=3){pos.push(P[i],P[i+1],P[i+2]);nrm.push(Nn[i],Nn[i+1],Nn[i+2]);col.push(cc.r,cc.g,cc.b)}g.dispose()}
   const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.Float32BufferAttribute(pos,3));g.setAttribute('normal',new THREE.Float32BufferAttribute(nrm,3));g.setAttribute('color',new THREE.Float32BufferAttribute(col,3));g.computeBoundingSphere();return g}
+// The jacket and the arms are tinted per person, so their details are greys (a darker shade of the jacket); the rest has its own colours.
+// They face +z: a knitted hat with a fold and a pom-pom, a face with eyes, nose and mouth, hair at the neck, a scarf with a hanging end, a zip and pockets, mittens with a thumb
 const crowdGeo={
-  jacket:partsGeo([{p:[0,.44,0],s:[.2,.26,.13]},{p:[0,.665,0],s:[.072,.05,.072],sph:true}]),
+  jacket:partsGeo([{p:[0,.44,0],s:[.2,.26,.13]},{p:[0,.665,0],s:[.072,.05,.072],sph:true},{p:[0,.724,0],s:[.024,.024,.024],sph:true,c:'#dddddd'},{p:[0,.64,0],s:[.15,.026,.15],c:'#b8b8b8'},
+    {p:[0,.555,0],s:[.204,.035,.134],c:'#c4c4c4'},{p:[0,.322,0],s:[.206,.03,.136],c:'#9a9a9a'},{p:[.062,.37,.066],s:[.05,.01,.008],c:'#6a6a6a'},{p:[-.062,.37,.066],s:[.05,.01,.008],c:'#6a6a6a'}]),
   rest:partsGeo([{p:[.05,.16,0],s:[.075,.3,.09],c:'#26303c'},{p:[-.05,.16,0],s:[.075,.3,.09],c:'#26303c'},{p:[.05,.03,.02],s:[.085,.06,.13],c:'#1d1c1a'},{p:[-.05,.03,.02],s:[.085,.06,.13],c:'#1d1c1a'},
-    {p:[0,.615,0],s:[.06,.062,.06],sph:true,c:'#d9a07a'},{p:[0,.565,0],s:[.13,.04,.13],c:'#f2f2ee'}]),
-  arm:partsGeo([{p:[0,-.11,0],s:[.055,.24,.06]},{p:[0,-.24,0],s:[.05,.05,.05],sph:true,c:'#1d1c1a'}])};   // the arm hangs from the shoulder (origin)
+    {p:[0,.615,0],s:[.06,.062,.06],sph:true,c:'#d9a07a'},{p:[0,.565,0],s:[.13,.04,.13],c:'#f2f2ee'},
+    {p:[.022,.616,.054],s:[.009,.01,.006],sph:true,c:'#1a1410'},{p:[-.022,.616,.054],s:[.009,.01,.006],sph:true,c:'#1a1410'},{p:[0,.604,.06],s:[.008,.012,.01],sph:true,c:'#bb835f'},{p:[0,.591,.055],s:[.024,.006,.008],c:'#8a4a3c'},
+    {p:[.059,.612,0],s:[.008,.014,.01],sph:true,c:'#d9a07a'},{p:[-.059,.612,0],s:[.008,.014,.01],sph:true,c:'#d9a07a'},{p:[0,.6,-.03],s:[.056,.04,.04],sph:true,c:'#4a3424'},
+    {p:[.04,.5,.07],s:[.04,.11,.012],c:'#f2f2ee'},{p:[.04,.452,.07],s:[.04,.012,.014],c:'#c43b2f'},{p:[0,.44,.0665],s:[.012,.25,.006],c:'#1d1c1a'},
+    {p:[.05,.006,.02],s:[.09,.014,.136],c:'#0e0d0c'},{p:[-.05,.006,.02],s:[.09,.014,.136],c:'#0e0d0c'},{p:[.05,.07,.02],s:[.08,.022,.1],c:'#3a4654'},{p:[-.05,.07,.02],s:[.08,.022,.1],c:'#3a4654'}]),
+  arm:partsGeo([{p:[0,-.11,0],s:[.055,.24,.06]},{p:[0,-.24,0],s:[.05,.05,.05],sph:true,c:'#1d1c1a'},{p:[0,-.205,0],s:[.06,.03,.065],c:'#6a6a6a'},{p:[0,-.24,.034],s:[.016,.02,.016],sph:true,c:'#1d1c1a'},{p:[0,-.02,0],s:[.058,.012,.063],c:'#b0b0b0'}])};   // the arm hangs from the shoulder (origin)
 const crowdMat=new THREE.MeshStandardMaterial({vertexColors:true,roughness:.8});
 const JACKETS=['#d9432f','#2f6fd6','#f2c230','#3fae3a','#e86a1e','#7a3fae','#1d1c1a','#e83e8c','#20a4a4','#f4f4f0'];
 function buildCrowd(lv){const L=[];const r=mulberry32(5),lo=state.gfx!=='hi';

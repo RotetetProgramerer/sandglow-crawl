@@ -262,7 +262,15 @@ function bBoatMesh(hex,num,numCss,ownFlag){const g=new THREE.Group();g.rotation.
   bAdd(b,new THREE.BoxGeometry(3.45,.07,.07),mChrome,0,2.45,-.04,false);
   // the driver in a life vest, with a cap in the boat's colour
   const dr=new THREE.Group();dr.position.set(.5,1.4,1.5);bAdd(dr,new THREE.CylinderGeometry(.45,.5,1.3,10),new THREE.MeshStandardMaterial({color:0xff8f00,roughness:.7}),0,.95,0);bAdd(dr,new THREE.SphereGeometry(.36,12,10),new THREE.MeshStandardMaterial({color:0xf1c27d,roughness:.8}),0,1.9,0,false);
-  const capM=new THREE.MeshStandardMaterial({color:LIN(hex),roughness:.6});bAdd(dr,new THREE.SphereGeometry(.38,12,8,0,Math.PI*2,0,Math.PI/2),capM,0,1.95,0,false);bAdd(dr,new THREE.BoxGeometry(.5,.05,.35),capM,0,1.97,-.4,false);b.add(dr);
+  const capM=new THREE.MeshStandardMaterial({color:LIN(hex),roughness:.6});bAdd(dr,new THREE.SphereGeometry(.38,12,8,0,Math.PI*2,0,Math.PI/2),capM,0,1.95,0,false);bAdd(dr,new THREE.BoxGeometry(.5,.05,.35),capM,0,1.97,-.4,false);
+  // his face behind sunglasses (he looks along −z), white sleeves and hands on the wheel, the vest's collar, straps, buckles and zip, and a whistle (js/folk.js)
+  {const f=folkHead({style:'back',dy:-.2,shades:1,smile:1,neck:1,skin:'#f1c27d'});f.scale.setScalar(.36);f.position.y=1.9;f.rotation.y=Math.PI;dr.add(f);const P=[];
+    for(const sx of[1,-1]){const sh=[sx*.5,1.42,-.02],el=[sx*.56,1.0,-.34],hd=[sx*.24,1.16,-.62];P.push(folkLimb('#f2f2ee',sh,el,.13),folkLimb('#f2f2ee',el,hd,.11),['sph','#f2f2ee',sh[0],sh[1],sh[2],.15],['sph','#f2f2ee',el[0],el[1],el[2],.12],['sph','#f1c27d',hd[0],hd[1],hd[2],.12],
+      ['box','#1d1c1a',sx*.2,1.0,-.468,.1,.12,.05])}
+    P.push(['cyl','#e07800',0,1.62,0,.37,.14,.37],['cyl','#1d1c1a',0,.75,0,.505,.07,.505],['cyl','#1d1c1a',0,1.2,0,.475,.07,.475],['box','#1d1c1a',0,1.0,-.465,.05,1.2,.04],['box','#c8ccd0',0,.75,-.5,.14,.11,.05],['box','#c8ccd0',0,1.2,-.47,.14,.11,.05],
+      ['box','#f2f2ee',-.2,1.42,-.43,.16,.1,.04],['sph','#f2c230',.2,1.38,-.45,.04,.06,.04],['box','#ffffff',0,2.18,-.37,.2,.14,.02,-.25]);
+    folkOn(dr,P,'boat:driver')}
+  b.add(dr);
   const mo=new THREE.Group();mo.position.set(0,1.4,6.35);bAdd(mo,new THREE.BoxGeometry(1,1.3,1.1),mBlack,0,.75,0);bAdd(mo,new THREE.BoxGeometry(1.04,.3,1.14),mHull,0,1.5,0,false);bAdd(mo,new THREE.BoxGeometry(.35,2.2,.5),mBlack,0,-.9,.1,false);
   const prop=bAdd(mo,new THREE.CylinderGeometry(.22,.22,.6,8),mChrome,0,-1.9,.4,false);prop.rotation.x=Math.PI/2;b.add(mo);
   const plate=bAdd(b,new THREE.PlaneGeometry(2.8,.55),new THREE.MeshBasicMaterial({transparent:true}),0,.85,6.02,false);

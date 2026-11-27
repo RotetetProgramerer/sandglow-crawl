@@ -24,9 +24,9 @@ function rimLook(mat,rim,weight){const r=RIMS[rim];
 function netMerge(root){root.updateMatrixWorld(true);const by=new Map(),olds=[];
   root.traverse(o=>{if(!o.isMesh)return;olds.push(o.geometry);const g=o.geometry.index?o.geometry.toNonIndexed():o.geometry.clone();g.applyMatrix4(o.matrixWorld);if(!by.has(o.material))by.set(o.material,[]);by.get(o.material).push({g,cs:o.castShadow})});
   const out=new THREE.Group();
-  for(const[mat,list]of by){let n=0;for(const e of list)n+=e.g.attributes.position.count;const P=new Float32Array(n*3),N=new Float32Array(n*3),U=new Float32Array(n*2);let o=0;
-    for(const e of list){const a=e.g.attributes;P.set(a.position.array,o*3);if(a.normal)N.set(a.normal.array,o*3);if(a.uv)U.set(a.uv.array,o*2);o+=a.position.count;e.g.dispose()}
-    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setAttribute('uv',new THREE.BufferAttribute(U,2));g.computeBoundingSphere();
+  for(const[mat,list]of by){let n=0;for(const e of list)n+=e.g.attributes.position.count;const P=new Float32Array(n*3),N=new Float32Array(n*3),U=new Float32Array(n*2),C=mat.vertexColors?new Float32Array(n*3).fill(1):null;let o=0;   // C: the vertex colours of faces and clothes (js/folk.js)
+    for(const e of list){const a=e.g.attributes;P.set(a.position.array,o*3);if(a.normal)N.set(a.normal.array,o*3);if(a.uv)U.set(a.uv.array,o*2);if(C&&a.color)C.set(a.color.array,o*3);o+=a.position.count;e.g.dispose()}
+    const g=new THREE.BufferGeometry();g.setAttribute('position',new THREE.BufferAttribute(P,3));g.setAttribute('normal',new THREE.BufferAttribute(N,3));g.setAttribute('uv',new THREE.BufferAttribute(U,2));if(C)g.setAttribute('color',new THREE.BufferAttribute(C,3));g.computeBoundingSphere();
     const m=new THREE.Mesh(g,mat);m.castShadow=list.some(e=>e.cs)&&!mat.transparent;m.receiveShadow=true;out.add(m)}
   for(const g of new Set(olds))g.dispose();return out}
 // a car body merged, with the driver as a group of his own (marked, so js/walker.js can hide him while he is out of the car)
@@ -61,12 +61,18 @@ function carLamp(g,x,y,z,r=.055,beam=true){const K=carKit();cyl(r*1.22,.03,M.blk
 function carSeat(g,x,y,z,w=.2,hb=.2,mat){const S=mat||carKit().seat;bx(w,.045,.19,S,x,y+.022,z,g);const b=bx(w,hb,.04,S,x,y+hb/2+.02,z-.105,g);b.rotation.x=-.1;bx(w*.55,.05,.035,S,x,y+hb+.04,z-.125,g)}
 // the steering wheel on its column, leaning towards the driver
 function carWheelStick(g,x,y,z,r=.05){const t=new THREE.Mesh(new THREE.TorusGeometry(r,.008,6,14),M.blk);t.position.set(x,y,z);t.rotation.x=-.5;g.add(t);const c=cyl(.008,.09,M.blk,x,y-.02,z+.035,g,null,6);c.rotation.x=1.07;bx(r*1.7,.008,.012,M.blk,x,y,z,g).rotation.x=-.5}
-// driver and passenger: head, cap (or helmet) and shoulders. The first one is the driver and is marked (js/walker.js hides him while he is out)
-function carCrew(g,seats,helmet){const K=carKit();seats.forEach(([x,y,z],i)=>{const n0=g.children.length;
+// driver and passenger: head, cap (or helmet) and shoulders, with a face and the details of the shirt from js/folk.js.
+// The first one is the driver and is marked (js/walker.js hides him while he is out). Every part is a direct child of g, so the marking and the merging find it
+function carCrew(g,seats,helmet){const K=carKit();seats.forEach(([x,y,z],i)=>{const n0=g.children.length,shirt=i?K.white:M.shirt,at=(m,px,py,pz,sx,sy,sz)=>{m.position.set(px,py,pz);m.scale.set(sx,sy??sx,sz??sx);g.add(m);return m};
     const h=new THREE.Mesh(new THREE.SphereGeometry(.06,12,10),M.skin);h.position.set(x,y+.11,z+.02);g.add(h);
-    if(helmet){const hm=new THREE.Mesh(new THREE.SphereGeometry(.072,12,10),K.helm);hm.position.set(x,y+.12,z+.012);hm.castShadow=true;g.add(hm);bx(.1,.035,.02,K.visor,x,y+.115,z+.078,g)}
-    else{const cap=new THREE.Mesh(new THREE.SphereGeometry(.062,12,8,0,Math.PI*2,0,Math.PI/2),M.blkC);cap.position.set(x,y+.12,z+.02);g.add(cap);bx(.07,.008,.05,M.blkC,x,y+.125,z+.085,g)}
-    bx(.17,.14,.12,i?K.white:M.shirt,x,y,z,g);for(const sx of[1,-1])bx(.045,.045,.15,i?K.white:M.shirt,x+sx*.095,y+.01,z+.07,g).rotation.x=.35;
+    if(helmet){const hm=new THREE.Mesh(new THREE.SphereGeometry(.072,12,10),K.helm);hm.position.set(x,y+.12,z+.012);hm.castShadow=true;g.add(hm);bx(.1,.035,.02,K.visor,x,y+.115,z+.078,g);
+      at(folkMesh(CREW_HELMET[i?1:0],'crew:helmet'+i),x,y+.12,z+.012,1)}
+    else{const cap=new THREE.Mesh(new THREE.SphereGeometry(.062,12,8,0,Math.PI*2,0,Math.PI/2),M.blkC);cap.position.set(x,y+.12,z+.02);g.add(cap);bx(.07,.008,.05,M.blkC,x,y+.125,z+.085,g);
+      at(folkHead(i?FOLK_NAVIGATOR:FOLK_DRIVER,FOLK_CAP,'cap'),x,y+.11,z+.02,.06)}
+    bx(.17,.14,.12,shirt,x,y,z,g);for(const sx of[1,-1])bx(.045,.045,.15,shirt,x+sx*.095,y+.01,z+.07,g).rotation.x=.35;
+    // the shirt (or the race suit), the hands at the end of the sleeves, and the navigator's road book
+    at(folkMesh(helmet?CREW_SUIT[i?1:0]:folkShirt(!!i),'crew:'+(helmet?'suit':'shirt')+i),x,y,z,.17,.14,.12);
+    at(folkMesh(helmet?CREW_HANDS.glove:CREW_HANDS[i?'nav':'drv'],'crew:hands'+(helmet?'g':i)),x,y,z,1);
     if(!i)for(let k=n0;k<g.children.length;k++)g.children[k].userData.driver=true})}
 // the underside every axle car shares: frame rails, gearbox, drive shafts, skid plate, exhaust, coil springs and dampers
 function carUnder(g,cfg,y,o){o=o||{};const K=carKit(),L=cfg.L,wb=cfg.wb,fx=o.x||.2;
@@ -459,12 +465,34 @@ function trophyLinks(cfg){const L=[],zf=cfg.wb/2,V=(x,y,z)=>new THREE.Vector3(x,
       add(i,V(sx*.4,.27,z+.12),V(-sx*.13,.03,.1),.032,M.red);add(i,V(sx*.43,.26,z-.12),V(-sx*.15,.03,-.1),.022,M.steel)}}
   return L}
 
+// what the two in the car have besides the face. In the measures of the car, round the middle of the shoulders (+z forward):
+// the cuffs and the hands at the end of the sleeves (the navigator holds the road book), and in the race cars gloves
+const CREW_HANDS=(()=>{const arm=(sx,cuff,hand)=>[['box',cuff,sx*.095,-.006,.118,.05,.05,.03,.35],['sph',hand,sx*.095,-.02,.15,.023,.021,.027],['sph',hand,sx*.077,-.012,.156,.01,.01,.016]];
+  return{drv:[...arm(1,'#22394f','#d9a07a'),...arm(-1,'#22394f','#d9a07a'),['box','#1d1c1a',.095,-.012,.132,.052,.052,.012,.35]],
+    nav:[...arm(1,'#cfcabc','#e2ae88'),...arm(-1,'#cfcabc','#e2ae88'),['box','#f2e8d0',0,-.022,.165,.15,.006,.1,.5],['box','#c43b2f',0,-.016,.206,.15,.008,.014,.5],...[-.03,0,.03].map(z=>['box','#6a6a66',0,-.019+z*.5,.166+z,.11,.004,.008,.5])],
+    glove:[...arm(1,'#14120e','#b8342a'),...arm(-1,'#14120e','#b8342a')]}})();
+// the race helmet (round the helmet's middle): a stripe over the top, the rim of the visor and a glint in it, the chin with its vents, the collar. 0 the driver, 1 the navigator
+const CREW_HELMET=['#e3a62a','#c43b2f'].map(c=>[['cyl',c,0,0,0,.0768,.022,.0768,0,0,1.5708],['cyl','#14120e',0,0,0,.0764,.03,.0764,0,0,1.5708],['box','#14120e',0,.016,.066,.106,.008,.022],['box','#14120e',0,-.026,.066,.106,.008,.022],
+  ['box','#14181c',0,-.005,.068,.102,.037,.024],['box','#7a9ab6',-.022,.004,.0805,.03,.008,.004],['box','#e8e6e0',0,-.045,.05,.09,.03,.05],['box','#14120e',.02,-.045,.076,.022,.008,.004],['box','#14120e',-.02,-.045,.076,.022,.008,.004],
+  ['cyl','#8a8e94',.071,-.004,.03,.012,.008,.012,0,0,1.5708],['cyl','#8a8e94',-.071,-.004,.03,.012,.008,.012,0,0,1.5708],['cyl','#2a2826',0,-.075,-.004,.05,.03,.05]]);
+// the race suit, in the frame of the shoulders' box: the zip, the collar, a stripe across the chest, the badge and the belts of the harness
+const CREW_SUIT=[['#22394f','#e3a62a'],['#cfcabc','#c43b2f']].map(([a,c])=>[['box','#14120e',0,-.04,.5,.05,.9,.05],['box',a,0,.5,0,.56,.16,.9],['box',c,0,.12,.5,1.0,.12,.05],['box','#f2e8d0',.27,.3,.5,.22,.14,.06],
+  ['box','#b8342a',.2,-.02,.52,.12,1.0,.05],['box','#b8342a',-.2,-.02,.52,.12,1.0,.05],['box','#8a8e94',.2,-.2,.55,.14,.12,.05],['box','#8a8e94',-.2,-.2,.55,.14,.12,.05]]);
 /* ---------- the snowmobile (Svalbard): cowl in the paint, belt under the tunnel, and a rider in a scooter suit and helmet ---------- */
 // The physics has four wheels: the two in front are the skis (buildSkuterSki draws them, and they steer), the two at the back sit close
 // together under the belt and are not drawn. The ground is about .33 under the origin when the scooter stands still.
 let SKM=null;
 function skuterMats(){if(SKM)return SKM;const m=(c,r=.7)=>new THREE.MeshStandardMaterial({color:new THREE.Color(c).convertSRGBToLinear(),roughness:r});
   return SKM={suit:m('#24456e'),trim:m('#f2c230'),helm:m('#f4f2ec',.35),visor:m('#14181c',.15),mitt:m('#c8463a'),boot:m('#1c1a18'),flag:m('#ff6a2a')}}
+// the rider's suit as he sits on the scooter: the zip and the reflective bands on the back and the chest, bands round the arms and the legs, knee pads, cuffs, soles and buckles on the boots
+const SKUTER_RIDER=(()=>{const P=[],tr='#f2c230',rf='#d8dce0',su='#16263d',q=new THREE.Quaternion(),e=new THREE.Euler(),d=new THREE.Vector3(),Y=new THREE.Vector3(0,1,0);
+  // a ring round a limb that goes from a to b: t is where along it, r its radius, h its height
+  const ring=(a,b,t,r,h,c)=>{d.set(b[0]-a[0],b[1]-a[1],b[2]-a[2]).normalize();e.setFromQuaternion(q.setFromUnitVectors(Y,d));P.push(['cyl',c,a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t,r,h,r,e.x,e.y,e.z])};
+  ring([0,.06,-.33],[0,.42,-.14],.56,.11,.02,rf);ring([0,.06,-.33],[0,.42,-.14],.8,.11,.012,rf);ring([0,.06,-.33],[0,.42,-.14],1,.08,.05,su);
+  P.push(['box','#14181c',0,.24,-.118,.014,.3,.012,.49],['box',tr,.055,.335,-.066,.05,.03,.012,.49]);
+  for(const sx of[1,-1]){ring([sx*.13,.41,-.13],[sx*.2,.3,-.03],.5,.046,.026,tr);ring([sx*.2,.3,-.03],[sx*.235,.34,.04],.6,.043,.03,su);ring([sx*.09,.09,-.32],[sx*.17,.11,-.04],.55,.059,.02,tr);
+    ring([sx*.17,.11,-.04],[sx*.24,-.1,.02],.5,.052,.024,rf);P.push(['sph',su,sx*.172,.13,-.012,.05,.04,.055],['box','#14100c',sx*.24,-.148,.05,.096,.014,.18],['box','#8a8e94',sx*.24,-.09,.03,.096,.014,.02],['box','#8a8e94',sx*.24,-.09,.085,.096,.014,.02])}
+  return P})();
 function buildSkuter(cfg){const g=new THREE.Group(),K=skuterMats(),wb=cfg.wb,tr=cfg.track||TRACK,T=(a,b,r,mat)=>tbTube(a,b,r,mat,g);
   // the belt with its lugs, the tunnel over it, running boards and the snow flap
   bx(.3,.15,1.0,M.tire,0,-.245,-.42,g);for(const z of[.08,-.92])cyl(.075,.3,M.tire,0,-.245,z,g,'x',10);for(let i=0;i<11;i++)bx(.31,.02,.03,M.blk,0,-.322,-.9+i*.098,g);
@@ -494,7 +522,8 @@ function buildSkuter(cfg){const g=new THREE.Group(),K=skuterMats(),wb=cfg.wb,tr=
     T([sx*.13,.41,-.13],[sx*.2,.3,-.03],.042,K.suit);T([sx*.2,.3,-.03],[sx*.235,.34,.04],.038,K.suit);const mt=new THREE.Mesh(new THREE.SphereGeometry(.045,8,6),K.mitt);mt.position.set(sx*.235,.34,.05);mt.castShadow=true;g.add(mt)}
   T([0,.06,-.33],[0,.42,-.14],.105,K.suit);bx(.24,.03,.17,K.trim,0,.3,-.2,g).rotation.x=.45;
   {const h=new THREE.Mesh(new THREE.SphereGeometry(.1,12,10),K.helm);h.position.set(0,.56,-.07);h.scale.set(1,1,1.1);h.castShadow=true;g.add(h);
-    const v=bx(.15,.065,.03,K.visor,0,.565,.02,g);v.rotation.x=.12;bx(.03,.012,.2,K.trim,0,.662,-.07,g);bx(.12,.06,.1,K.helm,0,.5,-.01,g)}
+    const v=bx(.15,.065,.03,K.visor,0,.565,.02,g);v.rotation.x=.12;bx(.03,.012,.2,K.trim,0,.662,-.07,g);bx(.12,.06,.1,K.helm,0,.5,-.01,g);
+    const hd=folkMesh(MAN_PARTS.helmet,'man:helmet');hd.position.set(0,.56,-.07);g.add(hd);g.add(folkMesh(SKUTER_RIDER,'skuter:rider'))}   // the helmet's details as on the rider on foot (js/walker.js), and the suit's
   for(let i=rider0;i<g.children.length;i++)g.children[i].userData.driver=true;
   return g}
 // a ski at each front wheel: the runner with its upturned tip, the loop on the tip and the spindle up to the arms. The rear wheels are under the belt

@@ -29,24 +29,42 @@ function pirMarkTex(){return pirCanvas(64,64,x=>{x.fillStyle='#e5a92b';x.beginPa
 const pirGlow=(col,s,op=.8)=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:glowTex,color:LIN(col),transparent:true,opacity:op,blending:THREE.AdditiveBlending,depthWrite:false,fog:false}));sp.scale.set(s,s,1);return sp};
 
 /* ---------- the meshes (they face +z) ---------- */
+// the pirates' small things (js/folk.js), in the frame of a leg or an arm that hangs from its joint: the boot with a folded top and a buckle, the iron bands and the
+// ragged trouser leg of a wooden leg, the white cuff with a gold button and the thumb
+const PIR_HAIR=['#3a2a20','#1e1a18','#6a4a2a','#8a3a1e','#4a3a30'];
+const PIR_PARTS={boot:[['cyl','#2a2420',0,-.26,0,.046,.1,.046],['cyl','#4a3e34',0,-.2,0,.052,.028,.052],['box','#e5b43a',0,-.31,.078,.03,.02,.012],['box','#1a1612',0,-.36,.03,.08,.012,.13]],
+  peg:[['cyl','#3a3a4a',0,-.045,0,.04,.09,.04],['cyl','#3a3a4a',0,-.1,.012,.03,.04,.026],['cyl','#3a3a3e',0,-.13,0,.021,.016,.021],['cyl','#3a3a3e',0,-.345,0,.021,.02,.021]],
+  arm:(sd,skin)=>[['cyl','#f0ead8',0,-.238,0,.034,.035,.034],['sph','#e5b43a',sd*.03,-.238,.012,.007],['sph',skin,-sd*.01,-.285,.024,.011,.014,.011],['box',folkShade(skin,-.15),0,-.3,.012,.03,.004,.02]]};
 // a pirate: striped shirt under an open coat, a tricorn or a bandana, and maybe an eyepatch, a beard, a wooden leg, a sword, a mug, a spyglass or a parrot
 function makePirate(o={}){const g=new THREE.Group(),G=ANIMAL_GEO,coat=amat(o.coat||'#7a2a2a'),skin=amat(o.skin||'#d9a074'),dk=amat('#2a2420'),wh=amat('#f0ead8'),red=amat('#b8342a'),gold=amat('#e5b43a',{roughness:.4}),sit=!!o.sit;
   const body=new THREE.Group();body.position.y=sit?-.14:0;g.add(body);
   const legs=[];for(const sd of[-1,1]){const l=new THREE.Group();l.position.set(sd*.055,.36,0);
-    if(o.peg&&sd>0)apart(l,G.cylTop,amat('#8a6a3a'),0,0,0,.018,.36,.018);else{apart(l,G.cylTop,amat('#3a3a4a'),0,0,0,.04,.3,.04);apart(l,G.sph,dk,0,-.33,.03,.045,.035,.07)}
+    if(o.peg&&sd>0){apart(l,G.cylTop,amat('#8a6a3a'),0,0,0,.018,.36,.018);folkOn(l,PIR_PARTS.peg,'pir:peg',true)}else{apart(l,G.cylTop,amat('#3a3a4a'),0,0,0,.04,.3,.04);apart(l,G.sph,dk,0,-.33,.03,.045,.035,.07);folkOn(l,PIR_PARTS.boot,'pir:boot',true)}
     if(sit)l.rotation.x=-1.35;body.add(l);legs.push(l)}
   apart(body,G.sph,wh,0,.53,.012,.1,.17,.08);for(let i=0;i<3;i++)apart(body,G.sph,red,0,.46+i*.07,.02,.097-.012*i,.016,.075);          // the striped shirt
   apart(body,G.sph,coat,0,.53,-.025,.115,.19,.085);for(const sd of[-1,1])apart(body,G.sph,coat,sd*.075,.5,.02,.05,.17,.07);             // the coat, open in front
   apart(body,G.cyl,dk,0,.39,0,.108,.035,.085);apart(body,G.box,gold,0,.39,.085,.04,.035,.012);
   if(o.apron)apart(body,G.box,wh,0,.42,.088,.15,.26,.012);
+  // the coat's gold buttons, collar and pocket flaps, the sash at the hip (or the apron's strings and pocket)
+  {const c=o.coat||'#7a2a2a',cd=folkShade(c,-.3),B=[];for(const sd of[-1,1]){for(let i=0;i<3;i++)B.push(['sph','#e5b43a',sd*.062,.45+i*.06,.087-.002*i*i,.008,.008,.006]);
+      B.push(['box',cd,sd*.05,.7,-.005,.07,.035,.11,0,0,sd*.5])}
+    B.push(['box',cd,0,.7,-.07,.12,.04,.03]);
+    if(o.apron)B.push(['box','#d8d0bc',0,.4,.096,.08,.06,.006],['box','#d8d0bc',0,.555,.092,.16,.014,.01],['box','#b8342a',.05,.46,.097,.03,.05,.004]);
+    else B.push(['box','#b8342a',-.075,.34,.062,.034,.085,.014,0,0,.12],['box','#b8342a',-.06,.385,.07,.05,.03,.02]);
+    folkOn(body,B,'pir:body:'+c+(o.apron?'a':''),true)}
   const head=new THREE.Group();head.position.set(0,.79,0);body.add(head);
-  apart(head,G.sph,skin,0,0,.005,.06,.066,.06);apart(head,G.sph,skin,0,-.008,.062,.014,.014,.014);
-  for(const sd of[-1,1])if(!(o.patch&&sd>0))apart(head,G.sph,amat('#14110e',{roughness:.3}),sd*.024,.012,.054,.008);
+  apart(head,G.sph,skin,0,0,.005,.06,.066,.06);
+  // the face (js/folk.js): eyes, brows, nose, mouth and ears, hair under the hat, a gold ring in the ear, stubble or a moustache; with it the trim of the hat or the dots of the bandana
+  {const sk=o.skin||'#d9a074',hair=o.beard||PIR_HAIR[(o.coat||'').charCodeAt(1)%PIR_HAIR.length],tri=o.hat==='tricorn',hu=(...a)=>[a[0],a[1],a[2]/.06,a[3]/.066,(a[4]-.005)/.06,a[5]/.06,(a[6]??a[5])/.066,(a[7]??a[5])/.06,a[8],a[9],a[10]];
+    const ex=tri?[0,2.09,4.19].map(a=>hu('box','#e5b43a',Math.sin(a)*.0705,.087,Math.cos(a)*.0705,.112,.006,.015,0,a,0)).concat([hu('sph','#f0ead8',-.052,.105,-.02,.012,.045,.03,-.3,0,.5),hu('sph','#b8342a',-.05,.075,-.012,.014,.014,.014)])
+      :[-2.4,-1.5,-.75,0,.75,1.5,2.4].map((a,i)=>hu('sph','#f0ead8',Math.sin(a)*.0595,.046+(i%2)*.012,-.004+Math.cos(a)*.0595,.007,.007,.007));
+    const f=folkHead({skin:sk,hair,style:'back',dy:-.05,patch:o.patch?1:0,mous:o.beard||(o.sword||o.scope?hair:0),stubble:o.beard||o.apron?0:1,ring:'#e5b43a',neck:1,smile:o.wave||o.mug?1:0},ex,tri?'tri':'ban',true);
+    f.scale.set(.06,.066,.06);f.position.z=.005;head.add(f)}
   if(o.patch){apart(head,G.box,dk,.024,.014,.056,.028,.024,.008);apart(head,G.box,dk,0,.03,0,.125,.008,.125)}
   if(o.beard){const b=amat(o.beard);apart(head,G.sph,b,0,-.05,.035,.05,.05,.034);apart(head,G.sph,b,0,-.022,.058,.032,.012,.012)}
   if(o.hat==='tricorn'){apart(head,G.cyl,dk,0,.05,0,.1,.014,.1);apart(head,G.sph,dk,0,.07,0,.062,.04,.062);for(const a of[0,2.09,4.19])apart(head,G.box,dk,Math.sin(a)*.07,.068,Math.cos(a)*.07,.11,.035,.012,0,a,0);apart(head,G.sph,gold,0,.075,.07,.012)}
   else{apart(head,G.sph,red,0,.03,-.004,.064,.046,.064);apart(head,G.sph,red,.06,.015,-.035,.022,.022,.022);apart(head,G.box,red,.075,-.02,-.05,.014,.07,.02,0,0,.3)}
-  const arms=[];for(const sd of[-1,1]){const a=new THREE.Group();a.position.set(sd*.118,.67,0);apart(a,G.cylTop,coat,0,0,0,.028,.26,.028);apart(a,G.sph,skin,0,-.28,0,.026);body.add(a);arms.push(a)}
+  const arms=[];for(const sd of[-1,1]){const a=new THREE.Group();a.position.set(sd*.118,.67,0);apart(a,G.cylTop,coat,0,0,0,.028,.26,.028);apart(a,G.sph,skin,0,-.28,0,.026);folkOn(a,PIR_PARTS.arm(sd,o.skin||'#d9a074'),'pir:arm'+sd+(o.skin||''),true);body.add(a);arms.push(a)}
   if(o.sword){const s=new THREE.Group();s.position.set(0,-.28,0);apart(s,G.box,amat('#d8dce0',{roughness:.3,metalness:.5}),0,0,.2,.012,.03,.38);apart(s,G.box,gold,0,0,.02,.07,.02,.02);arms[1].add(s);arms[1].rotation.x=-1.1}
   if(o.mug){apart(arms[0],G.cyl,amat('#d8c597'),0,-.3,.04,.03,.06,.03);arms[0].rotation.x=-.9}
   if(o.scope){apart(arms[1],G.cyl,gold,0,-.3,.1,.016,.2,.016,Math.PI/2);arms[1].rotation.x=-2.2}

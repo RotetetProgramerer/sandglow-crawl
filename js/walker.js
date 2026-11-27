@@ -19,6 +19,29 @@ const wAng=a=>Math.atan2(Math.sin(a),Math.cos(a));
 // He is about .92 high: the same size as the driver behind the wheel (js/carmodel.js).
 const MAN={hip:.48,thigh:.225,shin:.215,torso:.27,ua:.15,fa:.15};
 let MAN_GEO=null,MAN_MAT=null;
+// what he wears, bone by bone (see js/folk.js for the frame): the driver in shirt and work trousers, and the snowmobile rider in his suit and helmet
+const MAN_PARTS=(()=>{const sh='#22394f',sl='#40658c',pd='#48432f',pl='#6e6852',bt='#3a2e24',so='#14100c',su='#16263d',tr='#f2c230',rf='#d8dce0',vz='#14181c';
+  return{man:{
+    torso:[['box',sh,0,.08,.5,.08,.74,.05],...[-.34,-.14,.06,.26].map(y=>['sph','#e8e2d0',0,y,.54,.024,.014,.035]),['box',sh,.25,.15,.5,.27,.17,.05],['box',sl,.25,.235,.51,.29,.045,.06],['sph','#e8e2d0',.25,.215,.56,.02,.012,.03],
+      ['box',sl,.16,.475,.28,.24,.07,.56],['box',sl,-.16,.475,.28,.24,.07,.56],['box',sl,0,.475,-.34,.56,.07,.4],['box',sh,0,.3,-.5,.98,.02,.04],['box',sh,.5,0,0,.02,.86,.3],['box',sh,-.5,0,0,.02,.86,.3]],
+    hips:[['box',pd,0,-.12,.5,.03,.7,.05],['box',pd,.27,.0,-.5,.3,.66,.05],['box',pd,-.27,.0,-.5,.3,.66,.05],['box',pd,.36,.2,.5,.2,.08,.05],['box',pd,-.36,.2,.5,.2,.08,.05]],
+    belt:[['box','#c8a03a',0,0,.5,.15,1.3,.09],['box','#2a211a',0,0,.54,.07,.6,.04],...[-.32,.32].map(x=>['box',pd,x,0,.5,.045,1.5,.06]),...[-.3,.3].map(x=>['box',pd,x,0,-.5,.045,1.5,.06])],
+    thigh:sx=>[['box',pd,sx*.5,-.08,0,.1,.3,.62],['box',pl,sx*.53,.06,0,.1,.06,.66],['sph','#2a211a',sx*.6,.0,0,.03,.025,.08]],
+    shin:()=>[['box',pd,0,-.455,0,1.12,.09,1.12],['box',pl,0,.3,.5,.7,.3,.06]],
+    foot:()=>[['box',so,0,-.44,0,1.08,.2,1.05],['box',bt,0,-.12,.4,1.03,.6,.22],['box','#cfc6b0',0,.52,.1,.46,.08,.4],['box',bt,0,.42,-.32,1.05,.4,.38]],
+    ua:()=>[['box',sh,0,.45,0,1.14,.1,1.14]],
+    fa:sx=>sx>0?[['box','#1d1c1a',0,.34,0,1.14,.1,1.14],['box','#d8dce0',.56,.34,0,.12,.17,.62],['box','#f2e8d0',.63,.34,0,.03,.11,.4]]:[['box','#6a4a2a',0,.36,0,1.12,.05,1.12]]},
+  skuter:{
+    torso:[['box',vz,0,-.02,.5,.05,.95,.05],['box',rf,0,.17,0,1.03,.06,1.06],['box',tr,0,.235,0,1.03,.04,1.06],['box',tr,.27,.36,.5,.22,.09,.06],['box',su,0,.49,0,.74,.1,1.05],['box',su,-.26,-.2,.5,.26,.22,.05],['box',su,.26,-.2,.5,.26,.22,.05]],
+    shin:()=>[['box',rf,0,-.18,0,1.07,.07,1.07],['box',su,0,.4,.42,.92,.26,.26]],
+    thigh:sx=>[['box',su,sx*.5,0,0,.08,.34,.6],['box',tr,sx*.54,.14,0,.04,.04,.6]],
+    foot:()=>[['box',so,0,-.44,0,1.08,.2,1.05],['box','#8a8e94',0,.2,.02,1.06,.14,.1],['box','#8a8e94',0,.2,.32,1.06,.14,.1],['box','#2c2926',0,-.1,.42,1.03,.6,.2]],
+    ua:()=>[['box',tr,0,0,0,1.1,.09,1.1],['box',rf,0,-.1,0,1.1,.05,1.1]],
+    fa:()=>[['box',su,0,.4,0,1.2,.2,1.2],['box',tr,0,.27,0,1.21,.03,1.21]]},
+  // the helmet's details, in the head's own measures: vents at the chin and the sides, the rim and the pivots of the visor, a glint in it, the stripe behind and the collar
+  helmet:[['box',vz,.03,-.07,.111,.028,.012,.006],['box',vz,-.03,-.07,.111,.028,.012,.006],['box',vz,0,-.052,.111,.05,.008,.006],['box',vz,.088,-.02,.02,.02,.02,.06],['box',vz,-.088,-.02,.02,.02,.02,.06],
+    ['box',vz,0,.044,.094,.162,.012,.03,.12],['cyl','#8a8e94',.08,.006,.062,.014,.012,.014,0,0,1.5708],['cyl','#8a8e94',-.08,.006,.062,.014,.012,.014,0,0,1.5708],['box','#6a8aa6',-.035,.02,.1045,.04,.012,.004,.12],
+    ['box',tr,0,-.035,-.1,.12,.02,.012],['box','#c8463a',0,.02,-.104,.05,.03,.008],['cyl',su,0,-.098,-.005,.066,.04,.066]]}})();
 function makeMan(skuter){
   if(!MAN_GEO){MAN_GEO={sph:new THREE.SphereGeometry(1,14,10),cap:new THREE.SphereGeometry(1,14,8,0,Math.PI*2,0,Math.PI*.5)};
     const mat=(c,r=.75)=>new THREE.MeshStandardMaterial({color:LIN(c),roughness:r});MAN_MAT={pants:mat('#5d5744'),boot:mat('#2a211a'),eye:mat('#1a1410',.3),belt:mat('#2a211a'),cab:mat('#12110f',.95)}}
@@ -29,11 +52,15 @@ function makeMan(skuter){
     uaL:P(shirt),uaR:P(shirt),faL:P(fore),faR:P(fore),handL:P(hand,MAN_GEO.sph),handR:P(hand,MAN_GEO.sph)};
   body.add(head);
   if(skuter){const h=P(K.helm,MAN_GEO.sph,head);h.scale.set(.096,.096,.105);const vz=P(K.visor,null,head);vz.scale.set(.15,.065,.03);vz.position.set(0,.005,.088);vz.rotation.x=.12;
-    const st=P(K.trim,null,head);st.scale.set(.03,.012,.2);st.position.set(0,.097,0);const ch=P(K.helm,null,head);ch.scale.set(.12,.06,.1);ch.position.set(0,-.06,.06)}
+    const st=P(K.trim,null,head);st.scale.set(.03,.012,.2);st.position.set(0,.097,0);const ch=P(K.helm,null,head);ch.scale.set(.12,.06,.1);ch.position.set(0,-.06,.06);
+    folkOn(head,MAN_PARTS.helmet,'man:helmet')}
   else{const h=P(M.skin,MAN_GEO.sph,head);h.scale.setScalar(.064);const cap=P(M.blk,MAN_GEO.cap,head);cap.scale.setScalar(.068);cap.position.y=.008;
     const br=P(M.blk,null,head);br.scale.set(.1,.012,.07);br.position.set(0,.014,.085);br.rotation.x=.12;
-    for(const sx of[1,-1]){const e=P(MAN_MAT.eye,MAN_GEO.sph,head);e.scale.setScalar(.009);e.position.set(sx*.024,-.006,.059);e.castShadow=false}
-    const nose=P(M.skin,null,head);nose.scale.set(.016,.022,.02);nose.position.set(0,-.02,.064)}
+    const f=folkHead(FOLK_DRIVER,FOLK_CAP,'cap');f.scale.setScalar(.064);head.add(f)}
+  // the details of his clothes: one mesh on each bone, in the bone's own frame (js/folk.js)
+  const D=MAN_PARTS[skuter?'skuter':'man'],kk='man:'+(skuter?'s:':'m:');
+  for(const k of['torso','hips','belt'])if(D[k])folkOn(v[k],D[k],kk+k);
+  for(const[sd,sx]of[['L',1],['R',-1]])for(const k of['shin','thigh','foot','ua','fa'])if(D[k])folkOn(v[k+sd],D[k](sx),kk+k+sd);
   root.visible=false;return v}
 // two bones from a to b (lengths l1 and l2) that bend towards the pole (px,py,pz): returns the joint between them. b is pulled in if it is out of reach
 function manIK(a,b,l1,l2,px,py,pz,out){let dx=b.x-a.x,dy=b.y-a.y,dz=b.z-a.z,D=Math.hypot(dx,dy,dz)||1e-4;const mx=l1+l2-.002;

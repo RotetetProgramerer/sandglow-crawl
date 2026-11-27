@@ -20,6 +20,8 @@ js/skier.js           Fysikken for skiløperen i Gautefall: carving, skrens, hoc
 js/ski.js             Skianlegget i spillet: stolheisen, skiløperen (modell og stillinger), turen opp og ned, kamera, mellomtider, spøkelset og lyd.
 js/skiresort.js       Livet i skianlegget: kordfløyel og is på løypene, gamle skispor, startgrind, nett, målområder med publikum
                       og tidtavle, løypekartet, snøkanoner, andre skiløpere og folk i stolheisen.
+js/folk.js            Menneskene: ansikt (øyne, øyenbryn, nese, munn, ører, hår, skjegg) og detaljene på klærne (krager, knapper, lommer,
+                      mansjetter, såler, striper). Brukes av alle som tegner folk. Mange små deler bakes til ett nett med farge per hjørne.
 js/walker.js          Til fots: sjåføren går ut av bilen (E), går, løper og hopper rundt og setter seg inn igjen. Mannen og stillingene hans,
                       døra som svinger opp, hva han kan gå på og rundt, og kameraet til fots.
 js/boatsim.js         Fysikken for motorbåtløpet: båtene, bøyene, piratene og vulkanen (ingen DOM, testes uten nettleser).
@@ -736,6 +738,7 @@ Trykk **E** (eller knappen med den gående mannen, eller høyre skulderknapp på
 - **Døra:** Bilene er tegnet uten dører som kan åpnes. `js/walker.js` lager derfor en dør i det han går ut eller inn: en plate over siden av bilen som svinger opp, og en mørk flate bak som ser ut som åpningen inn i kupeen. `buildBody` i `js/carmodel.js` forteller hvor døra er (`userData.door`). Monstertrucken, sportsbilen og trophy trucken har ingen slik dør, så der klatrer han rett ut. Er det ikke plass på førersiden (en vegg, dypt vann, et stup), går han ut på den andre siden.
 - **Sjåføren i setet** (hode, caps og skjorte, eller hele føreren på snøskuteren) er merket med `userData.driver` i `js/carmodel.js` og skjules mens han er ute. På snøskuteren går han i skuterdress og hjelm.
 - **Justere:** Farten (`2.5` i `walkMove`), hopphøyden (`W.vy=2.9`), hvor bratt han kommer opp (`1.35` i `walkOk`) og hvor dypt han vasser (`.42`) står som tall i `js/walker.js`. Størrelsen og proporsjonene hans står i `MAN` øverst.
+- **Ansikt og klær:** Alle menneskene i spillet får ansiktet fra `folkFace` i `js/folk.js` (velg `skin`, `hair`, `style`, `beard`, `shades`, `smile` og flere), og detaljene på klærne er lister med deler: `MAN_PARTS` i `js/walker.js` (sjåføren og skuterføreren), `CREW_*` og `folkShirt` (de to i bilen), `PIR_PARTS` (sjørøverne), `SKI_PARTS` (skiløperne), `crowdGeo` (tilskuerne). En del er `[form, farge, x, y, z, sx, sy, sz, rx, ry, rz]` med formene `'box'`, `'sph'`, `'cyl'` og `'cap'`. Delene bakes til ett nett per kroppsdel, så de koster ett tegnekall hver.
 - **En ny biltype:** Biler med `style` `'box'`, `'glass'`, `'step'` eller `'pickup'` får dør og sjåfør av seg selv. Lager du en helt ny tegnefunksjon, legger du til hvor føreren sitter i `walkSeat` i `js/walker.js`.
 
 ## Kjør sammen (flerspiller)
